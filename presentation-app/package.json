@@ -9,6 +9,8 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "html2canvas": "^1.4.1",
+    "jspdf": "^4.2.1",
     "katex": "^0.16.45",
     "marked": "^17.0.6",
     "next": "16.2.2",

@@ -8,33 +8,59 @@ interface PresentationModeProps {
   slides: Slide[];
   onExit: () => void;
   initialSlide?: number;
+  themeId?: string;
+  fontSizeId?: string;
 }
 
 export default function PresentationMode({
   slides,
   onExit,
   initialSlide = 0,
+  themeId = 'default',
+  fontSizeId = 'large',
 }: PresentationModeProps) {
   const [currentSlide, setCurrentSlide] = useState<number>(initialSlide);
   const containerRef = useRef<HTMLDivElement>(null);
+  const wasFullscreenRef = useRef<boolean>(false);
 
   const handleExit = useCallback(() => {
     // Exit fullscreen if currently in fullscreen
     if (document.fullscreenElement) {
       document.exitFullscreen().catch(console.error);
+    } else {
+      // If not in fullscreen, exit presentation mode directly
+      onExit();
     }
-    // Exit presentation mode
-    onExit();
   }, [onExit]);
 
-  // Cleanup: exit fullscreen when component unmounts
+  // Handle fullscreen changes - exit presentation when fullscreen is exited
   useEffect(() => {
+    // Check if we're already in fullscreen when component mounts
+    if (document.fullscreenElement) {
+      wasFullscreenRef.current = true;
+    }
+
+    const handleFullscreenChange = () => {
+      if (document.fullscreenElement) {
+        // We entered fullscreen
+        wasFullscreenRef.current = true;
+      } else if (wasFullscreenRef.current) {
+        // Fullscreen was exited (and we were previously in fullscreen)
+        // Exit presentation mode
+        onExit();
+      }
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+
     return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      // Cleanup: exit fullscreen when component unmounts
       if (document.fullscreenElement) {
         document.exitFullscreen().catch(console.error);
       }
     };
-  }, []);
+  }, [onExit]);
 
   useEffect(() => {
     // Keyboard navigation
@@ -61,16 +87,15 @@ export default function PresentationMode({
           e.preventDefault();
           setCurrentSlide(slides.length - 1);
           break;
-        case 'Escape':
-          e.preventDefault();
-          handleExit();
-          break;
+        // Note: ESC handling is done by the browser's fullscreen API
+        // When ESC is pressed, browser exits fullscreen automatically
+        // and fullscreenchange event will trigger handleExit
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [slides.length, handleExit]);
+  }, [slides.length]);
 
   if (slides.length === 0) {
     return (
@@ -85,15 +110,6 @@ export default function PresentationMode({
       ref={containerRef}
       className="w-full h-screen bg-gray-900 flex items-center justify-center relative"
     >
-      {/* Exit button */}
-      <button
-        onClick={handleExit}
-        className="absolute top-4 right-4 z-50 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg shadow-lg transition-colors opacity-50 hover:opacity-100"
-        title="Präsentation beenden (ESC)"
-      >
-        ✕ Beenden
-      </button>
-
       {/* Slide navigation indicators */}
       <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-50 flex items-center gap-2 px-4 py-2 bg-gray-800 rounded-full shadow-lg opacity-50 hover:opacity-100 transition-opacity">
         <button
@@ -120,22 +136,16 @@ export default function PresentationMode({
       </div>
 
       {/* Slide content */}
-      <div className="w-full h-full flex items-center justify-center p-8">
-        <div className="w-full max-w-6xl h-full">
+      <div className="w-full h-full flex items-center justify-center px-8 py-8">
+        <div className="w-full h-full">
           <SlidePreview
             markdown={slides[currentSlide].rawMarkdown}
             slideNumber={currentSlide + 1}
             totalSlides={slides.length}
+            themeId={themeId}
+            fontSizeId={fontSizeId}
           />
         </div>
-      </div>
-
-      {/* Keyboard hints */}
-      <div className="absolute top-4 left-4 z-50 text-white text-xs bg-gray-800 rounded-lg p-3 opacity-30 hover:opacity-100 transition-opacity">
-        <div className="font-semibold mb-1">Tastenkürzel:</div>
-        <div>← / → : Navigation</div>
-        <div>Leertaste : Nächste Folie</div>
-        <div>ESC : Beenden</div>
       </div>
     </div>
   );
