@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { Slide } from '@/lib/markdown';
 import SlidePreview from './SlidePreview';
+import { type StoredImage } from '@/lib/imageStorage';
 
 interface PresentationModeProps {
   slides: Slide[];
@@ -10,6 +11,7 @@ interface PresentationModeProps {
   initialSlide?: number;
   themeId?: string;
   fontSizeId?: string;
+  uploadedImages?: StoredImage[];
 }
 
 export default function PresentationMode({
@@ -18,6 +20,7 @@ export default function PresentationMode({
   initialSlide = 0,
   themeId = 'default',
   fontSizeId = 'large',
+  uploadedImages = [],
 }: PresentationModeProps) {
   const [currentSlide, setCurrentSlide] = useState<number>(initialSlide);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -144,6 +147,7 @@ export default function PresentationMode({
             totalSlides={slides.length}
             themeId={themeId}
             fontSizeId={fontSizeId}
+            uploadedImages={uploadedImages}
           />
         </div>
       </div>

@@ -140,19 +140,63 @@ body {
 
 .prose table {
   width: 100%;
+  max-width: 1200px;
+  margin: 2em auto;
   border-collapse: collapse;
-  margin-top: 1em;
-  margin-bottom: 1em;
+  font-size: 1.1em;
 }
 
 .prose th,
 .prose td {
   border: 1px solid var(--theme-accent);
-  padding: 0.5em;
+  padding: 0.75em 1em;
   color: var(--theme-text);
+  text-align: left;
 }
 
 .prose th {
   background-color: var(--theme-code-bg);
   font-weight: 700;
+  font-size: 1.15em;
+}
+
+/* Empty headers should look like normal cells */
+.prose th:empty,
+.prose th:not(:empty):has(br:only-child) {
+  background-color: transparent;
+  font-weight: 400;
+  font-size: 1em;
+}
+
+.prose td:first-child {
+  text-align: center;
+  font-weight: 600;
+  width: 80px;
+}
+
+.prose img {
+  max-width: 90%;
+  max-height: 60vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  margin: 2em auto;
+  display: block;
+}
+
+/* Title slide special styling */
+.prose.title-slide h1 {
+  font-size: 3.5em;
+  margin-top: 0;
+  margin-bottom: 0.5em;
+}
+
+.prose.title-slide h2 {
+  font-size: 2.5em;
+  margin-top: 0.5em;
+}
+
+.prose.title-slide p {
+  font-size: 1.4em;
+  margin-top: 1em;
 }

@@ -44,24 +44,37 @@ export async function exportToPDF({
   container.style.boxSizing = 'border-box';
   document.body.appendChild(container);
 
+  // Load logo image
+  const logoImg = new Image();
+  logoImg.src = '/msg-logo.png';
+  await new Promise((resolve, reject) => {
+    logoImg.onload = resolve;
+    logoImg.onerror = reject;
+  });
+
   try {
     for (let i = 0; i < slides.length; i++) {
       if (onProgress) {
         onProgress(i + 1, slides.length);
       }
 
-      // Create slide content with theme styling
+      // Create slide content with theme styling and logo
       container.innerHTML = `
-        <div class="prose max-w-none" style="
-          font-size: ${fontSize.size};
-          line-height: ${fontSize.lineHeight};
-          color: ${theme.textColor};
-          --theme-text: ${theme.textColor};
-          --theme-heading: ${theme.headingColor};
-          --theme-accent: ${theme.accentColor};
-          --theme-code-bg: ${theme.codeBackground};
-        ">
-          ${slides[i].content}
+        <div style="position: relative; width: 100%; height: 100%;">
+          <div style="position: absolute; top: 0; right: 0; z-index: 10;">
+            <img src="/msg-logo.png" alt="MSG Logo" style="height: 48px; width: auto; opacity: 0.8;" />
+          </div>
+          <div class="prose max-w-none" style="
+            font-size: ${fontSize.size};
+            line-height: ${fontSize.lineHeight};
+            color: ${theme.textColor};
+            --theme-text: ${theme.textColor};
+            --theme-heading: ${theme.headingColor};
+            --theme-accent: ${theme.accentColor};
+            --theme-code-bg: ${theme.codeBackground};
+          ">
+            ${slides[i].content}
+          </div>
         </div>
       `;
 

@@ -1,9 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { renderMarkdownToHTML } from '@/lib/markdown';
 import { getTheme, fontSizes } from '@/lib/themes';
+import { type StoredImage } from '@/lib/imageStorage';
 import 'katex/dist/katex.min.css';
+
+// Cache for rendered HTML to avoid re-rendering
+const htmlCache = new Map<string, string>();
 
 interface SlidePreviewProps {
   markdown: string;
@@ -11,6 +15,7 @@ interface SlidePreviewProps {
   totalSlides: number;
   themeId?: string;
   fontSizeId?: string;
+  uploadedImages?: StoredImage[];
 }
 
 export default function SlidePreview({
@@ -19,15 +24,77 @@ export default function SlidePreview({
   totalSlides,
   themeId = 'default',
   fontSizeId = 'large',
+  uploadedImages = [],
 }: SlidePreviewProps) {
   const [html, setHtml] = useState<string>('');
   const theme = getTheme(themeId);
   const fontSize = fontSizes.find((s) => s.id === fontSizeId) || fontSizes[2];
+  const isTitleSlide = slideNumber === 1;
+
+  // Check if this slide is just an image (trim whitespace first)
+  const trimmedMarkdown = markdown.trim();
+  const imageMatch = trimmedMarkdown.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
+  const isImageSlide = !!imageMatch;
+
+  // Find the matching image
+  const foundImage = imageMatch
+    ? uploadedImages.find((img) => img.name === imageMatch[2])
+    : null;
+
+  const imageUrl = foundImage?.dataUrl || null;
+
+
+  // Process markdown with image URLs replaced
+  const processedMarkdown = useMemo(() => {
+    if (isImageSlide) return markdown;
+
+    let processed = markdown;
+    const imageRegex = /!\[([^\]]*)\]\(([^)]+)\)/g;
+    let match;
+
+    while ((match = imageRegex.exec(markdown)) !== null) {
+      const filename = match[2];
+      const foundImage = uploadedImages.find((img) => img.name === filename);
+
+      if (foundImage) {
+        processed = processed.replace(
+          match[0],
+          `![${match[1]}](${foundImage.dataUrl})`
+        );
+      }
+    }
+
+    return processed;
+  }, [markdown, uploadedImages, isImageSlide]);
 
   useEffect(() => {
+    // Skip HTML rendering for image-only slides
+    if (isImageSlide) {
+      setHtml('');
+      return;
+    }
+
     const render = async () => {
       try {
-        const rendered = await renderMarkdownToHTML(markdown);
+        // Check cache first
+        const cacheKey = processedMarkdown;
+        const cached = htmlCache.get(cacheKey);
+
+        if (cached) {
+          setHtml(cached);
+          return;
+        }
+
+        // Render and cache
+        const rendered = await renderMarkdownToHTML(processedMarkdown);
+        htmlCache.set(cacheKey, rendered);
+
+        // Limit cache size to 50 entries
+        if (htmlCache.size > 50) {
+          const firstKey = htmlCache.keys().next().value;
+          htmlCache.delete(firstKey);
+        }
+
         setHtml(rendered);
       } catch (error) {
         console.error('Error rendering markdown:', error);
@@ -35,7 +102,7 @@ export default function SlidePreview({
       }
     };
     render();
-  }, [markdown]);
+  }, [processedMarkdown, isImageSlide]);
 
   const containerStyle: React.CSSProperties = {
     background: theme.background,
@@ -55,22 +122,45 @@ export default function SlidePreview({
 
   return (
     <div
-      className="w-full h-full flex flex-col rounded-lg shadow-lg overflow-hidden border slide-container"
+      className="w-full h-full flex flex-col rounded-lg shadow-lg overflow-hidden border slide-container relative"
       style={containerStyle}
     >
-      <div className="flex-1 overflow-auto p-12">
-        <div
-          className="prose max-w-none"
-          style={contentStyle}
-          dangerouslySetInnerHTML={{ __html: html }}
+      {/* Logo oben rechts */}
+      <div className="absolute top-4 right-4 z-10">
+        <img
+          src="/msg-logo.png"
+          alt="MSG Logo"
+          className="h-8 w-auto opacity-80"
         />
+      </div>
+
+      <div className={`flex-1 overflow-auto pt-6 px-12 pb-12 ${isTitleSlide ? 'flex items-center justify-center' : ''}`}>
+        {isImageSlide && imageUrl ? (
+          <div className="w-full h-full flex items-center justify-center">
+            <img
+              src={imageUrl}
+              alt={imageMatch?.[1] || 'Slide image'}
+              className="max-w-full max-h-full object-contain"
+            />
+          </div>
+        ) : (
+          <div
+            className={`prose max-w-none w-full ${isTitleSlide ? 'title-slide' : ''}`}
+            style={isTitleSlide ? {
+              ...contentStyle,
+              fontSize: '1.5rem',
+              textAlign: 'center',
+            } : contentStyle}
+            dangerouslySetInnerHTML={{ __html: html }}
+          />
+        )}
       </div>
       <div
         className="border-t px-6 py-3 flex justify-between items-center text-sm opacity-70"
         style={{ borderColor: theme.borderColor }}
       >
         <span>
-          Slide {slideNumber} / {totalSlides}
+          © Axel Helmert, April 2026
         </span>
       </div>
     </div>
