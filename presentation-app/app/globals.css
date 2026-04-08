@@ -194,9 +194,9 @@ body {
 }
 
 .prose table {
-  width: 100%;
-  max-width: 1200px;
-  margin: 2em auto;
+  width: 80% !important;
+  max-width: none !important;
+  margin: 2em auto !important;
   border-collapse: collapse;
   font-size: 1.1em;
 }

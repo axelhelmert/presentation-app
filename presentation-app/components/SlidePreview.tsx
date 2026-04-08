@@ -130,7 +130,7 @@ export default function SlidePreview({
         <img
           src="/msg-logo.png"
           alt="MSG Logo"
-          className="h-8 w-auto opacity-80"
+          className="h-10 w-auto opacity-80"
         />
       </div>
 

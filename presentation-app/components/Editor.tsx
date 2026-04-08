@@ -4,10 +4,10 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { parseSlides, Slide, renderMarkdownToHTML } from '@/lib/markdown';
 import SlidePreview from './SlidePreview';
 import PresentationMode from './PresentationMode';
+import ImageLibrary from './ImageLibrary';
 import { themes, fontSizes, getTheme } from '@/lib/themes';
 import { exportToPDF } from '@/lib/pdfExport';
 import {
-  saveImage,
   getAllImages,
   type StoredImage,
 } from '@/lib/imageStorage';
@@ -82,6 +82,7 @@ export default function Editor() {
   const [exportProgress, setExportProgress] = useState<string>('');
   const [uploadedImages, setUploadedImages] = useState<StoredImage[]>([]);
   const [showTableMenu, setShowTableMenu] = useState<boolean>(false);
+  const [showImageLibrary, setShowImageLibrary] = useState<boolean>(false);
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
 
   // Load from LocalStorage on mount
@@ -231,32 +232,6 @@ export default function Editor() {
     event.target.value = '';
   };
 
-  const compressImage = (dataUrl: string, maxWidth: number = 1920, quality: number = 0.85): Promise<string> => {
-    return new Promise((resolve) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        let { width, height } = img;
-
-        // Scale down if necessary
-        if (width > maxWidth) {
-          height = (height * maxWidth) / width;
-          width = maxWidth;
-        }
-
-        canvas.width = width;
-        canvas.height = height;
-
-        const ctx = canvas.getContext('2d');
-        ctx?.drawImage(img, 0, 0, width, height);
-
-        // Convert to JPEG with quality compression
-        resolve(canvas.toDataURL('image/jpeg', quality));
-      };
-      img.src = dataUrl;
-    });
-  };
-
   const handleInsertTable = (withHeader: boolean = true) => {
     const tableTemplate = withHeader
       ? `\n\n| Spalte 1 | Spalte 2 | Spalte 3 |
@@ -298,42 +273,39 @@ export default function Editor() {
     setShowTableMenu(false);
   };
 
-  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file && file.type.startsWith('image/')) {
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        const originalDataUrl = e.target?.result as string;
+  const handleInsertImageFromLibrary = (filename: string) => {
+    const imageName = filename.replace(/\.[^/.]+$/, ''); // Remove extension
+    const imageMarkdown = `![${imageName}](${filename})`;
 
-        try {
-          // Compress image
-          const compressedDataUrl = await compressImage(originalDataUrl);
+    const textarea = textareaRef.current;
+    if (textarea) {
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const text = textarea.value;
 
-          const newImage: StoredImage = {
-            name: file.name,
-            dataUrl: compressedDataUrl,
-            timestamp: Date.now(),
-          };
+      // Insert at cursor position
+      const newText = text.substring(0, start) + imageMarkdown + text.substring(end);
+      setMarkdown(newText);
 
-          // Save to IndexedDB
-          await saveImage(newImage);
-
-          // Update state
-          setUploadedImages((prev) => [...prev, newImage]);
-
-          // Insert markdown reference at cursor position
-          const imageName = file.name.replace(/\.[^/.]+$/, ''); // Remove extension
-          const imageMarkdown = `\n\n![${imageName}](${file.name})\n\n`;
-          setMarkdown((prev) => prev + imageMarkdown);
-        } catch (error) {
-          console.error('Failed to save image:', error);
-          alert('Fehler beim Speichern des Bildes. Möglicherweise ist es zu groß.');
-        }
-      };
-      reader.readAsDataURL(file);
+      // Set cursor position after inserted image
+      setTimeout(() => {
+        textarea.focus();
+        const newPosition = start + imageMarkdown.length;
+        textarea.setSelectionRange(newPosition, newPosition);
+      }, 0);
+    } else {
+      // Fallback: append to end
+      setMarkdown((prev) => prev + '\n\n' + imageMarkdown + '\n\n');
     }
-    // Reset input so same file can be uploaded again
-    event.target.value = '';
+  };
+
+  const handleReloadImages = async () => {
+    try {
+      const images = await getAllImages();
+      setUploadedImages(images);
+    } catch (error) {
+      console.error('Failed to reload images:', error);
+    }
   };
 
   // Close table menu when clicking outside
@@ -420,20 +392,13 @@ export default function Editor() {
                   </div>
                 )}
               </div>
-              <label
-                htmlFor="image-upload"
-                className="px-3 py-1 bg-blue-700 rounded hover:bg-blue-600 text-sm cursor-pointer transition-colors"
-                title="Bild hochladen"
+              <button
+                onClick={() => setShowImageLibrary(true)}
+                className="px-3 py-1 bg-blue-700 rounded hover:bg-blue-600 text-sm transition-colors"
+                title="Bild-Bibliothek öffnen"
               >
-                🖼️ Bild
-              </label>
-              <input
-                id="image-upload"
-                type="file"
-                accept="image/*"
-                onChange={handleImageUpload}
-                className="hidden"
-              />
+                🖼️ Bilder
+              </button>
               <label
                 htmlFor="markdown-import"
                 className="px-3 py-1 bg-gray-700 rounded hover:bg-gray-600 text-sm cursor-pointer transition-colors"
@@ -575,6 +540,16 @@ export default function Editor() {
           )}
         </div>
       </div>
+
+      {/* Image Library Modal */}
+      {showImageLibrary && (
+        <ImageLibrary
+          images={uploadedImages}
+          onClose={() => setShowImageLibrary(false)}
+          onInsertImage={handleInsertImageFromLibrary}
+          onImagesChanged={handleReloadImages}
+        />
+      )}
     </div>
   );
 }
