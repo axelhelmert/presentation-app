@@ -62,6 +62,55 @@ const STANDARD_TEMPLATES = `/* ===== Standard Table Templates ===== */
   padding: 0;
 }
 
+/* ===== Big Table Variant (für Tabellen mit mehr Inhalt) ===== */
+.prose .big-table-numbered {
+  width: 80%;
+  margin-left: auto;
+  margin-right: auto;
+  border-collapse: collapse;
+  font-family: sans-serif;
+}
+
+.prose .big-table-numbered td {
+  border-bottom: 1px solid var(--theme-accent);
+  padding: 20px;
+  vertical-align: top;
+}
+
+.prose .big-table-numbered .num-col {
+  width: 160px !important;
+  font-size: 4rem;
+  font-weight: bold;
+  color: var(--theme-heading);
+  text-align: center;
+  line-height: 1;
+}
+
+.prose .big-table-numbered .content-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.prose .big-table-numbered .cell-title {
+  font-size: 1.6rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  color: var(--theme-text);
+  opacity: 0.7;
+  border-bottom: 0.5px solid var(--theme-accent);
+}
+
+.prose .big-table-numbered .cell-details {
+  font-size: 1.4rem;
+  color: var(--theme-text);
+}
+
+.prose .big-table-numbered .cell-details ul {
+  margin: 8px 0 0 20px;
+  padding: 0;
+}
+
 /* ===== Eigene Anpassungen hier hinzufügen ===== */
 /* Verfügbare Theme-Variablen: */
 /* --theme-text, --theme-heading, --theme-accent, --theme-code-bg */
@@ -105,6 +154,33 @@ export default function CustomCSSEditor({ onClose }: CustomCSSEditorProps) {
     }
   };
 
+  const handleDownload = () => {
+    const blob = new Blob([css], { type: 'text/css' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'custom-styles.css';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file && (file.type === 'text/css' || file.name.endsWith('.css'))) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const content = e.target?.result as string;
+        setCss(content);
+      };
+      reader.readAsText(file);
+    } else {
+      alert('Bitte eine CSS-Datei auswählen (.css)');
+    }
+    event.target.value = '';
+  };
+
   const handleReset = () => {
     if (confirm('Alle eigenen CSS-Änderungen löschen und Standards wiederherstellen?')) {
       setCss(STANDARD_TEMPLATES);
@@ -122,7 +198,7 @@ export default function CustomCSSEditor({ onClose }: CustomCSSEditorProps) {
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-lg shadow-2xl w-11/12 max-w-4xl max-h-[90vh] overflow-hidden flex flex-col"
+        className="bg-white rounded-lg shadow-2xl w-11/12 max-w-6xl h-[95vh] overflow-hidden flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -136,17 +212,40 @@ export default function CustomCSSEditor({ onClose }: CustomCSSEditorProps) {
           </button>
         </div>
 
-        {/* Info */}
-        <div className="bg-blue-50 border-b border-blue-200 px-6 py-3">
-          <p className="text-sm text-blue-800">
-            <strong>Hinweis:</strong> Die Standard-Templates werden beim ersten Öffnen angezeigt.
-            Du kannst sie anpassen oder erweitern. Änderungen werden in LocalStorage gespeichert.
-            Mit "Standards laden" kannst du jederzeit die Original-Templates wiederherstellen.
-          </p>
+        {/* Info & Actions */}
+        <div className="bg-blue-50 border-b border-blue-200 px-6 py-2">
+          <div className="flex justify-between items-center gap-4">
+            <p className="text-xs text-blue-800 flex-shrink">
+              Bearbeite hier oder extern mit 💾 Download / 📂 Upload
+            </p>
+            <div className="flex gap-2 flex-shrink-0">
+              <button
+                onClick={handleDownload}
+                className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-500 text-sm"
+                title="CSS-Datei herunterladen"
+              >
+                💾 Download
+              </button>
+              <label
+                htmlFor="css-upload"
+                className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-500 text-sm cursor-pointer"
+                title="CSS-Datei hochladen"
+              >
+                📂 Upload
+              </label>
+              <input
+                id="css-upload"
+                type="file"
+                accept=".css,text/css"
+                onChange={handleUpload}
+                className="hidden"
+              />
+            </div>
+          </div>
         </div>
 
         {/* CSS Editor */}
-        <div className="flex-1 overflow-hidden p-6">
+        <div className="flex-1 overflow-hidden p-3">
           <textarea
             value={css}
             onChange={(e) => setCss(e.target.value)}
@@ -157,34 +256,34 @@ export default function CustomCSSEditor({ onClose }: CustomCSSEditorProps) {
         </div>
 
         {/* Footer */}
-        <div className="bg-gray-100 px-6 py-4 border-t border-gray-300 flex justify-between items-center">
-          <div className="flex gap-3">
+        <div className="bg-gray-100 px-6 py-2 border-t border-gray-300 flex justify-between items-center">
+          <div className="flex gap-2">
             <button
               onClick={handleLoadStandards}
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-500"
+              className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-500"
               title="Standard-Templates laden"
             >
               📋 Standards laden
             </button>
             <button
               onClick={handleReset}
-              className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-500"
+              className="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-500"
               title="Alles zurücksetzen und Standards wiederherstellen"
             >
               🗑️ Zurücksetzen
             </button>
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-2">
             <button
               onClick={onClose}
-              className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-500"
+              className="px-3 py-1 bg-gray-600 text-white text-sm rounded hover:bg-gray-500"
             >
               Abbrechen
             </button>
             <button
               onClick={handleSave}
               disabled={isSaving}
-              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-500 disabled:opacity-50"
+              className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-500 disabled:opacity-50"
             >
               {isSaving ? '✓ Gespeichert' : '💾 Speichern'}
             </button>

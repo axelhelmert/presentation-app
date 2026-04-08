@@ -27,49 +27,54 @@ Eine markdown-basierte Präsentations-App mit Live-Vorschau, Theming-Unterstütz
 ### Export & Storage
 - **jsPDF** - PDF-Generierung
 - **html2canvas** - DOM zu Canvas Rendering
-- **IndexedDB** - Browser-Datenbank für Bilder
-- **LocalStorage** - Persistenz für Text und Einstellungen
+- **IndexedDB** - Browser-Datenbank für Bilder und HTML-Templates
+- **LocalStorage** - Persistenz für Text, Einstellungen und Custom CSS
 
 ## Architektur
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                        Browser (Client)                      │
-├─────────────────────────────────────────────────────────────┤
-│                                                              │
-│  ┌────────────────────────────────────────────────────┐    │
-│  │              Editor Component (Main)                │    │
-│  │  - Markdown Input                                   │    │
-│  │  - Slide Management                                 │    │
-│  │  - Import/Export                                    │    │
-│  │  - Image Upload                                     │    │
-│  └───────┬────────────────────────────────┬───────────┘    │
-│          │                                 │                 │
-│          ▼                                 ▼                 │
-│  ┌──────────────┐                ┌──────────────────┐      │
-│  │ SlidePreview │                │ PresentationMode │      │
-│  │  - Live View │                │  - Full Screen   │      │
-│  │  - Themes    │                │  - Navigation    │      │
-│  └──────────────┘                └──────────────────┘      │
-│          │                                 │                 │
-│          └────────────┬────────────────────┘                │
-│                       ▼                                      │
-│          ┌─────────────────────────┐                        │
-│          │  Markdown Processing    │                        │
-│          │  - parseSlides()        │                        │
-│          │  - renderMarkdownToHTML │                        │
-│          └─────────────────────────┘                        │
-│                       │                                      │
-│          ┌────────────┴────────────┐                        │
-│          ▼                          ▼                        │
-│  ┌──────────────┐          ┌──────────────┐               │
-│  │ LocalStorage │          │  IndexedDB   │               │
-│  │  - Markdown  │          │  - Images    │               │
-│  │  - Theme     │          │  (compressed)│               │
-│  │  - Font Size │          └──────────────┘               │
-│  └──────────────┘                                           │
-│                                                              │
-└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────┐
+│                        Browser (Client)                              │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                      │
+│  ┌────────────────────────────────────────────────────────────┐    │
+│  │              Editor Component (Main)                        │    │
+│  │  - Markdown Input                                           │    │
+│  │  - Slide Management                                         │    │
+│  │  - Import/Export                                            │    │
+│  │  - Author Management                                        │    │
+│  └───┬────────────┬────────────┬────────────┬────────────────┘    │
+│      │            │            │            │                       │
+│      ▼            ▼            ▼            ▼                       │
+│  ┌────────┐ ┌─────────┐ ┌─────────┐ ┌──────────────┐             │
+│  │ Image  │ │Template │ │ Custom  │ │ SlidePreview │             │
+│  │Library │ │Library  │ │   CSS   │ │  - Live View │             │
+│  │        │ │         │ │ Editor  │ │  - Themes    │             │
+│  └────────┘ └─────────┘ └─────────┘ └──────────────┘             │
+│      │            │            │            │                       │
+│      └────────────┴────────────┴────────────┘                       │
+│                   │                                                  │
+│                   ▼                                                  │
+│          ┌──────────────────┐                ┌──────────────────┐  │
+│          │ PresentationMode │                │ Markdown Process │  │
+│          │  - Full Screen   │◄───────────────│  - parseSlides() │  │
+│          │  - Navigation    │                │  - render HTML   │  │
+│          └──────────────────┘                └──────────────────┘  │
+│                                                        │              │
+│                   ┌────────────────────────────────────┘              │
+│                   │                                                   │
+│          ┌────────┴─────────┐                                        │
+│          ▼                   ▼                                        │
+│  ┌──────────────┐    ┌──────────────┐                               │
+│  │ LocalStorage │    │  IndexedDB   │                               │
+│  │  - Markdown  │    │  - Images    │                               │
+│  │  - Theme     │    │  - Templates │                               │
+│  │  - Font Size │    │ (compressed) │                               │
+│  │  - Author    │    └──────────────┘                               │
+│  │  - Custom CSS│                                                    │
+│  └──────────────┘                                                    │
+│                                                                       │
+└───────────────────────────────────────────────────────────────────────┘
 ```
 
 ## Komponenten
@@ -85,14 +90,19 @@ Eine markdown-basierte Präsentations-App mit Live-Vorschau, Theming-Unterstütz
 - `selectedTheme` - Aktives Theme
 - `selectedFontSize` - Schriftgröße
 - `uploadedImages` - Bild-Referenzen aus IndexedDB
+- `storedTemplates` - HTML-Template-Referenzen aus IndexedDB
+- `author` - Autor-Name für Footer
 
 **Features:**
 - Split-Screen Editor/Preview
-- Auto-Save (debounced)
+- Auto-Save (debounced) zu LocalStorage
 - Markdown Import/Export
-- Bild-Upload mit Kompression
-- Tabellen-Einfüge-Helper
+- Image Library Management
+- Template Library Management
+- Custom CSS Editor
+- Template-Einfüge-Helper (Numbered Tables)
 - PDF-Export-Steuerung
+- Author Management für Footer
 
 ### 2. SlidePreview (`components/SlidePreview.tsx`)
 **Vorschau-Komponente** - Rendert einzelne Folien
@@ -105,7 +115,7 @@ Eine markdown-basierte Präsentations-App mit Live-Vorschau, Theming-Unterstütz
 - Title-Slide spezielle Formatierung
 - Full-Image-Slide Erkennung
 - Logo-Overlay (oben rechts)
-- Footer mit Copyright
+- Dynamischer Footer mit Author und Datum (© {author}, {Month} {Year})
 
 ### 3. PresentationMode (`components/PresentationMode.tsx`)
 **Vollbild-Präsentation** - Keyboard-gesteuerte Navigation
@@ -116,6 +126,41 @@ Eine markdown-basierte Präsentations-App mit Live-Vorschau, Theming-Unterstütz
 - Slide-Zähler
 - Theme-/Font-Übernahme vom Editor
 - Clean Exit zurück zum Editor
+
+### 4. ImageLibrary (`components/ImageLibrary.tsx`)
+**Bild-Verwaltungs-Modal** - Upload, Verwaltung und Einfügen von Bildern
+
+**Features:**
+- Bild-Upload mit Drag & Drop oder File-Input
+- Automatische Kompression (max 1920px, 85% Quality)
+- Thumbnail-Grid-Ansicht aller gespeicherten Bilder
+- Bild-Einfügen in Markdown (![alt](filename.jpg))
+- Bild-Löschen aus IndexedDB
+- Speicher-Nutzungs-Anzeige
+
+### 5. TemplateLibrary (`components/TemplateLibrary.tsx`)
+**HTML-Template-Verwaltungs-Modal** - Management von wiederverwendbaren HTML-Snippets
+
+**Features:**
+- Upload von .html Dateien
+- Template-Preview als Thumbnail
+- Template-Einfügen in Markdown an Cursor-Position
+- Template-Download für externe Bearbeitung
+- Template-Löschen aus IndexedDB
+- Vorinstallierte Standard-Templates (table-numbered, big-table-numbered)
+- Auto-Load von Standard-Templates beim ersten Start
+
+### 6. CustomCSSEditor (`components/CustomCSSEditor.tsx`)
+**CSS-Editor-Modal** - Bearbeitung von Custom CSS Styles
+
+**Features:**
+- Großflächiger Textarea-Editor für CSS
+- LocalStorage-Persistenz
+- Download/Upload für externe Bearbeitung
+- "Standards laden" Button für Standard-Template-CSS
+- "Zurücksetzen" Button zum Löschen aller Änderungen
+- Live-Anwendung der CSS-Änderungen via Style-Tag-Injection
+- Vorinstallierte Standard-Templates für .table-numbered und .big-table-numbered
 
 ## Datenfluss
 
@@ -186,10 +231,14 @@ Rendering: Lookup dataUrl by filename
 - `presentation-markdown` - Vollständiger Markdown-Content
 - `presentation-theme` - Theme ID
 - `presentation-fontsize` - Font Size ID
+- `presentation-author` - Autor-Name für Footer
+- `presentation-custom-css` - Custom CSS Styles
 
 **Auto-Save:** Triggered bei jeder Änderung (useEffect)
 
 ### IndexedDB
+
+#### Images Database
 **Datenbank:** `PresentationImagesDB`
 **Object Store:** `images`
 
@@ -202,10 +251,29 @@ interface StoredImage {
 }
 ```
 
-**Operationen:**
+**Operationen (lib/imageStorage.ts):**
 - `saveImage(image)` - Speichern/Überschreiben
 - `getAllImages()` - Alle Bilder laden
+- `deleteImage(name)` - Bild löschen
 - Automatisches Cleanup von altem LocalStorage-Cache
+
+#### Templates Database
+**Datenbank:** `PresentationTemplatesDB`
+**Object Store:** `templates`
+
+**Schema:**
+```typescript
+interface StoredTemplate {
+  name: string;      // Template-Name (Primary Key)
+  htmlContent: string; // HTML-Code
+  timestamp: number; // Upload-Zeit
+}
+```
+
+**Operationen (lib/templateStorage.ts):**
+- `saveTemplate(template)` - Speichern/Überschreiben
+- `getAllTemplates()` - Alle Templates laden
+- `deleteTemplate(name)` - Template löschen
 
 ## Theme-System
 
@@ -244,6 +312,78 @@ Themes werden über CSS Custom Properties angewendet:
 }
 ```
 
+## Template-System
+
+### HTML-Templates
+Wiederverwendbare HTML-Snippets für komplexe Layouts (hauptsächlich Tabellen).
+
+**Standard-Templates:**
+1. **default_table.html** - Numbered Table mit 3 Zeilen (große Schrift)
+2. **default_big_table.html** - Big Numbered Table mit 3 Zeilen (kleinere Schrift für mehr Inhalt)
+
+**Template-Struktur:**
+```html
+<table class="table-numbered">
+  <tr>
+    <td class="num-col">1</td>
+    <td class="content-col">
+      <div class="cell-title">Überschrift</div>
+      <div class="cell-details">
+        <ul>
+          <li>Detail Punkt 1</li>
+        </ul>
+      </div>
+    </td>
+  </tr>
+</table>
+```
+
+**Verwendung:**
+- Templates werden in den Markdown-Content eingefügt
+- HTML-in-Markdown wird durch rehype-raw Plugin verarbeitet
+- Templates können im Editor über "Template einfügen" Button eingefügt werden
+- Externe Bearbeitung via Download/Upload möglich
+
+### CSS-Customization
+
+**Custom CSS System:**
+- Nutzer können eigene CSS-Regeln definieren
+- CSS wird in LocalStorage gespeichert
+- Live-Anwendung über dynamisch injiziertes `<style>`-Tag mit ID `custom-presentation-styles`
+
+**Standard CSS Templates:**
+Vordefinierte Styles für Table-Templates mit Theme-Variablen:
+
+```css
+/* Standard Table */
+.prose .table-numbered .num-col {
+  width: 160px !important;
+  font-size: 5rem;
+  font-weight: bold;
+  color: var(--theme-heading);
+}
+
+.prose .cell-title {
+  font-size: 2.2rem;
+  border-bottom: 0.5px solid var(--theme-accent);
+}
+
+/* Big Table (für mehr Inhalt) */
+.prose .big-table-numbered .num-col {
+  font-size: 4rem;
+}
+
+.prose .big-table-numbered .cell-title {
+  font-size: 1.6rem;
+}
+```
+
+**Verfügbare Theme-Variablen für Custom CSS:**
+- `--theme-text` - Haupttext-Farbe
+- `--theme-heading` - Überschriften-Farbe
+- `--theme-accent` - Akzent-Farbe
+- `--theme-code-bg` - Code-Hintergrund-Farbe
+
 ## Styling-Hierarchie
 
 ### Listen-Ebenen
@@ -254,10 +394,18 @@ Themes werden über CSS Custom Properties angewendet:
 Kompakte Darstellung mit reduzierten Margins und Padding für optimale Platznutzung.
 
 ### Tabellen
-- Max-width: 1200px
+
+**Standard Markdown-Tabellen:**
+- Width: 80%
 - Größere Schrift: 1.1em
 - Erste Spalte: Zentriert, bold, feste Breite (80px)
 - Leere Header: Transparenter Hintergrund
+
+**Custom Table-Templates:**
+- `.table-numbered` - Numbered Table mit großen Zahlen (5rem), optimiert für weniger Inhalt
+- `.big-table-numbered` - Big Table mit kleineren Zahlen (4rem), optimiert für mehr Inhalt
+- Beide nutzen Theme-Variablen für konsistente Farben
+- Anpassbar über Custom CSS Editor
 
 ### Bilder
 - Max-width: 90%
@@ -328,11 +476,17 @@ Kompakte Darstellung mit reduzierten Margins und Padding für optimale Platznutz
 
 ## Erweiterungsmöglichkeiten
 
+### Implementiert
+- ✅ Slide-Vorlagen (HTML-Templates)
+- ✅ Custom CSS Editor
+- ✅ Image Library Management
+- ✅ Template Library Management
+- ✅ Externe Bearbeitung (Download/Upload für Templates & CSS)
+
 ### Kurzfristig
 - Slide-Notizen für Präsentierende
 - Timer/Countdown
 - Export zu anderen Formaten (PPTX, HTML)
-- Slide-Vorlagen (Templates)
 
 ### Mittelfristig
 - Backend-Integration für Multi-Device-Sync

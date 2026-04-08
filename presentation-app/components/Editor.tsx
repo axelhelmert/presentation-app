@@ -6,12 +6,18 @@ import SlidePreview from './SlidePreview';
 import PresentationMode from './PresentationMode';
 import ImageLibrary from './ImageLibrary';
 import CustomCSSEditor from './CustomCSSEditor';
+import TemplateLibrary from './TemplateLibrary';
 import { themes, fontSizes, getTheme } from '@/lib/themes';
 import { exportToPDF } from '@/lib/pdfExport';
 import {
   getAllImages,
   type StoredImage,
 } from '@/lib/imageStorage';
+import {
+  getAllTemplates,
+  saveTemplate,
+  type StoredTemplate,
+} from '@/lib/templateStorage';
 
 const defaultMarkdown = `# Willkommen zur Präsentation
 
@@ -83,8 +89,10 @@ export default function Editor() {
   const [isExporting, setIsExporting] = useState<boolean>(false);
   const [exportProgress, setExportProgress] = useState<string>('');
   const [uploadedImages, setUploadedImages] = useState<StoredImage[]>([]);
+  const [storedTemplates, setStoredTemplates] = useState<StoredTemplate[]>([]);
   const [showTableMenu, setShowTableMenu] = useState<boolean>(false);
   const [showImageLibrary, setShowImageLibrary] = useState<boolean>(false);
+  const [showTemplateLibrary, setShowTemplateLibrary] = useState<boolean>(false);
   const [showCustomCSSEditor, setShowCustomCSSEditor] = useState<boolean>(false);
   const [author, setAuthor] = useState<string>('');
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
@@ -128,6 +136,63 @@ export default function Editor() {
       })
       .catch((error) => {
         console.error('Failed to load images from IndexedDB:', error);
+      });
+
+    // Load templates from IndexedDB and initialize default templates
+    getAllTemplates()
+      .then(async (templates) => {
+        setStoredTemplates(templates);
+
+        // Check if default templates exist, if not, load them
+        const hasDefaultTable = templates.some(t => t.name === 'default_table');
+        const hasDefaultBigTable = templates.some(t => t.name === 'default_big_table');
+
+        let templatesUpdated = false;
+
+        if (!hasDefaultTable) {
+          try {
+            const response = await fetch('/default_table.html');
+            if (response.ok) {
+              const html = await response.text();
+              const defaultTemplate = {
+                name: 'default_table',
+                html,
+                timestamp: Date.now(),
+              };
+              await saveTemplate(defaultTemplate);
+              templatesUpdated = true;
+            }
+          } catch (error) {
+            console.error('Failed to load default_table template:', error);
+          }
+        }
+
+        if (!hasDefaultBigTable) {
+          try {
+            const response = await fetch('/default_big_table.html');
+            if (response.ok) {
+              const html = await response.text();
+              const defaultBigTemplate = {
+                name: 'default_big_table',
+                html,
+                timestamp: Date.now(),
+              };
+              await saveTemplate(defaultBigTemplate);
+              templatesUpdated = true;
+            }
+          } catch (error) {
+            console.error('Failed to load default_big_table template:', error);
+          }
+        }
+
+        // Reload templates if any were added
+        if (templatesUpdated) {
+          const updatedTemplates = await getAllTemplates();
+          setStoredTemplates(updatedTemplates);
+        }
+      })
+      .catch((error) => {
+        console.error('Failed to load templates from IndexedDB:', error);
       });
   }, []);
 
@@ -364,6 +429,69 @@ export default function Editor() {
     setShowTableMenu(false);
   };
 
+  const handleInsertBigNumberedTable = () => {
+    const bigNumberedTableTemplate = `\n\n<table class="big-table-numbered">
+  <tr>
+    <td class="num-col">1</td>
+    <td class="content-col">
+      <div class="cell-title">Überschrift 1</div>
+      <div class="cell-details">
+        <ul>
+          <li>Detail Punkt 1</li>
+          <li>Detail Punkt 2</li>
+        </ul>
+      </div>
+    </td>
+  </tr>
+  <tr>
+    <td class="num-col">2</td>
+    <td class="content-col">
+      <div class="cell-title">Überschrift 2</div>
+      <div class="cell-details">
+        <ul>
+          <li>Detail Punkt 1</li>
+          <li>Detail Punkt 2</li>
+        </ul>
+      </div>
+    </td>
+  </tr>
+  <tr>
+    <td class="num-col">3</td>
+    <td class="content-col">
+      <div class="cell-title">Überschrift 3</div>
+      <div class="cell-details">
+        <ul>
+          <li>Detail Punkt 1</li>
+          <li>Detail Punkt 2</li>
+        </ul>
+      </div>
+    </td>
+  </tr>
+</table>
+
+`;
+
+    const textarea = textareaRef.current;
+    if (textarea) {
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const text = textarea.value;
+
+      const newText = text.substring(0, start) + bigNumberedTableTemplate + text.substring(end);
+      setMarkdown(newText);
+
+      setTimeout(() => {
+        textarea.focus();
+        const newPosition = start + bigNumberedTableTemplate.length;
+        textarea.setSelectionRange(newPosition, newPosition);
+      }, 0);
+    } else {
+      setMarkdown((prev) => prev + bigNumberedTableTemplate);
+    }
+
+    setShowTableMenu(false);
+  };
+
   const handleInsertImageFromLibrary = (filename: string) => {
     const imageName = filename.replace(/\.[^/.]+$/, ''); // Remove extension
     const imageMarkdown = `![${imageName}](${filename})`;
@@ -396,6 +524,39 @@ export default function Editor() {
       setUploadedImages(images);
     } catch (error) {
       console.error('Failed to reload images:', error);
+    }
+  };
+
+  const handleInsertTemplateFromLibrary = (html: string) => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const text = textarea.value;
+
+      // Insert at cursor position with newlines
+      const templateWithNewlines = `\n\n${html}\n\n`;
+      const newText = text.substring(0, start) + templateWithNewlines + text.substring(end);
+      setMarkdown(newText);
+
+      // Set cursor position after inserted template
+      setTimeout(() => {
+        textarea.focus();
+        const newPosition = start + templateWithNewlines.length;
+        textarea.setSelectionRange(newPosition, newPosition);
+      }, 0);
+    } else {
+      // Fallback: append to end
+      setMarkdown((prev) => prev + '\n\n' + html + '\n\n');
+    }
+  };
+
+  const handleReloadTemplates = async () => {
+    try {
+      const templates = await getAllTemplates();
+      setStoredTemplates(templates);
+    } catch (error) {
+      console.error('Failed to reload templates:', error);
     }
   };
 
@@ -487,6 +648,12 @@ export default function Editor() {
                     >
                       🔢 Nummerierte Tabelle
                     </button>
+                    <button
+                      onClick={handleInsertBigNumberedTable}
+                      className="w-full text-left px-4 py-2 hover:bg-gray-700 text-sm text-white transition-colors border-t border-gray-600"
+                    >
+                      🔢 Große nummerierte Tabelle
+                    </button>
                   </div>
                 )}
               </div>
@@ -496,6 +663,13 @@ export default function Editor() {
                 title="Bild-Bibliothek öffnen"
               >
                 🖼️ Bilder
+              </button>
+              <button
+                onClick={() => setShowTemplateLibrary(true)}
+                className="px-3 py-1 bg-emerald-700 rounded hover:bg-emerald-600 text-sm transition-colors"
+                title="HTML-Templates verwalten"
+              >
+                📋 Templates
               </button>
               <button
                 onClick={() => setShowCustomCSSEditor(true)}
@@ -668,6 +842,16 @@ export default function Editor() {
           onClose={() => setShowImageLibrary(false)}
           onInsertImage={handleInsertImageFromLibrary}
           onImagesChanged={handleReloadImages}
+        />
+      )}
+
+      {/* Template Library Modal */}
+      {showTemplateLibrary && (
+        <TemplateLibrary
+          templates={storedTemplates}
+          onClose={() => setShowTemplateLibrary(false)}
+          onInsertTemplate={handleInsertTemplateFromLibrary}
+          onTemplatesChanged={handleReloadTemplates}
         />
       )}
 
