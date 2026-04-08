@@ -272,7 +272,7 @@ export default function Editor() {
       const slidesWithHTML = await Promise.all(
         slides.map(async (slide) => ({
           ...slide,
-          content: await renderMarkdownToHTML(slide.rawMarkdown),
+          content: await renderMarkdownToHTML(slide.content),
         }))
       );
 
@@ -283,6 +283,8 @@ export default function Editor() {
         slides: slidesWithHTML,
         theme,
         fontSize,
+        uploadedImages,
+        author,
         onProgress: (current, total) => {
           setExportProgress(`Exporting slide ${current} of ${total}...`);
         },
@@ -515,6 +517,35 @@ export default function Editor() {
     } else {
       // Fallback: append to end
       setMarkdown((prev) => prev + '\n\n' + imageMarkdown + '\n\n');
+    }
+  };
+
+  const handleInsertBackgroundImageFromLibrary = (filename: string) => {
+    const bgComment = `<!--bg: ${filename}-->`;
+
+    const textarea = textareaRef.current;
+    if (textarea) {
+      const start = textarea.selectionStart;
+      const text = textarea.value;
+
+      // Find the start of the current slide (or beginning of document)
+      const beforeCursor = text.substring(0, start);
+      const lastSlideBreak = beforeCursor.lastIndexOf('---');
+      const slideStart = lastSlideBreak === -1 ? 0 : lastSlideBreak + 3;
+
+      // Insert at the beginning of the current slide
+      const newText = text.substring(0, slideStart) + '\n' + bgComment + '\n' + text.substring(slideStart);
+      setMarkdown(newText);
+
+      // Move cursor back to where it was (adjusted for inserted text)
+      setTimeout(() => {
+        textarea.focus();
+        const newPosition = start + bgComment.length + 2; // +2 for the newlines
+        textarea.setSelectionRange(newPosition, newPosition);
+      }, 0);
+    } else {
+      // Fallback: prepend to beginning
+      setMarkdown(bgComment + '\n' + markdown);
     }
   };
 
@@ -819,13 +850,14 @@ export default function Editor() {
         <div className="flex-1 p-6 overflow-hidden">
           {slides.length > 0 && slides[currentSlide] ? (
             <SlidePreview
-              markdown={slides[currentSlide].rawMarkdown}
+              markdown={slides[currentSlide].content}
               slideNumber={currentSlide + 1}
               totalSlides={slides.length}
               themeId={selectedTheme}
               fontSizeId={selectedFontSize}
               uploadedImages={uploadedImages}
               author={author}
+              backgroundImage={slides[currentSlide].backgroundImage}
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-white rounded-lg shadow-lg">
@@ -841,6 +873,7 @@ export default function Editor() {
           images={uploadedImages}
           onClose={() => setShowImageLibrary(false)}
           onInsertImage={handleInsertImageFromLibrary}
+          onInsertBackgroundImage={handleInsertBackgroundImageFromLibrary}
           onImagesChanged={handleReloadImages}
         />
       )}

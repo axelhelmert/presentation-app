@@ -17,6 +17,7 @@ interface SlidePreviewProps {
   fontSizeId?: string;
   uploadedImages?: StoredImage[];
   author?: string;
+  backgroundImage?: string;
 }
 
 export default function SlidePreview({
@@ -27,11 +28,17 @@ export default function SlidePreview({
   fontSizeId = 'large',
   uploadedImages = [],
   author = '',
+  backgroundImage,
 }: SlidePreviewProps) {
   const [html, setHtml] = useState<string>('');
   const theme = getTheme(themeId);
   const fontSize = fontSizes.find((s) => s.id === fontSizeId) || fontSizes[2];
   const isTitleSlide = slideNumber === 1;
+
+  // Find background image data URL
+  const bgImageData = backgroundImage
+    ? uploadedImages.find((img) => img.name === backgroundImage)
+    : null;
 
   // Check if this slide is just an image (trim whitespace first)
   const trimmedMarkdown = markdown.trim();
@@ -94,7 +101,9 @@ export default function SlidePreview({
         // Limit cache size to 50 entries
         if (htmlCache.size > 50) {
           const firstKey = htmlCache.keys().next().value;
-          htmlCache.delete(firstKey);
+          if (firstKey) {
+            htmlCache.delete(firstKey);
+          }
         }
 
         setHtml(rendered);
@@ -106,16 +115,30 @@ export default function SlidePreview({
     render();
   }, [processedMarkdown, isImageSlide]);
 
-  const containerStyle: React.CSSProperties = {
-    background: theme.background,
-    borderColor: theme.borderColor,
-    color: theme.textColor,
-    // CSS Variables for theme colors
-    ['--theme-text' as any]: theme.textColor,
-    ['--theme-heading' as any]: theme.headingColor,
-    ['--theme-accent' as any]: theme.accentColor,
-    ['--theme-code-bg' as any]: theme.codeBackground,
-  };
+  const containerStyle: React.CSSProperties = bgImageData?.dataUrl
+    ? {
+        backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url(${bgImageData.dataUrl})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        borderColor: theme.borderColor,
+        color: '#ffffff',
+        // CSS Variables for theme colors
+        ['--theme-text' as any]: '#ffffff',
+        ['--theme-heading' as any]: '#ffffff',
+        ['--theme-accent' as any]: '#ffffff',
+        ['--theme-code-bg' as any]: 'rgba(255, 255, 255, 0.1)',
+      }
+    : {
+        background: theme.background,
+        borderColor: theme.borderColor,
+        color: theme.textColor,
+        // CSS Variables for theme colors
+        ['--theme-text' as any]: theme.textColor,
+        ['--theme-heading' as any]: theme.headingColor,
+        ['--theme-accent' as any]: theme.accentColor,
+        ['--theme-code-bg' as any]: theme.codeBackground,
+      };
 
   const contentStyle: React.CSSProperties = {
     fontSize: fontSize.size,

@@ -11,6 +11,7 @@ export interface Slide {
   id: number;
   content: string;
   rawMarkdown: string;
+  backgroundImage?: string;
 }
 
 export function parseSlides(markdown: string): Slide[] {
@@ -19,11 +20,25 @@ export function parseSlides(markdown: string): Slide[] {
   return slideContents
     .map((content, index) => content.trim())
     .filter((content) => content.length > 0)
-    .map((content, index) => ({
-      id: index,
-      content: content,
-      rawMarkdown: content,
-    }));
+    .map((content, index) => {
+      // Check for background image syntax: <!--bg: filename.jpg-->
+      const bgMatch = content.match(/^<!--\s*bg:\s*(.+?)\s*-->/);
+      let backgroundImage: string | undefined;
+      let cleanContent = content;
+
+      if (bgMatch) {
+        backgroundImage = bgMatch[1].trim();
+        // Remove the background image comment from content
+        cleanContent = content.replace(/^<!--\s*bg:\s*.+?\s*-->\s*/, '');
+      }
+
+      return {
+        id: index,
+        content: cleanContent,
+        rawMarkdown: content,
+        backgroundImage,
+      };
+    });
 }
 
 export async function renderMarkdownToHTML(markdown: string): Promise<string> {

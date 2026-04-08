@@ -7,6 +7,7 @@ interface ImageLibraryProps {
   images: StoredImage[];
   onClose: () => void;
   onInsertImage: (filename: string) => void;
+  onInsertBackgroundImage: (filename: string) => void;
   onImagesChanged: () => void;
 }
 
@@ -14,6 +15,7 @@ export default function ImageLibrary({
   images,
   onClose,
   onInsertImage,
+  onInsertBackgroundImage,
   onImagesChanged,
 }: ImageLibraryProps) {
   const [isUploading, setIsUploading] = useState(false);
@@ -175,22 +177,35 @@ export default function ImageLibrary({
                     </p>
 
                     {/* Actions */}
-                    <div className="mt-3 flex gap-2">
-                      <button
-                        onClick={() => {
-                          onInsertImage(image.name);
-                          onClose();
-                        }}
-                        className="flex-1 px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-500"
-                      >
-                        Einfügen
-                      </button>
+                    <div className="mt-3 flex flex-col gap-2">
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => {
+                            onInsertImage(image.name);
+                            onClose();
+                          }}
+                          className="flex-1 px-3 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-500"
+                          title="Als Inline-Bild einfügen"
+                        >
+                          📷 Bild
+                        </button>
+                        <button
+                          onClick={() => {
+                            onInsertBackgroundImage(image.name);
+                            onClose();
+                          }}
+                          className="flex-1 px-3 py-1 bg-purple-600 text-white text-xs rounded hover:bg-purple-500"
+                          title="Als Hintergrundbild einfügen"
+                        >
+                          🖼️ BG
+                        </button>
+                      </div>
                       <button
                         onClick={() => handleDelete(image.name)}
-                        className="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-500"
+                        className="w-full px-3 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-500"
                         title="Löschen"
                       >
-                        🗑️
+                        🗑️ Löschen
                       </button>
                     </div>
                   </div>

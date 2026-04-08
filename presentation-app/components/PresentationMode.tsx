@@ -144,13 +144,14 @@ export default function PresentationMode({
       <div className="w-full h-full flex items-center justify-center px-8 py-8">
         <div className="w-full h-full">
           <SlidePreview
-            markdown={slides[currentSlide].rawMarkdown}
+            markdown={slides[currentSlide].content}
             slideNumber={currentSlide + 1}
             totalSlides={slides.length}
             themeId={themeId}
             fontSizeId={fontSizeId}
             uploadedImages={uploadedImages}
             author={author}
+            backgroundImage={slides[currentSlide].backgroundImage}
           />
         </div>
       </div>

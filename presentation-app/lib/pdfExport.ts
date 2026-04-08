@@ -2,11 +2,14 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { Slide } from './markdown';
 import { Theme } from './themes';
+import { type StoredImage } from './imageStorage';
 
 interface ExportOptions {
   slides: Slide[];
   theme: Theme;
   fontSize: { size: string; lineHeight: string };
+  uploadedImages?: StoredImage[];
+  author?: string;
   onProgress?: (current: number, total: number) => void;
 }
 
@@ -14,6 +17,8 @@ export async function exportToPDF({
   slides,
   theme,
   fontSize,
+  uploadedImages = [],
+  author = '',
   onProgress,
 }: ExportOptions): Promise<void> {
   if (slides.length === 0) {
@@ -58,22 +63,52 @@ export async function exportToPDF({
         onProgress(i + 1, slides.length);
       }
 
+      // Find background image if specified
+      const slide = slides[i];
+      const bgImageData = slide.backgroundImage
+        ? uploadedImages.find((img) => img.name === slide.backgroundImage)
+        : null;
+
+      // Determine colors based on background image
+      const textColor = bgImageData ? '#ffffff' : theme.textColor;
+      const headingColor = bgImageData ? '#ffffff' : theme.headingColor;
+      const accentColor = bgImageData ? '#ffffff' : theme.accentColor;
+      const codeBg = bgImageData ? 'rgba(255, 255, 255, 0.1)' : theme.codeBackground;
+
+      // Build background style
+      const backgroundStyle = bgImageData?.dataUrl
+        ? `background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url(${bgImageData.dataUrl}); background-size: cover; background-position: center;`
+        : `background: ${theme.background};`;
+
       // Create slide content with theme styling and logo
       container.innerHTML = `
-        <div style="position: relative; width: 100%; height: 100%;">
+        <div style="position: relative; width: 100%; height: 100%; ${backgroundStyle}">
           <div style="position: absolute; top: 0; right: 0; z-index: 10;">
             <img src="/msg-logo.png" alt="MSG Logo" style="height: 48px; width: auto; opacity: 0.8;" />
           </div>
           <div class="prose max-w-none" style="
             font-size: ${fontSize.size};
             line-height: ${fontSize.lineHeight};
-            color: ${theme.textColor};
-            --theme-text: ${theme.textColor};
-            --theme-heading: ${theme.headingColor};
-            --theme-accent: ${theme.accentColor};
-            --theme-code-bg: ${theme.codeBackground};
+            color: ${textColor};
+            --theme-text: ${textColor};
+            --theme-heading: ${headingColor};
+            --theme-accent: ${accentColor};
+            --theme-code-bg: ${codeBg};
           ">
-            ${slides[i].content}
+            ${slide.content}
+          </div>
+          <div style="
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 20px 40px;
+            border-top: 1px solid ${accentColor};
+            opacity: 0.7;
+            font-size: 16px;
+            color: ${textColor};
+          ">
+            © ${author || 'Author'}, ${new Date().toLocaleString('en-US', { month: 'long' })} ${new Date().getFullYear()}
           </div>
         </div>
       `;
