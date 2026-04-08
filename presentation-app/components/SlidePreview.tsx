@@ -155,11 +155,11 @@ export default function SlidePreview({
         <img
           src="/msg-logo.png"
           alt="MSG Logo"
-          className="h-10 w-auto opacity-80"
+          className={`${isTitleSlide ? 'h-20' : 'h-10'} w-auto opacity-80`}
         />
       </div>
 
-      <div className={`flex-1 overflow-auto pt-6 px-12 pb-12 ${isTitleSlide ? 'flex items-center justify-center' : ''}`}>
+      <div className={`flex-1 overflow-auto pt-6 px-12 pb-12 ${isTitleSlide ? 'flex' : ''}`}>
         {isImageSlide && imageUrl ? (
           <div className="w-full h-full flex items-center justify-center">
             <img
@@ -170,11 +170,15 @@ export default function SlidePreview({
           </div>
         ) : (
           <div
-            className={`prose max-w-none w-full ${isTitleSlide ? 'title-slide' : ''}`}
+            className={`prose max-w-none ${isTitleSlide ? 'title-slide' : 'w-full'}`}
             style={isTitleSlide ? {
               ...contentStyle,
-              fontSize: '1.5rem',
+              fontSize: '1.65rem',
               textAlign: 'center',
+              position: 'absolute',
+              left: '25%',
+              top: '33%',
+              transform: 'translate(-50%, -50%)',
             } : contentStyle}
             dangerouslySetInnerHTML={{ __html: html }}
           />
