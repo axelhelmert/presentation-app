@@ -255,7 +255,7 @@ body {
 
 .prose img {
   max-width: 90%;
-  max-height: 60vh;
+  max-height: 80vh;
   width: auto;
   height: auto;
   object-fit: contain;
