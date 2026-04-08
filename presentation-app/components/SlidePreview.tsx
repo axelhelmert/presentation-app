@@ -16,6 +16,7 @@ interface SlidePreviewProps {
   themeId?: string;
   fontSizeId?: string;
   uploadedImages?: StoredImage[];
+  author?: string;
 }
 
 export default function SlidePreview({
@@ -25,6 +26,7 @@ export default function SlidePreview({
   themeId = 'default',
   fontSizeId = 'large',
   uploadedImages = [],
+  author = '',
 }: SlidePreviewProps) {
   const [html, setHtml] = useState<string>('');
   const theme = getTheme(themeId);
@@ -156,11 +158,11 @@ export default function SlidePreview({
         )}
       </div>
       <div
-        className="border-t px-6 py-3 flex justify-between items-center text-sm opacity-70"
+        className="border-t px-6 py-3 flex justify-between items-center text-base opacity-70"
         style={{ borderColor: theme.borderColor }}
       >
         <span>
-          © Axel Helmert, April 2026
+          © {author || 'Author'}, {new Date().toLocaleString('en-US', { month: 'long' })} {new Date().getFullYear()}
         </span>
       </div>
     </div>

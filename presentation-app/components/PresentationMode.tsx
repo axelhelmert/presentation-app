@@ -12,6 +12,7 @@ interface PresentationModeProps {
   themeId?: string;
   fontSizeId?: string;
   uploadedImages?: StoredImage[];
+  author?: string;
 }
 
 export default function PresentationMode({
@@ -21,6 +22,7 @@ export default function PresentationMode({
   themeId = 'default',
   fontSizeId = 'large',
   uploadedImages = [],
+  author = '',
 }: PresentationModeProps) {
   const [currentSlide, setCurrentSlide] = useState<number>(initialSlide);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -148,6 +150,7 @@ export default function PresentationMode({
             themeId={themeId}
             fontSizeId={fontSizeId}
             uploadedImages={uploadedImages}
+            author={author}
           />
         </div>
       </div>

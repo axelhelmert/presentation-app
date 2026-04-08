@@ -70,6 +70,7 @@ Danke für die Aufmerksamkeit!
 const STORAGE_KEY = 'presentation-markdown';
 const STORAGE_THEME_KEY = 'presentation-theme';
 const STORAGE_FONTSIZE_KEY = 'presentation-fontsize';
+const STORAGE_AUTHOR_KEY = 'presentation-author';
 
 export default function Editor() {
   const [markdown, setMarkdown] = useState<string>('');
@@ -83,6 +84,7 @@ export default function Editor() {
   const [uploadedImages, setUploadedImages] = useState<StoredImage[]>([]);
   const [showTableMenu, setShowTableMenu] = useState<boolean>(false);
   const [showImageLibrary, setShowImageLibrary] = useState<boolean>(false);
+  const [author, setAuthor] = useState<string>('');
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
 
   // Load from LocalStorage on mount
@@ -90,6 +92,7 @@ export default function Editor() {
     const savedMarkdown = localStorage.getItem(STORAGE_KEY);
     const savedTheme = localStorage.getItem(STORAGE_THEME_KEY);
     const savedFontSize = localStorage.getItem(STORAGE_FONTSIZE_KEY);
+    const savedAuthor = localStorage.getItem(STORAGE_AUTHOR_KEY);
 
     if (savedMarkdown) {
       setMarkdown(savedMarkdown);
@@ -103,6 +106,10 @@ export default function Editor() {
 
     if (savedFontSize) {
       setSelectedFontSize(savedFontSize);
+    }
+
+    if (savedAuthor) {
+      setAuthor(savedAuthor);
     }
 
     // Clean up old image data from LocalStorage (if any)
@@ -138,6 +145,11 @@ export default function Editor() {
   useEffect(() => {
     localStorage.setItem(STORAGE_FONTSIZE_KEY, selectedFontSize);
   }, [selectedFontSize]);
+
+  // Save author to LocalStorage
+  useEffect(() => {
+    localStorage.setItem(STORAGE_AUTHOR_KEY, author);
+  }, [author]);
 
   useEffect(() => {
     const parsedSlides = parseSlides(markdown);
@@ -352,6 +364,7 @@ export default function Editor() {
         themeId={selectedTheme}
         fontSizeId={selectedFontSize}
         uploadedImages={uploadedImages}
+        author={author}
       />
     );
   }
@@ -496,6 +509,20 @@ export default function Editor() {
             </div>
 
             <div className="flex items-center gap-2">
+              <label htmlFor="author-input" className="font-medium">
+                Autor:
+              </label>
+              <input
+                id="author-input"
+                type="text"
+                value={author}
+                onChange={(e) => setAuthor(e.target.value)}
+                placeholder="Dein Name"
+                className="bg-gray-600 text-white px-3 py-1 rounded border border-gray-500 focus:outline-none focus:border-gray-400 w-48"
+              />
+            </div>
+
+            <div className="flex items-center gap-2">
               <label htmlFor="fontsize-select" className="font-medium">
                 Schriftgröße:
               </label>
@@ -532,6 +559,7 @@ export default function Editor() {
               themeId={selectedTheme}
               fontSizeId={selectedFontSize}
               uploadedImages={uploadedImages}
+              author={author}
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-white rounded-lg shadow-lg">
