@@ -8,6 +8,7 @@ interface CustomCSSEditorProps {
 
 const STANDARD_TEMPLATES = `/* ===== Standard Table Templates ===== */
 /* Basis-Styles für nummerierte Tabellen */
+/* Verwendet Theme-Variablen, damit sich Farben automatisch mit dem Theme ändern */
 
 .prose .table-numbered {
   width: 80%;
@@ -18,17 +19,17 @@ const STANDARD_TEMPLATES = `/* ===== Standard Table Templates ===== */
 }
 
 .prose .table-numbered td {
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid var(--theme-accent);
   padding: 20px;
   vertical-align: top;
 }
 
 /* Numbered column: Large numbering */
-.prose .num-col {
-  width: 160px;
+.prose .table-numbered .num-col {
+  width: 160px !important;
   font-size: 5rem;
   font-weight: bold;
-  color: #333;
+  color: var(--theme-heading);
   text-align: center;
   line-height: 1;
 }
@@ -45,14 +46,15 @@ const STANDARD_TEMPLATES = `/* ===== Standard Table Templates ===== */
   font-weight: 600;
   margin-bottom: 12px;
   padding-bottom: 8px;
-  color: #999;
-  border-bottom: 0.5px solid #ddd;
+  color: var(--theme-text);
+  opacity: 0.7;
+  border-bottom: 0.5px solid var(--theme-accent);
 }
 
 /* Cell details with lists */
 .prose .cell-details {
   font-size: 2rem;
-  color: #555;
+  color: var(--theme-text);
 }
 
 .prose .cell-details ul {
@@ -61,6 +63,8 @@ const STANDARD_TEMPLATES = `/* ===== Standard Table Templates ===== */
 }
 
 /* ===== Eigene Anpassungen hier hinzufügen ===== */
+/* Verfügbare Theme-Variablen: */
+/* --theme-text, --theme-heading, --theme-accent, --theme-code-bg */
 `;
 
 export default function CustomCSSEditor({ onClose }: CustomCSSEditorProps) {
