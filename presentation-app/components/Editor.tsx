@@ -5,6 +5,7 @@ import { parseSlides, Slide, renderMarkdownToHTML } from '@/lib/markdown';
 import SlidePreview from './SlidePreview';
 import PresentationMode from './PresentationMode';
 import ImageLibrary from './ImageLibrary';
+import CustomCSSEditor from './CustomCSSEditor';
 import { themes, fontSizes, getTheme } from '@/lib/themes';
 import { exportToPDF } from '@/lib/pdfExport';
 import {
@@ -84,6 +85,7 @@ export default function Editor() {
   const [uploadedImages, setUploadedImages] = useState<StoredImage[]>([]);
   const [showTableMenu, setShowTableMenu] = useState<boolean>(false);
   const [showImageLibrary, setShowImageLibrary] = useState<boolean>(false);
+  const [showCustomCSSEditor, setShowCustomCSSEditor] = useState<boolean>(false);
   const [author, setAuthor] = useState<string>('');
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
 
@@ -127,6 +129,20 @@ export default function Editor() {
       .catch((error) => {
         console.error('Failed to load images from IndexedDB:', error);
       });
+  }, []);
+
+  // Load and inject custom CSS on mount
+  useEffect(() => {
+    const customCSS = localStorage.getItem('presentation-custom-css');
+    if (customCSS) {
+      let styleTag = document.getElementById('custom-presentation-styles') as HTMLStyleElement;
+      if (!styleTag) {
+        styleTag = document.createElement('style');
+        styleTag.id = 'custom-presentation-styles';
+        document.head.appendChild(styleTag);
+      }
+      styleTag.textContent = customCSS;
+    }
   }, []);
 
   // Auto-save to LocalStorage when markdown changes
@@ -285,6 +301,69 @@ export default function Editor() {
     setShowTableMenu(false);
   };
 
+  const handleInsertNumberedTable = () => {
+    const numberedTableTemplate = `\n\n<table class="table-numbered">
+  <tr>
+    <td class="num-col">1</td>
+    <td class="content-col">
+      <div class="cell-title">Überschrift 1</div>
+      <div class="cell-details">
+        <ul>
+          <li>Detail Punkt 1</li>
+          <li>Detail Punkt 2</li>
+        </ul>
+      </div>
+    </td>
+  </tr>
+  <tr>
+    <td class="num-col">2</td>
+    <td class="content-col">
+      <div class="cell-title">Überschrift 2</div>
+      <div class="cell-details">
+        <ul>
+          <li>Detail Punkt 1</li>
+          <li>Detail Punkt 2</li>
+        </ul>
+      </div>
+    </td>
+  </tr>
+  <tr>
+    <td class="num-col">3</td>
+    <td class="content-col">
+      <div class="cell-title">Überschrift 3</div>
+      <div class="cell-details">
+        <ul>
+          <li>Detail Punkt 1</li>
+          <li>Detail Punkt 2</li>
+        </ul>
+      </div>
+    </td>
+  </tr>
+</table>
+
+`;
+
+    const textarea = textareaRef.current;
+    if (textarea) {
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const text = textarea.value;
+
+      const newText = text.substring(0, start) + numberedTableTemplate + text.substring(end);
+      setMarkdown(newText);
+
+      setTimeout(() => {
+        textarea.focus();
+        const newPosition = start + numberedTableTemplate.length;
+        textarea.setSelectionRange(newPosition, newPosition);
+      }, 0);
+    } else {
+      setMarkdown((prev) => prev + numberedTableTemplate);
+    }
+
+    setShowTableMenu(false);
+  };
+
   const handleInsertImageFromLibrary = (filename: string) => {
     const imageName = filename.replace(/\.[^/.]+$/, ''); // Remove extension
     const imageMarkdown = `![${imageName}](${filename})`;
@@ -389,18 +468,24 @@ export default function Editor() {
                   📊 Tabelle
                 </button>
                 {showTableMenu && (
-                  <div className="absolute top-full left-0 mt-1 bg-gray-800 border border-gray-600 rounded shadow-lg z-10 min-w-[180px]">
+                  <div className="absolute top-full left-0 mt-1 bg-gray-800 border border-gray-600 rounded shadow-lg z-10 min-w-[200px]">
                     <button
                       onClick={() => handleInsertTable(true)}
                       className="w-full text-left px-4 py-2 hover:bg-gray-700 text-sm text-white transition-colors"
                     >
-                      Mit Kopfzeile
+                      Standard mit Kopfzeile
                     </button>
                     <button
                       onClick={() => handleInsertTable(false)}
                       className="w-full text-left px-4 py-2 hover:bg-gray-700 text-sm text-white transition-colors border-t border-gray-600"
                     >
-                      Ohne Kopfzeile
+                      Standard ohne Kopfzeile
+                    </button>
+                    <button
+                      onClick={handleInsertNumberedTable}
+                      className="w-full text-left px-4 py-2 hover:bg-gray-700 text-sm text-white transition-colors border-t border-gray-600"
+                    >
+                      🔢 Nummerierte Tabelle
                     </button>
                   </div>
                 )}
@@ -411,6 +496,13 @@ export default function Editor() {
                 title="Bild-Bibliothek öffnen"
               >
                 🖼️ Bilder
+              </button>
+              <button
+                onClick={() => setShowCustomCSSEditor(true)}
+                className="px-3 py-1 bg-pink-700 rounded hover:bg-pink-600 text-sm transition-colors"
+                title="CSS-Templates bearbeiten"
+              >
+                🎨 Styles
               </button>
               <label
                 htmlFor="markdown-import"
@@ -576,6 +668,13 @@ export default function Editor() {
           onClose={() => setShowImageLibrary(false)}
           onInsertImage={handleInsertImageFromLibrary}
           onImagesChanged={handleReloadImages}
+        />
+      )}
+
+      {/* Custom CSS Editor Modal */}
+      {showCustomCSSEditor && (
+        <CustomCSSEditor
+          onClose={() => setShowCustomCSSEditor(false)}
         />
       )}
     </div>
