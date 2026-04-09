@@ -121,13 +121,31 @@ export default function CustomCSSEditor({ onClose }: CustomCSSEditorProps) {
   const [isSaving, setIsSaving] = useState<boolean>(false);
 
   useEffect(() => {
-    // Load from LocalStorage or use standard templates
-    const savedCSS = localStorage.getItem('presentation-custom-css');
-    if (savedCSS) {
-      setCss(savedCSS);
-    } else {
-      setCss(STANDARD_TEMPLATES);
-    }
+    const loadCSS = async () => {
+      // Try LocalStorage first
+      let savedCSS = localStorage.getItem('presentation-custom-css');
+
+      // If not in LocalStorage, try to load from public/custom-styles.css
+      if (!savedCSS) {
+        try {
+          const response = await fetch('/custom-styles.css');
+          if (response.ok) {
+            savedCSS = await response.text();
+          }
+        } catch (error) {
+          console.log('No custom-styles.css file found');
+        }
+      }
+
+      // Use saved CSS or fall back to standard templates
+      if (savedCSS) {
+        setCss(savedCSS);
+      } else {
+        setCss(STANDARD_TEMPLATES);
+      }
+    };
+
+    loadCSS();
   }, []);
 
   const handleSave = () => {
@@ -249,7 +267,7 @@ export default function CustomCSSEditor({ onClose }: CustomCSSEditorProps) {
           <textarea
             value={css}
             onChange={(e) => setCss(e.target.value)}
-            className="w-full h-full font-mono text-sm border border-gray-300 rounded p-4 focus:outline-none focus:border-blue-500 resize-none"
+            className="w-full h-full font-mono text-sm text-gray-900 border border-gray-300 rounded p-4 focus:outline-none focus:border-blue-500 resize-none bg-white"
             placeholder="/* Eigene CSS-Regeln hier einfügen */"
             spellCheck={false}
           />

@@ -198,16 +198,36 @@ export default function Editor() {
 
   // Load and inject custom CSS on mount
   useEffect(() => {
-    const customCSS = localStorage.getItem('presentation-custom-css');
-    if (customCSS) {
-      let styleTag = document.getElementById('custom-presentation-styles') as HTMLStyleElement;
-      if (!styleTag) {
-        styleTag = document.createElement('style');
-        styleTag.id = 'custom-presentation-styles';
-        document.head.appendChild(styleTag);
+    const loadAndInjectCSS = async () => {
+      let customCSS = localStorage.getItem('presentation-custom-css');
+
+      // If no CSS in LocalStorage, try to load from public/custom-styles.css
+      if (!customCSS) {
+        try {
+          const response = await fetch('/custom-styles.css');
+          if (response.ok) {
+            customCSS = await response.text();
+            // Save to LocalStorage for future use
+            localStorage.setItem('presentation-custom-css', customCSS);
+          }
+        } catch (error) {
+          console.log('No custom-styles.css file found, using defaults');
+        }
       }
-      styleTag.textContent = customCSS;
-    }
+
+      // Inject CSS if available
+      if (customCSS) {
+        let styleTag = document.getElementById('custom-presentation-styles') as HTMLStyleElement;
+        if (!styleTag) {
+          styleTag = document.createElement('style');
+          styleTag.id = 'custom-presentation-styles';
+          document.head.appendChild(styleTag);
+        }
+        styleTag.textContent = customCSS;
+      }
+    };
+
+    loadAndInjectCSS();
   }, []);
 
   // Auto-save to LocalStorage when markdown changes
