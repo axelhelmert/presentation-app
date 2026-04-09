@@ -4,6 +4,8 @@ import { useEffect, useState, useMemo } from 'react';
 import { renderMarkdownToHTML } from '@/lib/markdown';
 import { getTheme, fontSizes } from '@/lib/themes';
 import { type StoredImage } from '@/lib/imageStorage';
+import { extractMermaidBlocks, type MermaidBlock } from '@/lib/mermaidProcessor';
+import MermaidDiagram from './MermaidDiagram';
 import 'katex/dist/katex.min.css';
 
 // Cache for rendered HTML to avoid re-rendering
@@ -31,6 +33,7 @@ export default function SlidePreview({
   backgroundImage,
 }: SlidePreviewProps) {
   const [html, setHtml] = useState<string>('');
+  const [mermaidBlocks, setMermaidBlocks] = useState<MermaidBlock[]>([]);
   const theme = getTheme(themeId);
   const fontSize = fontSizes.find((s) => s.id === fontSizeId) || fontSizes[2];
   const isTitleSlide = slideNumber === 1;
@@ -53,15 +56,19 @@ export default function SlidePreview({
   const imageUrl = foundImage?.dataUrl || null;
 
 
-  // Process markdown with image URLs replaced
-  const processedMarkdown = useMemo(() => {
-    if (isImageSlide) return markdown;
+  // Process markdown with image URLs replaced and mermaid blocks extracted
+  const { processedMarkdown, extractedMermaidBlocks } = useMemo(() => {
+    if (isImageSlide) return { processedMarkdown: markdown, extractedMermaidBlocks: [] };
 
-    let processed = markdown;
+    // First, extract mermaid blocks
+    const { processedMarkdown: withMermaidExtracted, mermaidBlocks } = extractMermaidBlocks(markdown);
+
+    // Then replace image URLs
+    let processed = withMermaidExtracted;
     const imageRegex = /!\[([^\]]*)\]\(([^)]+)\)/g;
     let match;
 
-    while ((match = imageRegex.exec(markdown)) !== null) {
+    while ((match = imageRegex.exec(withMermaidExtracted)) !== null) {
       const filename = match[2];
       const foundImage = uploadedImages.find((img) => img.name === filename);
 
@@ -73,20 +80,24 @@ export default function SlidePreview({
       }
     }
 
-    return processed;
-  }, [markdown, uploadedImages, isImageSlide]);
+    return { processedMarkdown: processed, extractedMermaidBlocks: mermaidBlocks };
+  }, [markdown, uploadedImages, isImageSlide, slideNumber]);
 
   useEffect(() => {
     // Skip HTML rendering for image-only slides
     if (isImageSlide) {
       setHtml('');
+      setMermaidBlocks([]);
       return;
     }
 
+    // Save mermaid blocks
+    setMermaidBlocks(extractedMermaidBlocks);
+
     const render = async () => {
       try {
-        // Check cache first
-        const cacheKey = processedMarkdown;
+        // Include mermaid blocks count in cache key to invalidate cache when mermaid is added/removed
+        const cacheKey = `${processedMarkdown}-mermaid:${extractedMermaidBlocks.length}`;
         const cached = htmlCache.get(cacheKey);
 
         if (cached) {
@@ -113,7 +124,7 @@ export default function SlidePreview({
       }
     };
     render();
-  }, [processedMarkdown, isImageSlide]);
+  }, [processedMarkdown, isImageSlide, extractedMermaidBlocks]);
 
   const containerStyle: React.CSSProperties = bgImageData?.dataUrl
     ? {
@@ -169,19 +180,31 @@ export default function SlidePreview({
             />
           </div>
         ) : (
-          <div
-            className={`prose max-w-none ${isTitleSlide ? 'title-slide' : 'w-full'}`}
-            style={isTitleSlide ? {
-              ...contentStyle,
-              fontSize: '1.65rem',
-              textAlign: 'center',
-              position: 'absolute',
-              left: '25%',
-              top: '33%',
-              transform: 'translate(-50%, -50%)',
-            } : contentStyle}
-            dangerouslySetInnerHTML={{ __html: html }}
-          />
+          <>
+            <div
+              className={`prose max-w-none ${isTitleSlide ? 'title-slide' : 'w-full'}`}
+              style={isTitleSlide ? {
+                ...contentStyle,
+                fontSize: '1.65rem',
+                textAlign: 'center',
+                position: 'absolute',
+                left: '25%',
+                top: '33%',
+                transform: 'translate(-50%, -50%)',
+              } : contentStyle}
+              dangerouslySetInnerHTML={{ __html: html }}
+            />
+            {/* Render Mermaid diagrams */}
+            {mermaidBlocks.map((block) => (
+              <MermaidDiagram
+                key={block.id}
+                id={block.id}
+                chart={block.code}
+                themeId={themeId}
+                scale={block.scale}
+              />
+            ))}
+          </>
         )}
       </div>
       <div
