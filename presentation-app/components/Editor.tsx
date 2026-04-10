@@ -1,12 +1,14 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { parseSlides, Slide, renderMarkdownToHTML } from '@/lib/markdown';
 import SlidePreview from './SlidePreview';
 import PresentationMode from './PresentationMode';
 import ImageLibrary from './ImageLibrary';
 import CustomCSSEditor from './CustomCSSEditor';
 import TemplateLibrary from './TemplateLibrary';
+import SlideNavigator from './SlideNavigator';
+import GoToSlideDialog from './GoToSlideDialog';
 import { themes, fontSizes, getTheme } from '@/lib/themes';
 import { exportToPDF } from '@/lib/pdfExport';
 import {
@@ -18,6 +20,7 @@ import {
   saveTemplate,
   type StoredTemplate,
 } from '@/lib/templateStorage';
+import { extractSlideInfo, type SlideInfo } from '@/lib/slideExtractor';
 
 const defaultMarkdown = `# Willkommen zur Präsentation
 
@@ -95,6 +98,8 @@ export default function Editor() {
   const [showTemplateLibrary, setShowTemplateLibrary] = useState<boolean>(false);
   const [showCustomCSSEditor, setShowCustomCSSEditor] = useState<boolean>(false);
   const [author, setAuthor] = useState<string>('');
+  const [isNavigatorCollapsed, setIsNavigatorCollapsed] = useState<boolean>(false);
+  const [showGoToDialog, setShowGoToDialog] = useState<boolean>(false);
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
 
   // Load from LocalStorage on mount
@@ -259,6 +264,28 @@ export default function Editor() {
       setCurrentSlide(parsedSlides.length - 1);
     }
   }, [markdown, currentSlide]);
+
+  // Extract slide info for navigation
+  const slideInfos = useMemo(() => extractSlideInfo(markdown), [markdown]);
+
+  // Jump to slide in editor
+  const handleJumpToSlide = useCallback((slideIndex: number, position: number) => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      // Set cursor position
+      textarea.focus();
+      textarea.setSelectionRange(position, position);
+
+      // Scroll to position - show slide at the top with small offset
+      const lineHeight = 20; // Approximate line height
+      const lines = markdown.substring(0, position).split('\n').length;
+      const scrollTop = Math.max(0, (lines - 2) * lineHeight); // -2 lines for small top padding
+      textarea.scrollTop = scrollTop;
+    }
+
+    // Update current slide in preview
+    setCurrentSlide(slideIndex);
+  }, [markdown]);
 
   const handleStartPresentation = useCallback(() => {
     // Request fullscreen (don't await - stay in user gesture context)
@@ -626,7 +653,7 @@ export default function Editor() {
     return () => document.removeEventListener('click', handleClickOutside);
   }, [showTableMenu]);
 
-  // Keyboard shortcut to start presentation mode
+  // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // F key to start presentation (when not in an input)
@@ -639,11 +666,28 @@ export default function Editor() {
         e.preventDefault();
         handleStartPresentation();
       }
+
+      // Cmd+G or Ctrl+G to open Go to Slide dialog
+      if (
+        e.key === 'g' &&
+        (e.metaKey || e.ctrlKey) &&
+        !isPresentationMode &&
+        slides.length > 0
+      ) {
+        e.preventDefault();
+        setShowGoToDialog(true);
+      }
+
+      // Escape to close Go to Slide dialog
+      if (e.key === 'Escape' && showGoToDialog) {
+        e.preventDefault();
+        setShowGoToDialog(false);
+      }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isPresentationMode, slides.length, handleStartPresentation]);
+  }, [isPresentationMode, slides.length, handleStartPresentation, showGoToDialog]);
 
   // Show presentation mode if active
   if (isPresentationMode) {
@@ -662,8 +706,17 @@ export default function Editor() {
 
   return (
     <div className="flex h-screen w-full bg-gray-100">
+      {/* Slide Navigator */}
+      <SlideNavigator
+        slides={slideInfos}
+        currentSlide={currentSlide}
+        onSlideClick={handleJumpToSlide}
+        isCollapsed={isNavigatorCollapsed}
+        onToggleCollapse={() => setIsNavigatorCollapsed(!isNavigatorCollapsed)}
+      />
+
       {/* Editor Panel */}
-      <div className="w-1/2 flex flex-col border-r border-gray-300">
+      <div className="flex-1 flex flex-col border-r border-gray-300">
         <div className="bg-gray-800 text-white px-6 py-3 flex justify-between items-center">
           <h2 className="text-lg font-semibold">Markdown Editor</h2>
           <div className="flex items-center gap-3">
@@ -764,7 +817,7 @@ export default function Editor() {
       </div>
 
       {/* Preview Panel */}
-      <div className="w-1/2 flex flex-col">
+      <div className="flex-1 flex flex-col">
         <div className="bg-gray-800 text-white px-6 py-3 flex justify-between items-center">
           <h2 className="text-lg font-semibold">Vorschau</h2>
           <div className="flex gap-2 items-center">
@@ -912,6 +965,15 @@ export default function Editor() {
       {showCustomCSSEditor && (
         <CustomCSSEditor
           onClose={() => setShowCustomCSSEditor(false)}
+        />
+      )}
+
+      {/* Go to Slide Dialog */}
+      {showGoToDialog && (
+        <GoToSlideDialog
+          slides={slideInfos}
+          onClose={() => setShowGoToDialog(false)}
+          onSlideSelect={handleJumpToSlide}
         />
       )}
     </div>
