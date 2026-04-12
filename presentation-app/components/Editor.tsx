@@ -81,6 +81,8 @@ const STORAGE_KEY = 'presentation-markdown';
 const STORAGE_THEME_KEY = 'presentation-theme';
 const STORAGE_FONTSIZE_KEY = 'presentation-fontsize';
 const STORAGE_AUTHOR_KEY = 'presentation-author';
+const STORAGE_CURRENT_SLIDE_KEY = 'presentation-current-slide';
+const STORAGE_SYNC_KEY = 'presentation-sync-trigger';
 
 export default function Editor() {
   const [markdown, setMarkdown] = useState<string>('');
@@ -100,7 +102,9 @@ export default function Editor() {
   const [author, setAuthor] = useState<string>('');
   const [isNavigatorCollapsed, setIsNavigatorCollapsed] = useState<boolean>(false);
   const [showGoToDialog, setShowGoToDialog] = useState<boolean>(false);
+  const [isSeparatePreview, setIsSeparatePreview] = useState<boolean>(false);
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
+  const previewWindowRef = React.useRef<Window | null>(null);
 
   // Load from LocalStorage on mount
   useEffect(() => {
@@ -256,6 +260,11 @@ export default function Editor() {
   useEffect(() => {
     localStorage.setItem(STORAGE_AUTHOR_KEY, author);
   }, [author]);
+
+  // Save current slide to LocalStorage for preview window sync
+  useEffect(() => {
+    localStorage.setItem(STORAGE_CURRENT_SLIDE_KEY, currentSlide.toString());
+  }, [currentSlide]);
 
   useEffect(() => {
     const parsedSlides = parseSlides(markdown);
@@ -600,6 +609,8 @@ export default function Editor() {
     try {
       const images = await getAllImages();
       setUploadedImages(images);
+      // Trigger sync for preview window
+      localStorage.setItem(STORAGE_SYNC_KEY, Date.now().toString());
     } catch (error) {
       console.error('Failed to reload images:', error);
     }
@@ -637,6 +648,47 @@ export default function Editor() {
       console.error('Failed to reload templates:', error);
     }
   };
+
+  const handleToggleSeparatePreview = () => {
+    if (isSeparatePreview) {
+      // Close the preview window
+      if (previewWindowRef.current && !previewWindowRef.current.closed) {
+        previewWindowRef.current.close();
+      }
+      previewWindowRef.current = null;
+      setIsSeparatePreview(false);
+    } else {
+      // Open preview in new window
+      const previewWindow = window.open(
+        '/preview',
+        'presentation-preview',
+        'width=1280,height=720,menubar=no,toolbar=no,location=no,status=no'
+      );
+
+      if (previewWindow) {
+        previewWindowRef.current = previewWindow;
+        setIsSeparatePreview(true);
+
+        // Check if window gets closed by user
+        const checkWindowClosed = setInterval(() => {
+          if (previewWindowRef.current?.closed) {
+            clearInterval(checkWindowClosed);
+            setIsSeparatePreview(false);
+            previewWindowRef.current = null;
+          }
+        }, 1000);
+      }
+    }
+  };
+
+  // Clean up preview window on unmount
+  useEffect(() => {
+    return () => {
+      if (previewWindowRef.current && !previewWindowRef.current.closed) {
+        previewWindowRef.current.close();
+      }
+    };
+  }, []);
 
   // Close table menu when clicking outside
   useEffect(() => {
@@ -716,9 +768,22 @@ export default function Editor() {
       />
 
       {/* Editor Panel */}
-      <div className="flex-1 flex flex-col border-r border-gray-300">
+      <div className={`flex-1 flex flex-col ${!isSeparatePreview ? 'border-r border-gray-300' : ''}`}>
         <div className="bg-gray-800 text-white px-6 py-3 flex justify-between items-center">
-          <h2 className="text-lg font-semibold">Markdown Editor</h2>
+          <div className="flex items-center gap-3">
+            <h2 className="text-lg font-semibold">Markdown Editor</h2>
+            <button
+              onClick={handleToggleSeparatePreview}
+              className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                isSeparatePreview
+                  ? 'bg-orange-600 hover:bg-orange-500'
+                  : 'bg-indigo-600 hover:bg-indigo-500'
+              }`}
+              title={isSeparatePreview ? 'Vorschau in Editor anzeigen' : 'Vorschau in separatem Fenster öffnen'}
+            >
+              {isSeparatePreview ? '🖥️ Split View' : '🪟 Separates Fenster'}
+            </button>
+          </div>
           <div className="flex items-center gap-3">
             <span className="text-sm text-gray-400">
               {slides.length} Slide{slides.length !== 1 ? 's' : ''}
@@ -816,7 +881,8 @@ export default function Editor() {
         />
       </div>
 
-      {/* Preview Panel */}
+      {/* Preview Panel - only show when not in separate window mode */}
+      {!isSeparatePreview && (
       <div className="flex-1 flex flex-col">
         <div className="bg-gray-800 text-white px-6 py-3 flex justify-between items-center">
           <h2 className="text-lg font-semibold">Vorschau</h2>
@@ -939,6 +1005,7 @@ export default function Editor() {
           )}
         </div>
       </div>
+      )}
 
       {/* Image Library Modal */}
       {showImageLibrary && (
