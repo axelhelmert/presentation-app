@@ -102,6 +102,22 @@ export default function PresentationMode({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [slides.length]);
 
+  const handleSlideClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (e.shiftKey || e.button === 2) {
+      // Shift+Click or Right-Click = Previous
+      setCurrentSlide((prev) => Math.max(prev - 1, 0));
+    } else {
+      // Regular Click = Next
+      setCurrentSlide((prev) => Math.min(prev + 1, slides.length - 1));
+    }
+  };
+
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setCurrentSlide((prev) => Math.max(prev - 1, 0));
+  };
+
   if (slides.length === 0) {
     return (
       <div className="w-full h-screen flex items-center justify-center bg-gray-900 text-white">
@@ -141,7 +157,11 @@ export default function PresentationMode({
       </div>
 
       {/* Slide content */}
-      <div className="w-full h-full flex items-center justify-center px-8 py-8">
+      <div
+        className="w-full h-full flex items-center justify-center px-8 py-8 cursor-pointer"
+        onClick={handleSlideClick}
+        onContextMenu={handleContextMenu}
+      >
         <div className="w-full h-full">
           <SlidePreview
             markdown={slides[currentSlide].content}

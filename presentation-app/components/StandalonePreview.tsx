@@ -12,6 +12,8 @@ const STORAGE_FONTSIZE_KEY = 'presentation-fontsize';
 const STORAGE_AUTHOR_KEY = 'presentation-author';
 const STORAGE_CURRENT_SLIDE_KEY = 'presentation-current-slide';
 const STORAGE_SYNC_KEY = 'presentation-sync-trigger';
+const STORAGE_BEAMER_MODE_KEY = 'presentation-beamer-mode';
+const STORAGE_BEAMER_RESOLUTION_KEY = 'presentation-beamer-resolution';
 
 export default function StandalonePreview() {
   const [markdown, setMarkdown] = useState<string>('');
@@ -21,6 +23,8 @@ export default function StandalonePreview() {
   const [selectedFontSize, setSelectedFontSize] = useState<string>('large');
   const [author, setAuthor] = useState<string>('');
   const [uploadedImages, setUploadedImages] = useState<StoredImage[]>([]);
+  const [isBeamerMode, setIsBeamerMode] = useState<boolean>(false);
+  const [beamerResolution, setBeamerResolution] = useState<string>('1920x1080');
 
   // Initial load from localStorage
   useEffect(() => {
@@ -30,11 +34,15 @@ export default function StandalonePreview() {
       const savedFontSize = localStorage.getItem(STORAGE_FONTSIZE_KEY) || 'large';
       const savedAuthor = localStorage.getItem(STORAGE_AUTHOR_KEY) || '';
       const savedSlide = localStorage.getItem(STORAGE_CURRENT_SLIDE_KEY);
+      const savedBeamerMode = localStorage.getItem(STORAGE_BEAMER_MODE_KEY);
+      const savedBeamerResolution = localStorage.getItem(STORAGE_BEAMER_RESOLUTION_KEY) || '1920x1080';
 
       setMarkdown(savedMarkdown);
       setSelectedTheme(savedTheme);
       setSelectedFontSize(savedFontSize);
       setAuthor(savedAuthor);
+      setIsBeamerMode(savedBeamerMode === 'true');
+      setBeamerResolution(savedBeamerResolution);
 
       if (savedSlide) {
         const slideNum = parseInt(savedSlide, 10);
@@ -71,6 +79,10 @@ export default function StandalonePreview() {
         if (!isNaN(slideNum)) {
           setCurrentSlide(slideNum);
         }
+      } else if (e.key === STORAGE_BEAMER_MODE_KEY && e.newValue !== null) {
+        setIsBeamerMode(e.newValue === 'true');
+      } else if (e.key === STORAGE_BEAMER_RESOLUTION_KEY && e.newValue !== null) {
+        setBeamerResolution(e.newValue);
       } else if (e.key === STORAGE_SYNC_KEY) {
         // Force reload all data when sync trigger fires
         const savedMarkdown = localStorage.getItem(STORAGE_KEY) || '';
@@ -78,11 +90,15 @@ export default function StandalonePreview() {
         const savedFontSize = localStorage.getItem(STORAGE_FONTSIZE_KEY) || 'large';
         const savedAuthor = localStorage.getItem(STORAGE_AUTHOR_KEY) || '';
         const savedSlide = localStorage.getItem(STORAGE_CURRENT_SLIDE_KEY);
+        const savedBeamerMode = localStorage.getItem(STORAGE_BEAMER_MODE_KEY);
+        const savedBeamerResolution = localStorage.getItem(STORAGE_BEAMER_RESOLUTION_KEY) || '1920x1080';
 
         setMarkdown(savedMarkdown);
         setSelectedTheme(savedTheme);
         setSelectedFontSize(savedFontSize);
         setAuthor(savedAuthor);
+        setIsBeamerMode(savedBeamerMode === 'true');
+        setBeamerResolution(savedBeamerResolution);
 
         if (savedSlide) {
           const slideNum = parseInt(savedSlide, 10);
@@ -160,15 +176,74 @@ export default function StandalonePreview() {
     }
   };
 
+  const handleSlideClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (e.shiftKey || e.button === 2) {
+      // Shift+Click or Right-Click = Previous
+      handlePrev();
+    } else {
+      // Regular Click = Next
+      handleNext();
+    }
+  };
+
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    handlePrev();
+  };
+
+  const handleHome = () => {
+    setCurrentSlide(0);
+    localStorage.setItem(STORAGE_CURRENT_SLIDE_KEY, '0');
+  };
+
   return (
     <div className="flex flex-col h-screen w-full bg-gray-100">
       {/* Header with controls */}
       <div className="bg-gray-800 text-white px-6 py-3 flex justify-between items-center shrink-0">
-        <h2 className="text-lg font-semibold">Vorschau</h2>
+        <div className="flex items-center gap-4">
+          <h2 className="text-lg font-semibold">Vorschau</h2>
+          <label className="flex items-center gap-2 cursor-pointer text-sm">
+            <input
+              type="checkbox"
+              checked={isBeamerMode}
+              onChange={(e) => {
+                const newValue = e.target.checked;
+                setIsBeamerMode(newValue);
+                localStorage.setItem(STORAGE_BEAMER_MODE_KEY, newValue.toString());
+              }}
+              className="w-4 h-4 cursor-pointer"
+            />
+            <span>Beamer-Modus (16:9)</span>
+          </label>
+          {isBeamerMode && (
+            <select
+              value={beamerResolution}
+              onChange={(e) => {
+                const newValue = e.target.value;
+                setBeamerResolution(newValue);
+                localStorage.setItem(STORAGE_BEAMER_RESOLUTION_KEY, newValue);
+              }}
+              className="bg-gray-700 text-white px-2 py-1 rounded text-xs border border-gray-600"
+            >
+              <option value="1920x1080">1920×1080</option>
+              <option value="1280x720">1280×720</option>
+              <option value="1024x768">1024×768</option>
+            </select>
+          )}
+        </div>
         <div className="flex gap-2 items-center">
           <span className="text-sm text-gray-300">
             Folie {currentSlide + 1} / {slides.length}
           </span>
+          <button
+            onClick={handleHome}
+            disabled={currentSlide === 0}
+            className="px-3 py-1 bg-blue-700 rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+            title="Zur ersten Folie"
+          >
+            🏠 Start
+          </button>
           <button
             onClick={handlePrev}
             disabled={currentSlide === 0}
@@ -187,18 +262,40 @@ export default function StandalonePreview() {
       </div>
 
       {/* Preview area */}
-      <div className="flex-1 p-6 overflow-hidden">
+      <div
+        className={`flex-1 p-6 overflow-hidden cursor-pointer flex items-center justify-center ${
+          isBeamerMode ? 'bg-black' : ''
+        }`}
+        onClick={handleSlideClick}
+        onContextMenu={handleContextMenu}
+      >
         {slides.length > 0 && slides[currentSlide] ? (
-          <SlidePreview
-            markdown={slides[currentSlide].content}
-            slideNumber={currentSlide + 1}
-            totalSlides={slides.length}
-            themeId={selectedTheme}
-            fontSizeId={selectedFontSize}
-            uploadedImages={uploadedImages}
-            author={author}
-            backgroundImage={slides[currentSlide].backgroundImage}
-          />
+          <div
+            className={`${
+              isBeamerMode
+                ? 'aspect-video w-full max-h-full'
+                : 'w-full h-full'
+            }`}
+            style={
+              isBeamerMode
+                ? {
+                    maxWidth: '100%',
+                    maxHeight: '100%',
+                  }
+                : undefined
+            }
+          >
+            <SlidePreview
+              markdown={slides[currentSlide].content}
+              slideNumber={currentSlide + 1}
+              totalSlides={slides.length}
+              themeId={selectedTheme}
+              fontSizeId={selectedFontSize}
+              uploadedImages={uploadedImages}
+              author={author}
+              backgroundImage={slides[currentSlide].backgroundImage}
+            />
+          </div>
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-white rounded-lg shadow-lg">
             <p className="text-gray-400">Keine Folien vorhanden</p>
@@ -209,7 +306,12 @@ export default function StandalonePreview() {
       {/* Instructions */}
       <div className="bg-gray-700 text-white px-6 py-2 text-xs text-center shrink-0">
         <span className="text-gray-300">
-          Tastenkürzel: ← / → = Navigation • Home / End = Erste/Letzte Folie
+          Navigation: Klick = Weiter • Rechtsklick/Shift+Klick = Zurück • ← / → = Navigation • Home / End = Erste/Letzte Folie
+          {isBeamerMode && (
+            <span className="ml-2 text-blue-300">
+              • Beamer-Modus aktiv: 16:9 Seitenverhältnis
+            </span>
+          )}
         </span>
       </div>
     </div>

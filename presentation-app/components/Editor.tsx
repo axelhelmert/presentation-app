@@ -83,6 +83,8 @@ const STORAGE_FONTSIZE_KEY = 'presentation-fontsize';
 const STORAGE_AUTHOR_KEY = 'presentation-author';
 const STORAGE_CURRENT_SLIDE_KEY = 'presentation-current-slide';
 const STORAGE_SYNC_KEY = 'presentation-sync-trigger';
+const STORAGE_BEAMER_MODE_KEY = 'presentation-beamer-mode';
+const STORAGE_BEAMER_RESOLUTION_KEY = 'presentation-beamer-resolution';
 
 export default function Editor() {
   const [markdown, setMarkdown] = useState<string>('');
@@ -103,6 +105,8 @@ export default function Editor() {
   const [isNavigatorCollapsed, setIsNavigatorCollapsed] = useState<boolean>(false);
   const [showGoToDialog, setShowGoToDialog] = useState<boolean>(false);
   const [isSeparatePreview, setIsSeparatePreview] = useState<boolean>(false);
+  const [isBeamerMode, setIsBeamerMode] = useState<boolean>(false);
+  const [beamerResolution, setBeamerResolution] = useState<string>('1920x1080');
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
   const previewWindowRef = React.useRef<Window | null>(null);
 
@@ -129,6 +133,16 @@ export default function Editor() {
 
     if (savedAuthor) {
       setAuthor(savedAuthor);
+    }
+
+    const savedBeamerMode = localStorage.getItem(STORAGE_BEAMER_MODE_KEY);
+    if (savedBeamerMode === 'true') {
+      setIsBeamerMode(true);
+    }
+
+    const savedBeamerResolution = localStorage.getItem(STORAGE_BEAMER_RESOLUTION_KEY);
+    if (savedBeamerResolution) {
+      setBeamerResolution(savedBeamerResolution);
     }
 
     // Clean up old image data from LocalStorage (if any)
@@ -260,6 +274,16 @@ export default function Editor() {
   useEffect(() => {
     localStorage.setItem(STORAGE_AUTHOR_KEY, author);
   }, [author]);
+
+  // Save beamer mode to LocalStorage
+  useEffect(() => {
+    localStorage.setItem(STORAGE_BEAMER_MODE_KEY, isBeamerMode.toString());
+  }, [isBeamerMode]);
+
+  // Save beamer resolution to LocalStorage
+  useEffect(() => {
+    localStorage.setItem(STORAGE_BEAMER_RESOLUTION_KEY, beamerResolution);
+  }, [beamerResolution]);
 
   // Save current slide to LocalStorage for preview window sync
   useEffect(() => {
@@ -975,6 +999,36 @@ export default function Editor() {
                 ))}
               </select>
             </div>
+
+            <div className="flex items-center gap-2 border-l border-gray-500 pl-4">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={isBeamerMode}
+                  onChange={(e) => setIsBeamerMode(e.target.checked)}
+                  className="w-4 h-4 cursor-pointer"
+                />
+                <span className="font-medium">Beamer-Modus (16:9)</span>
+              </label>
+            </div>
+
+            {isBeamerMode && (
+              <div className="flex items-center gap-2">
+                <label htmlFor="resolution-select" className="font-medium">
+                  Auflösung:
+                </label>
+                <select
+                  id="resolution-select"
+                  value={beamerResolution}
+                  onChange={(e) => setBeamerResolution(e.target.value)}
+                  className="bg-gray-600 text-white px-3 py-1 rounded border border-gray-500 focus:outline-none focus:border-gray-400"
+                >
+                  <option value="1920x1080">1920×1080 (Full HD)</option>
+                  <option value="1280x720">1280×720 (HD)</option>
+                  <option value="1024x768">1024×768 (XGA)</option>
+                </select>
+              </div>
+            )}
           </div>
 
           <div className="text-xs text-gray-300 flex items-center gap-2">
@@ -988,16 +1042,38 @@ export default function Editor() {
         </div>
         <div className="flex-1 p-6 overflow-hidden">
           {slides.length > 0 && slides[currentSlide] ? (
-            <SlidePreview
-              markdown={slides[currentSlide].content}
-              slideNumber={currentSlide + 1}
-              totalSlides={slides.length}
-              themeId={selectedTheme}
-              fontSizeId={selectedFontSize}
-              uploadedImages={uploadedImages}
-              author={author}
-              backgroundImage={slides[currentSlide].backgroundImage}
-            />
+            <div
+              className={`w-full h-full flex items-center justify-center ${
+                isBeamerMode ? 'bg-black' : ''
+              }`}
+            >
+              <div
+                className={`${
+                  isBeamerMode
+                    ? 'aspect-video w-full max-h-full'
+                    : 'w-full h-full'
+                }`}
+                style={
+                  isBeamerMode
+                    ? {
+                        maxWidth: '100%',
+                        maxHeight: '100%',
+                      }
+                    : undefined
+                }
+              >
+                <SlidePreview
+                  markdown={slides[currentSlide].content}
+                  slideNumber={currentSlide + 1}
+                  totalSlides={slides.length}
+                  themeId={selectedTheme}
+                  fontSizeId={selectedFontSize}
+                  uploadedImages={uploadedImages}
+                  author={author}
+                  backgroundImage={slides[currentSlide].backgroundImage}
+                />
+              </div>
+            </div>
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-white rounded-lg shadow-lg">
               <p className="text-gray-400">Keine Folien vorhanden</p>

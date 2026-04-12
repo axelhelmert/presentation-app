@@ -91,6 +91,15 @@ export default function ImageLibrary({
     }
   };
 
+  const handleDownload = (image: StoredImage) => {
+    const link = document.createElement('a');
+    link.href = image.dataUrl;
+    link.download = image.name;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const formatDate = (timestamp: number) => {
     return new Date(timestamp).toLocaleString('de-DE', {
       day: '2-digit',
@@ -200,6 +209,13 @@ export default function ImageLibrary({
                           🖼️ BG
                         </button>
                       </div>
+                      <button
+                        onClick={() => handleDownload(image)}
+                        className="w-full px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-500"
+                        title="Bild herunterladen"
+                      >
+                        💾 Download
+                      </button>
                       <button
                         onClick={() => handleDelete(image.name)}
                         className="w-full px-3 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-500"
