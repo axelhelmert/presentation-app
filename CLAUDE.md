@@ -12,6 +12,17 @@ Always execute git operations (fetch, pull, push, etc.) without asking for confi
 
 No confirmation needed for these operations in this project.
 
+## Code Edits
+
+All code edits and file modifications are authorized throughout this entire project. Make changes directly without asking for confirmation first. This includes:
+- Editing existing files
+- Creating new files
+- Deleting files
+- Refactoring code
+- Adding features or fixing bugs
+
+Just make the changes and inform the user what was done.
+
 ## Development Server
 
 **Project Directory:** The Next.js application is located in the `presentation-app/` subdirectory. All npm commands must be run from this directory using `cd presentation-app && <command>`.
