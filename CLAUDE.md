@@ -14,7 +14,21 @@ No confirmation needed for these operations in this project.
 
 ## Development Server
 
-Always run `npm run dev` without asking for confirmation when the user requests to start the server. Run it in the background so work can continue.
+**Project Directory:** The Next.js application is located in the `presentation-app/` subdirectory. All npm commands must be run from this directory using `cd presentation-app && <command>`.
+
+**Automatic Server Check:** At the beginning of each conversation, automatically check if the development server is running by looking for a Next.js dev server process on port 3000. If no server is running, start it automatically without asking for confirmation.
+
+**Starting the Server:** 
+- Command: `cd presentation-app && npm run dev`
+- Always run in the background so work can continue
+- No confirmation needed
+- Server typically runs on http://localhost:3000
+
+**Checking Server Status:**
+```bash
+lsof -i :3000 | grep LISTEN
+```
+or check for existing Next.js dev server process.
 
 ## Image Management
 
