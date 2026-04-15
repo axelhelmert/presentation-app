@@ -110,6 +110,8 @@ export default function Editor() {
   const [selectedTextColor, setSelectedTextColor] = useState<string>('orange');
   const [showFormatMenu, setShowFormatMenu] = useState<boolean>(false);
   const [columnCount, setColumnCount] = useState<number>(2);
+  const [editorWidth, setEditorWidth] = useState<number>(50); // in percent
+  const [isResizing, setIsResizing] = useState<boolean>(false);
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
   const previewWindowRef = React.useRef<Window | null>(null);
 
@@ -863,6 +865,41 @@ export default function Editor() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isPresentationMode, slides.length, handleStartPresentation, showGoToDialog]);
 
+  // Handle resizing of editor/preview split
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isResizing) return;
+
+      const container = document.querySelector('.split-container') as HTMLElement;
+      if (!container) return;
+
+      const containerRect = container.getBoundingClientRect();
+      const newWidth = ((e.clientX - containerRect.left) / containerRect.width) * 100;
+
+      // Constrain between 20% and 80%
+      const constrainedWidth = Math.min(Math.max(newWidth, 20), 80);
+      setEditorWidth(constrainedWidth);
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing(false);
+    };
+
+    if (isResizing) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+  }, [isResizing]);
+
   // Show presentation mode if active
   if (isPresentationMode) {
     return (
@@ -889,8 +926,15 @@ export default function Editor() {
         onToggleCollapse={() => setIsNavigatorCollapsed(!isNavigatorCollapsed)}
       />
 
-      {/* Editor Panel */}
-      <div className={`flex-1 flex flex-col ${!isSeparatePreview ? 'border-r border-gray-300' : ''}`}>
+      {/* Split Container for Editor and Preview */}
+      <div className="flex flex-1 split-container">
+        {/* Editor Panel */}
+        <div
+          className="flex flex-col"
+          style={{
+            width: isSeparatePreview ? '100%' : `${editorWidth}%`,
+          }}
+        >
         <div className="bg-gray-800 text-white px-6 py-3 flex justify-between items-center">
           <div className="flex items-center gap-3">
             <h2 className="text-lg font-semibold">Markdown Editor</h2>
@@ -1073,11 +1117,25 @@ export default function Editor() {
           placeholder="Schreibe dein Markdown hier... Trenne Folien mit ---"
           spellCheck={false}
         />
-      </div>
+        </div>
 
-      {/* Preview Panel - only show when not in separate window mode */}
-      {!isSeparatePreview && (
-      <div className="flex-1 flex flex-col">
+        {/* Resizer Divider */}
+        {!isSeparatePreview && (
+          <div
+            className="w-1 bg-gray-300 hover:bg-blue-500 cursor-col-resize transition-colors flex-shrink-0"
+            onMouseDown={() => setIsResizing(true)}
+            title="Ziehen zum Anpassen der Größe"
+          />
+        )}
+
+        {/* Preview Panel - only show when not in separate window mode */}
+        {!isSeparatePreview && (
+          <div
+            className="flex flex-col"
+            style={{
+              width: `${100 - editorWidth}%`,
+            }}
+          >
         <div className="bg-gray-800 text-white px-6 py-3 flex justify-between items-center">
           <h2 className="text-lg font-semibold">Vorschau</h2>
           <div className="flex gap-2 items-center">
@@ -1251,8 +1309,9 @@ export default function Editor() {
             </div>
           )}
         </div>
+          </div>
+        )}
       </div>
-      )}
 
       {/* Image Library Modal */}
       {showImageLibrary && (
