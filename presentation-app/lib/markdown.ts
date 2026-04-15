@@ -12,6 +12,7 @@ export interface Slide {
   content: string;
   rawMarkdown: string;
   backgroundImage?: string;
+  productLogo?: string;
 }
 
 export function parseSlides(markdown: string): Slide[] {
@@ -22,14 +23,24 @@ export function parseSlides(markdown: string): Slide[] {
     .filter((content) => content.length > 0)
     .map((content, index) => {
       // Check for background image syntax: <!--bg: filename.jpg-->
-      const bgMatch = content.match(/^<!--\s*bg:\s*(.+?)\s*-->/);
+      const bgMatch = content.match(/<!--\s*bg:\s*(.+?)\s*-->/);
       let backgroundImage: string | undefined;
       let cleanContent = content;
 
       if (bgMatch) {
         backgroundImage = bgMatch[1].trim();
         // Remove the background image comment from content
-        cleanContent = content.replace(/^<!--\s*bg:\s*.+?\s*-->\s*/, '');
+        cleanContent = cleanContent.replace(/<!--\s*bg:\s*.+?\s*-->\s*/g, '');
+      }
+
+      // Check for product logo syntax: <!--product-logo: filename.png-->
+      const logoMatch = cleanContent.match(/<!--\s*product-logo:\s*(.+?)\s*-->/);
+      let productLogo: string | undefined;
+
+      if (logoMatch) {
+        productLogo = logoMatch[1].trim();
+        // Remove the product logo comment from content
+        cleanContent = cleanContent.replace(/<!--\s*product-logo:\s*.+?\s*-->\s*/g, '');
       }
 
       return {
@@ -37,6 +48,7 @@ export function parseSlides(markdown: string): Slide[] {
         content: cleanContent,
         rawMarkdown: content,
         backgroundImage,
+        productLogo,
       };
     });
 }

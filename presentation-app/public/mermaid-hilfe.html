@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mermaid Diagramm Hilfe</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+            color: #333;
+        }
+        h1 {
+            color: #2563eb;
+            border-bottom: 3px solid #2563eb;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #059669;
+            margin-top: 30px;
+            border-left: 4px solid #059669;
+            padding-left: 10px;
+        }
+        .section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .example {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 15px 0;
+        }
+        .code {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+            white-space: pre;
+        }
+        .preview {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .color-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        .color-table th,
+        .color-table td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #e2e8f0;
+        }
+        .color-table th {
+            background: #f1f5f9;
+            font-weight: 600;
+        }
+        .color-box {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+        .tip {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 12px 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        .tip strong {
+            color: #92400e;
+        }
+        code {
+            background: #e2e8f0;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎨 Mermaid Diagramm Hilfe</h1>
+
+    <div class="section">
+        <h2>📝 Grundlagen</h2>
+        <p>Mermaid-Diagramme werden in Markdown mit folgendem Format eingefügt:</p>
+        <div class="code">```mermaid
+graph LR
+    A --> B
+```</div>
+        <div class="tip">
+            <strong>Tipp:</strong> <code>LR</code> = Left to Right (von links nach rechts), <code>TD</code> = Top Down (von oben nach unten)
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>📦 Formen</h2>
+
+        <div class="example">
+            <div>
+                <h3>Rechteck</h3>
+                <div class="code">```mermaid
+graph LR
+    A[Rechteck]
+```</div>
+            </div>
+            <div class="preview">
+                <div class="mermaid">
+graph LR
+    A[Rechteck]
+                </div>
+            </div>
+        </div>
+
+        <div class="example">
+            <div>
+                <h3>Abgerundetes Rechteck</h3>
+                <div class="code">```mermaid
+graph LR
+    A(Abgerundet)
+```</div>
+            </div>
+            <div class="preview">
+                <div class="mermaid">
+graph LR
+    A(Abgerundet)
+                </div>
+            </div>
+        </div>
+
+        <div class="example">
+            <div>
+                <h3>Kreis</h3>
+                <div class="code">```mermaid
+graph LR
+    A((Kreis))
+```</div>
+            </div>
+            <div class="preview">
+                <div class="mermaid">
+graph LR
+    A((Kreis))
+                </div>
+            </div>
+        </div>
+
+        <div class="example">
+            <div>
+                <h3>Raute (Entscheidung)</h3>
+                <div class="code">```mermaid
+graph LR
+    A{Entscheidung}
+```</div>
+            </div>
+            <div class="preview">
+                <div class="mermaid">
+graph LR
+    A{Entscheidung}
+                </div>
+            </div>
+        </div>
+
+        <div class="example">
+            <div>
+                <h3>Parallelogramm</h3>
+                <div class="code">```mermaid
+graph LR
+    A[/Input/]
+    B[\Output\]
+```</div>
+            </div>
+            <div class="preview">
+                <div class="mermaid">
+graph LR
+    A[/Input/]
+    B[\Output\]
+                </div>
+            </div>
+        </div>
+
+        <div class="example">
+            <div>
+                <h3>Sechseck</h3>
+                <div class="code">```mermaid
+graph LR
+    A{{Sechseck}}
+```</div>
+            </div>
+            <div class="preview">
+                <div class="mermaid">
+graph LR
+    A{{Sechseck}}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>➡️ Pfeile und Verbindungen</h2>
+
+        <div class="example">
+            <div>
+                <h3>Einfacher Pfeil</h3>
+                <div class="code">```mermaid
+graph LR
+    A --> B
+```</div>
+            </div>
+            <div class="preview">
+                <div class="mermaid">
+graph LR
+    A --> B
+                </div>
+            </div>
+        </div>
+
+        <div class="example">
+            <div>
+                <h3>Pfeil mit Text</h3>
+                <div class="code">```mermaid
+graph LR
+    A -->|Text| B
+```</div>
+            </div>
+            <div class="preview">
+                <div class="mermaid">
+graph LR
+    A -->|Text| B
+                </div>
+            </div>
+        </div>
+
+        <div class="example">
+            <div>
+                <h3>Gestrichelte Linie</h3>
+                <div class="code">```mermaid
+graph LR
+    A -.-> B
+    C -.Text.-> D
+```</div>
+            </div>
+            <div class="preview">
+                <div class="mermaid">
+graph LR
+    A -.-> B
+    C -.Text.-> D
+                </div>
+            </div>
+        </div>
+
+        <div class="example">
+            <div>
+                <h3>Dicke Linie</h3>
+                <div class="code">```mermaid
+graph LR
+    A ==> B
+    C ==Text==> D
+```</div>
+            </div>
+            <div class="preview">
+                <div class="mermaid">
+graph LR
+    A ==> B
+    C ==Text==> D
+                </div>
+            </div>
+        </div>
+
+        <div class="example">
+            <div>
+                <h3>Linie ohne Pfeil</h3>
+                <div class="code">```mermaid
+graph LR
+    A --- B
+    C ---|Text| D
+```</div>
+            </div>
+            <div class="preview">
+                <div class="mermaid">
+graph LR
+    A --- B
+    C ---|Text| D
+                </div>
+            </div>
+        </div>
+
+        <div class="example">
+            <div>
+                <h3>Bidirektionale Pfeile</h3>
+                <div class="code">```mermaid
+graph LR
+    A <--> B
+    C <-.-> D
+```</div>
+            </div>
+            <div class="preview">
+                <div class="mermaid">
+graph LR
+    A <--> B
+    C <-.-> D
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>🎨 Farben</h2>
+        <p>Elemente können mit CSS-Styling eingefärbt werden:</p>
+
+        <div class="example">
+            <div>
+                <h3>Einzelne Elemente einfärben</h3>
+                <div class="code">```mermaid
+graph LR
+    A[Start]
+    B[Prozess]
+    C[Ende]
+    A --> B --> C
+
+    style A fill:#10b981,stroke:#059669,stroke-width:2px,color:#fff
+    style B fill:#3b82f6,stroke:#2563eb,stroke-width:2px,color:#fff
+    style C fill:#ef4444,stroke:#dc2626,stroke-width:2px,color:#fff
+```</div>
+            </div>
+            <div class="preview">
+                <div class="mermaid">
+graph LR
+    A[Start]
+    B[Prozess]
+    C[Ende]
+    A --> B --> C
+
+    style A fill:#10b981,stroke:#059669,stroke-width:2px,color:#fff
+    style B fill:#3b82f6,stroke:#2563eb,stroke-width:2px,color:#fff
+    style C fill:#ef4444,stroke:#dc2626,stroke-width:2px,color:#fff
+                </div>
+            </div>
+        </div>
+
+        <h3>Häufig verwendete Farbcodes:</h3>
+        <table class="color-table">
+            <thead>
+                <tr>
+                    <th>Farbe</th>
+                    <th>Hex-Code (Fill)</th>
+                    <th>Hex-Code (Stroke/Dunkel)</th>
+                    <th>Verwendung</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><span class="color-box" style="background:#10b981"></span>Grün</td>
+                    <td><code>#10b981</code></td>
+                    <td><code>#059669</code></td>
+                    <td>Start, Erfolg, Positiv</td>
+                </tr>
+                <tr>
+                    <td><span class="color-box" style="background:#3b82f6"></span>Blau</td>
+                    <td><code>#3b82f6</code></td>
+                    <td><code>#2563eb</code></td>
+                    <td>Prozesse, Aktionen</td>
+                </tr>
+                <tr>
+                    <td><span class="color-box" style="background:#8b5cf6"></span>Lila</td>
+                    <td><code>#8b5cf6</code></td>
+                    <td><code>#7c3aed</code></td>
+                    <td>Datenbanken, Speicher</td>
+                </tr>
+                <tr>
+                    <td><span class="color-box" style="background:#ef4444"></span>Rot</td>
+                    <td><code>#ef4444</code></td>
+                    <td><code>#dc2626</code></td>
+                    <td>Ende, Fehler, Warnung</td>
+                </tr>
+                <tr>
+                    <td><span class="color-box" style="background:#f59e0b"></span>Orange</td>
+                    <td><code>#f59e0b</code></td>
+                    <td><code>#d97706</code></td>
+                    <td>Entscheidungen, Wichtig</td>
+                </tr>
+                <tr>
+                    <td><span class="color-box" style="background:#06b6d4"></span>Cyan</td>
+                    <td><code>#06b6d4</code></td>
+                    <td><code>#0891b2</code></td>
+                    <td>Daten, Information</td>
+                </tr>
+                <tr>
+                    <td><span class="color-box" style="background:#64748b"></span>Grau</td>
+                    <td><code>#64748b</code></td>
+                    <td><code>#475569</code></td>
+                    <td>Inaktiv, Neutral</td>
+                </tr>
+                <tr>
+                    <td><span class="color-box" style="background:#ec4899"></span>Pink</td>
+                    <td><code>#ec4899</code></td>
+                    <td><code>#db2777</code></td>
+                    <td>Benutzer, Interface</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="tip">
+            <strong>Style-Optionen:</strong><br>
+            • <code>fill</code> - Hintergrundfarbe<br>
+            • <code>stroke</code> - Rahmenfarbe<br>
+            • <code>stroke-width</code> - Rahmendicke in Pixeln<br>
+            • <code>color</code> - Textfarbe<br>
+            • <code>width</code> - Breite in Pixeln<br>
+            • <code>height</code> - Höhe in Pixeln
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>📏 Größe steuern</h2>
+        <p>Mit <code>width</code> und <code>height</code> kannst du die Größe der Formen festlegen. Das ist besonders nützlich, um alle Elemente gleich groß zu machen.</p>
+
+        <div class="example" style="grid-template-columns: 1fr;">
+            <div>
+                <h3>Alle Rechtecke gleich groß</h3>
+                <div class="code">```mermaid
+graph LR
+    A[Kurz] --> B[Mittellanger Text] --> C[X]
+
+    style A width:200px,height:60px,fill:#3b82f6,stroke:#2563eb,color:#fff
+    style B width:200px,height:60px,fill:#3b82f6,stroke:#2563eb,color:#fff
+    style C width:200px,height:60px,fill:#3b82f6,stroke:#2563eb,color:#fff
+```</div>
+            </div>
+            <div class="preview" style="padding: 30px;">
+                <div class="mermaid">
+graph LR
+    A[Kurz] --> B[Mittellanger Text] --> C[X]
+
+    style A width:200px,height:60px,fill:#3b82f6,stroke:#2563eb,color:#fff
+    style B width:200px,height:60px,fill:#3b82f6,stroke:#2563eb,color:#fff
+    style C width:200px,height:60px,fill:#3b82f6,stroke:#2563eb,color:#fff
+                </div>
+            </div>
+        </div>
+
+        <div class="example" style="grid-template-columns: 1fr;">
+            <div>
+                <h3>Klassen für einheitliche Größen</h3>
+                <div class="code">```mermaid
+graph TD
+    A[Element 1]
+    B[Element 2]
+    C[Element 3]
+    D[Wichtig!]
+
+    A --> B --> C
+    A --> D --> C
+
+    classDef standard width:180px,height:50px,fill:#3b82f6,stroke:#2563eb,color:#fff
+    classDef wichtig width:180px,height:50px,fill:#ef4444,stroke:#dc2626,color:#fff
+
+    class A,B,C standard
+    class D wichtig
+```</div>
+            </div>
+            <div class="preview" style="padding: 30px;">
+                <div class="mermaid">
+graph TD
+    A[Element 1]
+    B[Element 2]
+    C[Element 3]
+    D[Wichtig!]
+
+    A --> B --> C
+    A --> D --> C
+
+    classDef standard width:180px,height:50px,fill:#3b82f6,stroke:#2563eb,color:#fff
+    classDef wichtig width:180px,height:50px,fill:#ef4444,stroke:#dc2626,color:#fff
+
+    class A,B,C standard
+    class D wichtig
+                </div>
+            </div>
+        </div>
+
+        <div class="tip">
+            <strong>Tipp:</strong> Mit <code>classDef</code> definierst du wiederverwendbare Klassen. Diese kannst du dann mit <code>class A,B,C klassenname</code> auf mehrere Elemente anwenden. So bleiben alle Formen konsistent!
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>🔄 Komplexes Beispiel</h2>
+
+        <div class="example" style="grid-template-columns: 1fr;">
+            <div>
+                <h3>Vollständiges Flussdiagramm mit Farben</h3>
+                <div class="code">```mermaid
+graph TD
+    A[Start] --> B{Eingabe OK?}
+    B -->|Ja| C[Daten verarbeiten]
+    B -->|Nein| D[Fehler anzeigen]
+    C --> E[Speichern]
+    E --> F((Ende))
+    D --> F
+
+    style A fill:#10b981,stroke:#059669,stroke-width:2px,color:#fff
+    style B fill:#f59e0b,stroke:#d97706,stroke-width:2px,color:#fff
+    style C fill:#3b82f6,stroke:#2563eb,stroke-width:2px,color:#fff
+    style D fill:#ef4444,stroke:#dc2626,stroke-width:2px,color:#fff
+    style E fill:#8b5cf6,stroke:#7c3aed,stroke-width:2px,color:#fff
+    style F fill:#10b981,stroke:#059669,stroke-width:2px,color:#fff
+```</div>
+            </div>
+            <div class="preview" style="padding: 30px;">
+                <div class="mermaid">
+graph TD
+    A[Start] --> B{Eingabe OK?}
+    B -->|Ja| C[Daten verarbeiten]
+    B -->|Nein| D[Fehler anzeigen]
+    C --> E[Speichern]
+    E --> F((Ende))
+    D --> F
+
+    style A fill:#10b981,stroke:#059669,stroke-width:2px,color:#fff
+    style B fill:#f59e0b,stroke:#d97706,stroke-width:2px,color:#fff
+    style C fill:#3b82f6,stroke:#2563eb,stroke-width:2px,color:#fff
+    style D fill:#ef4444,stroke:#dc2626,stroke-width:2px,color:#fff
+    style E fill:#8b5cf6,stroke:#7c3aed,stroke-width:2px,color:#fff
+    style F fill:#10b981,stroke:#059669,stroke-width:2px,color:#fff
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>💡 Tipps & Tricks</h2>
+        <ul>
+            <li><strong>Mehrzeilige Labels:</strong> Verwende <code>&lt;br&gt;</code> für Zeilenumbrüche in Labels</li>
+            <li><strong>Sonderzeichen:</strong> Verwende Anführungszeichen bei Sonderzeichen: <code>A["Text mit (Klammern)"]</code></li>
+            <li><strong>Ausrichtung:</strong> <code>LR</code> (Links-Rechts), <code>RL</code> (Rechts-Links), <code>TD</code> (Top-Down), <code>BT</code> (Bottom-Top)</li>
+            <li><strong>Mehrere Verbindungen:</strong> <code>A --> B & C & D</code> verbindet A mit B, C und D</li>
+            <li><strong>Subgraphen:</strong> Gruppiere Elemente mit <code>subgraph</code> für visuelle Bereiche</li>
+            <li><strong>Einheitliche Größen:</strong> Nutze <code>classDef</code> und <code>class</code> um mehrere Elemente mit denselben Eigenschaften zu versehen</li>
+        </ul>
+    </div>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'basis'
+            }
+        });
+    </script>
+</body>
+</html>

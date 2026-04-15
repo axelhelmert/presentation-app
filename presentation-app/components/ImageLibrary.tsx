@@ -8,6 +8,7 @@ interface ImageLibraryProps {
   onClose: () => void;
   onInsertImage: (filename: string) => void;
   onInsertBackgroundImage: (filename: string) => void;
+  onInsertProductLogo: (filename: string) => void;
   onImagesChanged: () => void;
 }
 
@@ -16,6 +17,7 @@ export default function ImageLibrary({
   onClose,
   onInsertImage,
   onInsertBackgroundImage,
+  onInsertProductLogo,
   onImagesChanged,
 }: ImageLibraryProps) {
   const [isUploading, setIsUploading] = useState(false);
@@ -187,13 +189,13 @@ export default function ImageLibrary({
 
                     {/* Actions */}
                     <div className="mt-3 flex flex-col gap-2">
-                      <div className="flex gap-2">
+                      <div className="grid grid-cols-3 gap-2">
                         <button
                           onClick={() => {
                             onInsertImage(image.name);
                             onClose();
                           }}
-                          className="flex-1 px-3 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-500"
+                          className="px-3 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-500"
                           title="Als Inline-Bild einfügen"
                         >
                           📷 Bild
@@ -203,10 +205,20 @@ export default function ImageLibrary({
                             onInsertBackgroundImage(image.name);
                             onClose();
                           }}
-                          className="flex-1 px-3 py-1 bg-purple-600 text-white text-xs rounded hover:bg-purple-500"
+                          className="px-3 py-1 bg-purple-600 text-white text-xs rounded hover:bg-purple-500"
                           title="Als Hintergrundbild einfügen"
                         >
                           🖼️ BG
+                        </button>
+                        <button
+                          onClick={() => {
+                            onInsertProductLogo(image.name);
+                            onClose();
+                          }}
+                          className="px-3 py-1 bg-orange-600 text-white text-xs rounded hover:bg-orange-500"
+                          title="Als Produkt-Logo einfügen (oben links)"
+                        >
+                          🏷️ Logo
                         </button>
                       </div>
                       <button

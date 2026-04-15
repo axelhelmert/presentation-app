@@ -20,6 +20,7 @@ interface SlidePreviewProps {
   uploadedImages?: StoredImage[];
   author?: string;
   backgroundImage?: string;
+  productLogo?: string;
 }
 
 export default function SlidePreview({
@@ -31,6 +32,7 @@ export default function SlidePreview({
   uploadedImages = [],
   author = '',
   backgroundImage,
+  productLogo,
 }: SlidePreviewProps) {
   const [html, setHtml] = useState<string>('');
   const [mermaidBlocks, setMermaidBlocks] = useState<MermaidBlock[]>([]);
@@ -41,6 +43,11 @@ export default function SlidePreview({
   // Find background image data URL
   const bgImageData = backgroundImage
     ? uploadedImages.find((img) => img.name === backgroundImage)
+    : null;
+
+  // Find product logo data URL
+  const productLogoData = productLogo
+    ? uploadedImages.find((img) => img.name === productLogo)
     : null;
 
   // Check if this slide is just an image (trim whitespace first)
@@ -161,7 +168,18 @@ export default function SlidePreview({
       className="w-full h-full flex flex-col rounded-lg shadow-lg overflow-hidden border slide-container relative"
       style={containerStyle}
     >
-      {/* Logo oben rechts */}
+      {/* Produkt-Logo oben links */}
+      {productLogoData?.dataUrl && (
+        <div className="absolute top-4 left-4 z-10">
+          <img
+            src={productLogoData.dataUrl}
+            alt="Product Logo"
+            className={`${isTitleSlide ? 'h-24' : 'h-12'} w-auto opacity-80`}
+          />
+        </div>
+      )}
+
+      {/* Firmen-Logo oben rechts */}
       <div className="absolute top-4 right-4 z-10">
         <img
           src="/msg-logo.png"
@@ -188,10 +206,13 @@ export default function SlidePreview({
                 fontSize: '1.65rem',
                 textAlign: 'center',
                 position: 'absolute',
-                left: '25%',
+                left: productLogoData?.dataUrl ? '50%' : '25%',
                 top: '33%',
                 transform: 'translate(-50%, -50%)',
-              } : contentStyle}
+              } : {
+                ...contentStyle,
+                marginLeft: productLogoData?.dataUrl ? '4rem' : '0',
+              }}
               dangerouslySetInnerHTML={{ __html: html }}
             />
             {/* Render Mermaid diagrams */}

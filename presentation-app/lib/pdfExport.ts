@@ -127,6 +127,11 @@ export async function exportToPDF({
         ? uploadedImages.find((img) => img.name === slide.backgroundImage)
         : null;
 
+      // Find product logo if specified
+      const productLogoData = slide.productLogo
+        ? uploadedImages.find((img) => img.name === slide.productLogo)
+        : null;
+
       // Determine colors based on background image
       const textColor = bgImageData ? '#ffffff' : theme.textColor;
       const headingColor = bgImageData ? '#ffffff' : theme.headingColor;
@@ -154,7 +159,14 @@ export async function exportToPDF({
           display: flex;
           flex-direction: column;
         ">
-          <!-- Logo -->
+          <!-- Product Logo (left) -->
+          ${productLogoData?.dataUrl ? `
+          <div style="position: absolute; top: 30px; left: 30px; z-index: 10;">
+            <img src="${productLogoData.dataUrl}" alt="Product Logo" style="height: ${isTitleSlide ? '96px' : '58px'}; width: auto; opacity: 0.8;" />
+          </div>
+          ` : ''}
+
+          <!-- Company Logo (right) -->
           <div style="position: absolute; top: 30px; right: 30px; z-index: 10;">
             <img src="/msg-logo.png" alt="MSG Logo" style="height: ${isTitleSlide ? '80px' : '48px'}; width: auto; opacity: 0.8;" />
           </div>
@@ -166,7 +178,7 @@ export async function exportToPDF({
                 font-size: 2rem;
                 text-align: center;
                 position: absolute;
-                left: 25%;
+                left: ${productLogoData?.dataUrl ? '50%' : '25%'};
                 top: 33%;
                 transform: translate(-50%, -50%);
                 width: 50%;
@@ -174,6 +186,7 @@ export async function exportToPDF({
                 font-size: ${fontSize.size};
                 line-height: ${fontSize.lineHeight};
                 width: 100%;
+                margin-left: ${productLogoData?.dataUrl ? '4rem' : '0'};
               `}
               color: ${textColor};
               transform-origin: top center;

@@ -107,8 +107,25 @@ export default function Editor() {
   const [isSeparatePreview, setIsSeparatePreview] = useState<boolean>(false);
   const [isBeamerMode, setIsBeamerMode] = useState<boolean>(false);
   const [beamerResolution, setBeamerResolution] = useState<string>('1920x1080');
+  const [selectedTextColor, setSelectedTextColor] = useState<string>('orange');
+  const [showFormatMenu, setShowFormatMenu] = useState<boolean>(false);
+  const [columnCount, setColumnCount] = useState<number>(2);
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
   const previewWindowRef = React.useRef<Window | null>(null);
+
+  // Grass terminal color scheme (text colors)
+  const grassColors = [
+    { name: 'Orange', color: 'orange' },
+    { name: 'Gold', color: 'gold' },
+    { name: 'Darkorange', color: 'darkorange' },
+    { name: 'Coral', color: 'coral' },
+    { name: 'Tomato', color: 'tomato' },
+    { name: 'Orangered', color: 'orangered' },
+    { name: 'Chocolate', color: 'chocolate' },
+    { name: 'Peru', color: 'peru' },
+    { name: 'Sienna', color: 'sienna' },
+    { name: 'Tan', color: 'tan' },
+  ];
 
   // Load from LocalStorage on mount
   useEffect(() => {
@@ -629,6 +646,35 @@ export default function Editor() {
     }
   };
 
+  const handleInsertProductLogoFromLibrary = (filename: string) => {
+    const logoComment = `<!--product-logo: ${filename}-->`;
+
+    const textarea = textareaRef.current;
+    if (textarea) {
+      const start = textarea.selectionStart;
+      const text = textarea.value;
+
+      // Find the start of the current slide (or beginning of document)
+      const beforeCursor = text.substring(0, start);
+      const lastSlideBreak = beforeCursor.lastIndexOf('---');
+      const slideStart = lastSlideBreak === -1 ? 0 : lastSlideBreak + 3;
+
+      // Insert at the beginning of the current slide
+      const newText = text.substring(0, slideStart) + '\n' + logoComment + '\n' + text.substring(slideStart);
+      setMarkdown(newText);
+
+      // Move cursor back to where it was (adjusted for inserted text)
+      setTimeout(() => {
+        textarea.focus();
+        const newPosition = start + logoComment.length + 2; // +2 for the newlines
+        textarea.setSelectionRange(newPosition, newPosition);
+      }, 0);
+    } else {
+      // Fallback: prepend to beginning
+      setMarkdown(logoComment + '\n' + markdown);
+    }
+  };
+
   const handleReloadImages = async () => {
     try {
       const images = await getAllImages();
@@ -673,6 +719,57 @@ export default function Editor() {
     }
   };
 
+  const handleWrapBoldColored = () => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const text = textarea.value;
+      const selectedText = text.substring(start, end);
+
+      if (selectedText) {
+        const wrappedText = `<span style="font-weight: bold; color: ${selectedTextColor}">${selectedText}</span>`;
+        const newText = text.substring(0, start) + wrappedText + text.substring(end);
+        setMarkdown(newText);
+
+        // Set cursor after the wrapped text
+        setTimeout(() => {
+          textarea.focus();
+          const newPosition = start + wrappedText.length;
+          textarea.setSelectionRange(newPosition, newPosition);
+        }, 0);
+      }
+    }
+  };
+
+  const handleInsertColumns = () => {
+    const columns = Array.from({ length: columnCount }, (_, i) =>
+      `  <div style="flex: 1">\n    Spalte ${i + 1}\n  </div>`
+    ).join('\n');
+
+    const columnsTemplate = `\n\n<div style="display: flex; gap: 20px;">\n${columns}\n</div>\n\n`;
+
+    const textarea = textareaRef.current;
+    if (textarea) {
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const text = textarea.value;
+
+      const newText = text.substring(0, start) + columnsTemplate + text.substring(end);
+      setMarkdown(newText);
+
+      setTimeout(() => {
+        textarea.focus();
+        const newPosition = start + columnsTemplate.length;
+        textarea.setSelectionRange(newPosition, newPosition);
+      }, 0);
+    } else {
+      setMarkdown((prev) => prev + columnsTemplate);
+    }
+
+    setShowFormatMenu(false);
+  };
+
   const handleToggleSeparatePreview = () => {
     if (isSeparatePreview) {
       // Close the preview window
@@ -714,20 +811,21 @@ export default function Editor() {
     };
   }, []);
 
-  // Close table menu when clicking outside
+  // Close menus when clicking outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (showTableMenu) {
-        const target = e.target as HTMLElement;
-        if (!target.closest('.relative')) {
-          setShowTableMenu(false);
-        }
+      const target = e.target as HTMLElement;
+      if (showTableMenu && !target.closest('.table-menu-container')) {
+        setShowTableMenu(false);
+      }
+      if (showFormatMenu && !target.closest('.format-menu-container')) {
+        setShowFormatMenu(false);
       }
     };
 
     document.addEventListener('click', handleClickOutside);
     return () => document.removeEventListener('click', handleClickOutside);
-  }, [showTableMenu]);
+  }, [showTableMenu, showFormatMenu]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -813,7 +911,79 @@ export default function Editor() {
               {slides.length} Slide{slides.length !== 1 ? 's' : ''}
             </span>
             <div className="flex gap-2">
-              <div className="relative">
+              <div className="relative format-menu-container">
+                <button
+                  onClick={() => setShowFormatMenu(!showFormatMenu)}
+                  className="px-3 py-1 bg-indigo-700 rounded hover:bg-indigo-600 text-sm transition-colors"
+                  title="Formatierungsoptionen"
+                >
+                  ✨ Format
+                </button>
+                {showFormatMenu && (
+                  <div className="absolute top-full left-0 mt-1 bg-gray-800 border border-gray-600 rounded shadow-lg z-10 min-w-[280px]">
+                    <div className="p-3 border-b border-gray-600">
+                      <div className="text-xs text-gray-400 mb-2">Text formatieren</div>
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={handleWrapBoldColored}
+                          className="px-3 py-1 rounded hover:opacity-80 text-sm font-bold transition-colors text-white"
+                          style={{ backgroundColor: selectedTextColor }}
+                          title="Markierten Text fett und farbig formatieren"
+                        >
+                          🎨 Bold
+                        </button>
+                        <select
+                          value={selectedTextColor}
+                          onChange={(e) => setSelectedTextColor(e.target.value)}
+                          className="bg-gray-600 text-white px-2 py-1 rounded text-xs border border-gray-500 focus:outline-none focus:border-gray-400"
+                          title="Textfarbe auswählen"
+                        >
+                          {grassColors.map((item) => (
+                            <option key={item.color} value={item.color}>
+                              {item.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                    <div className="p-3 border-b border-gray-600">
+                      <div className="text-xs text-gray-400 mb-2">Spalten einfügen</div>
+                      <div className="flex items-center gap-2">
+                        <select
+                          value={columnCount}
+                          onChange={(e) => setColumnCount(Number(e.target.value))}
+                          className="bg-gray-600 text-white px-2 py-1 rounded text-xs border border-gray-500 focus:outline-none focus:border-gray-400"
+                          title="Anzahl der Spalten"
+                        >
+                          <option value="2">2 Spalten</option>
+                          <option value="3">3 Spalten</option>
+                          <option value="4">4 Spalten</option>
+                          <option value="5">5 Spalten</option>
+                        </select>
+                        <button
+                          onClick={handleInsertColumns}
+                          className="px-3 py-1 bg-indigo-600 rounded hover:bg-indigo-500 text-sm text-white transition-colors"
+                        >
+                          📑 Einfügen
+                        </button>
+                      </div>
+                    </div>
+                    <div className="p-3">
+                      <div className="text-xs text-gray-400 mb-2">Hilfe & Dokumentation</div>
+                      <a
+                        href="/mermaid-hilfe.html"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block px-3 py-2 bg-teal-600 rounded hover:bg-teal-500 text-sm text-white text-center transition-colors"
+                        title="Mermaid Diagramm Dokumentation öffnen"
+                      >
+                        📊 Mermaid Hilfe
+                      </a>
+                    </div>
+                  </div>
+                )}
+              </div>
+              <div className="relative table-menu-container">
                 <button
                   onClick={() => setShowTableMenu(!showTableMenu)}
                   className="px-3 py-1 bg-purple-700 rounded hover:bg-purple-600 text-sm transition-colors"
@@ -1071,6 +1241,7 @@ export default function Editor() {
                   uploadedImages={uploadedImages}
                   author={author}
                   backgroundImage={slides[currentSlide].backgroundImage}
+                  productLogo={slides[currentSlide].productLogo}
                 />
               </div>
             </div>
@@ -1090,6 +1261,7 @@ export default function Editor() {
           onClose={() => setShowImageLibrary(false)}
           onInsertImage={handleInsertImageFromLibrary}
           onInsertBackgroundImage={handleInsertBackgroundImageFromLibrary}
+          onInsertProductLogo={handleInsertProductLogoFromLibrary}
           onImagesChanged={handleReloadImages}
         />
       )}

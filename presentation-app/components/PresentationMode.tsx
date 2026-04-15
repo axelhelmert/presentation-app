@@ -172,6 +172,7 @@ export default function PresentationMode({
             uploadedImages={uploadedImages}
             author={author}
             backgroundImage={slides[currentSlide].backgroundImage}
+            productLogo={slides[currentSlide].productLogo}
           />
         </div>
       </div>
