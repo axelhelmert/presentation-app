@@ -1,0 +1,6 @@
+# IDE and editor directories
+.kiro/
+.vscode/
+
+# macOS
+.DS_Store
