@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if ! lsof -i :3000 | grep -q LISTEN; then cd presentation-app && npm run dev > /dev/null 2>&1 & sleep 2 && echo '✓ Development server started automatically on http://localhost:3000'; else echo '✓ Development server already running on http://localhost:3000'; fi",
+            "async": true
+          }
+        ]
+      }
+    ]
+  }
+}
