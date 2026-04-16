@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { parseSlides, Slide, renderMarkdownToHTML } from '@/lib/markdown';
+import { parseSlides, Slide, renderMarkdownToHTML, setNotes } from '@/lib/markdown';
 import SlidePreview from './SlidePreview';
 import PresentationMode from './PresentationMode';
 import ImageLibrary from './ImageLibrary';
@@ -112,6 +112,7 @@ export default function Editor() {
   const [columnCount, setColumnCount] = useState<number>(2);
   const [editorWidth, setEditorWidth] = useState<number>(50); // in percent
   const [isResizing, setIsResizing] = useState<boolean>(false);
+  const [notesValue, setNotesValue] = useState<string>('');
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
   const previewWindowRef = React.useRef<Window | null>(null);
 
@@ -316,6 +317,45 @@ export default function Editor() {
       setCurrentSlide(parsedSlides.length - 1);
     }
   }, [markdown, currentSlide]);
+
+  // Sync notesValue when currentSlide or slides change
+  useEffect(() => {
+    setNotesValue(slides[currentSlide]?.notes ?? '');
+  }, [currentSlide, slides]);
+
+  const handleNotesChange = (value: string) => {
+    const textarea = textareaRef.current;
+    const selStart = textarea?.selectionStart ?? null;
+    const selEnd = textarea?.selectionEnd ?? null;
+
+    const currentSlideData = slides[currentSlide];
+    if (!currentSlideData) return;
+
+    // Build new full markdown by replacing the current slide's rawMarkdown with updated notes
+    const slideDelimiter = '---';
+    const parts = markdown.split(/^---$/m);
+    // Find the matching part for the current slide (non-empty parts map to slides)
+    const nonEmptyIndices: number[] = [];
+    parts.forEach((part, i) => {
+      if (part.trim().length > 0) nonEmptyIndices.push(i);
+    });
+    const partIndex = nonEmptyIndices[currentSlide];
+    if (partIndex === undefined) return;
+
+    const updatedSlideContent = setNotes(currentSlideData.rawMarkdown, value);
+    const newParts = [...parts];
+    newParts[partIndex] = updatedSlideContent;
+    const newMarkdown = newParts.join(slideDelimiter);
+
+    setMarkdown(newMarkdown);
+
+    // Restore cursor position after React re-render
+    if (textarea && selStart !== null && selEnd !== null) {
+      setTimeout(() => {
+        textarea.setSelectionRange(selStart, selEnd);
+      }, 0);
+    }
+  };
 
   // Extract slide info for navigation
   const slideInfos = useMemo(() => extractSlideInfo(markdown), [markdown]);
@@ -1117,6 +1157,19 @@ export default function Editor() {
           placeholder="Schreibe dein Markdown hier... Trenne Folien mit ---"
           spellCheck={false}
         />
+        {/* Notes Editor */}
+        <div className="border-t border-gray-700 bg-gray-850 flex flex-col" style={{ minHeight: '120px', maxHeight: '200px' }}>
+          <div className="bg-gray-700 text-white px-4 py-1 text-xs font-medium text-gray-300">
+            📝 Notizen (Folie {currentSlide + 1})
+          </div>
+          <textarea
+            value={notesValue}
+            onChange={(e) => handleNotesChange(e.target.value)}
+            className="flex-1 p-3 font-sans text-sm resize-none focus:outline-none bg-gray-800 text-gray-200 placeholder-gray-500"
+            placeholder="Notizen für diese Folie…"
+            spellCheck={false}
+          />
+        </div>
         </div>
 
         {/* Resizer Divider */}

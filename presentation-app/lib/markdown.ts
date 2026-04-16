@@ -9,10 +9,33 @@ import rehypeStringify from 'rehype-stringify';
 
 export interface Slide {
   id: number;
-  content: string;
-  rawMarkdown: string;
+  content: string;       // Markdown ohne <!--notes:-->-Kommentar
+  rawMarkdown: string;   // Original-Markdown inkl. <!--notes:-->
+  notes: string;         // Extrahierter Notizen-Text (leer wenn keine Notizen)
   backgroundImage?: string;
   productLogo?: string;
+}
+
+const NOTES_REGEX = /<!--notes:([\s\S]*?)-->/;
+const NOTES_REGEX_GLOBAL = /<!--notes:([\s\S]*?)-->/g;
+
+export function extractNotes(slideContent: string): string {
+  const match = slideContent.match(NOTES_REGEX);
+  return match ? match[1] : '';
+}
+
+export function removeNotesComment(slideContent: string): string {
+  return slideContent.replace(NOTES_REGEX_GLOBAL, '');
+}
+
+export function setNotes(slideContent: string, notes: string): string {
+  if (notes === '') {
+    return removeNotesComment(slideContent);
+  }
+  if (NOTES_REGEX.test(slideContent)) {
+    return slideContent.replace(NOTES_REGEX, `<!--notes:${notes}-->`);
+  }
+  return `${slideContent}\n<!--notes:${notes}-->`;
 }
 
 export function parseSlides(markdown: string): Slide[] {
@@ -43,10 +66,15 @@ export function parseSlides(markdown: string): Slide[] {
         cleanContent = cleanContent.replace(/<!--\s*product-logo:\s*.+?\s*-->\s*/g, '');
       }
 
+      // Extract notes and remove notes comment from content
+      const notes = extractNotes(cleanContent);
+      cleanContent = removeNotesComment(cleanContent);
+
       return {
         id: index,
         content: cleanContent,
         rawMarkdown: content,
+        notes,
         backgroundImage,
         productLogo,
       };

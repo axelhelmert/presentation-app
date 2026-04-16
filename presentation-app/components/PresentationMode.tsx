@@ -25,10 +25,55 @@ export default function PresentationMode({
   author = '',
 }: PresentationModeProps) {
   const [currentSlide, setCurrentSlide] = useState<number>(initialSlide);
+  const [presenterBlocked, setPresenterBlocked] = useState<boolean>(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const wasFullscreenRef = useRef<boolean>(false);
+  const presenterWindowRef = useRef<Window | null>(null);
+
+  // Write current slide to LocalStorage for Presenter-View sync
+  const updateCurrentSlideStorage = useCallback((index: number) => {
+    try {
+      localStorage.setItem('presentation-current-slide', index.toString());
+    } catch {
+      // Ignore LocalStorage errors
+    }
+  }, []);
+
+  const handleOpenPresenterView = useCallback(() => {
+    // If window is already open, bring it to focus
+    if (presenterWindowRef.current && !presenterWindowRef.current.closed) {
+      presenterWindowRef.current.focus();
+      return;
+    }
+
+    const win = window.open(
+      '/presenter',
+      'presenter-view',
+      'width=1280,height=800,menubar=no,toolbar=no,location=no,status=no'
+    );
+
+    if (win === null) {
+      // Popup was blocked
+      setPresenterBlocked(true);
+    } else {
+      presenterWindowRef.current = win;
+      setPresenterBlocked(false);
+
+      // Poll to detect when user closes the presenter window
+      const checkClosed = setInterval(() => {
+        if (presenterWindowRef.current?.closed === true) {
+          clearInterval(checkClosed);
+          presenterWindowRef.current = null;
+        }
+      }, 1000);
+    }
+  }, []);
 
   const handleExit = useCallback(() => {
+    // Close presenter window if open
+    presenterWindowRef.current?.close();
+    presenterWindowRef.current = null;
+
     // Exit fullscreen if currently in fullscreen
     if (document.fullscreenElement) {
       document.exitFullscreen().catch(console.error);
@@ -51,7 +96,9 @@ export default function PresentationMode({
         wasFullscreenRef.current = true;
       } else if (wasFullscreenRef.current) {
         // Fullscreen was exited (and we were previously in fullscreen)
-        // Exit presentation mode
+        // Close presenter window and exit presentation mode
+        presenterWindowRef.current?.close();
+        presenterWindowRef.current = null;
         onExit();
       }
     };
@@ -66,6 +113,34 @@ export default function PresentationMode({
       }
     };
   }, [onExit]);
+
+  // Sync currentSlide to LocalStorage whenever it changes
+  useEffect(() => {
+    updateCurrentSlideStorage(currentSlide);
+  }, [currentSlide, updateCurrentSlideStorage]);
+
+  // Listen for presenter navigation events
+  useEffect(() => {
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === 'presentation-presenter-nav') {
+        // Presenter navigated – read the new slide index from LocalStorage
+        try {
+          const raw = localStorage.getItem('presentation-current-slide');
+          if (raw !== null) {
+            const index = parseInt(raw, 10);
+            if (!isNaN(index) && index >= 0 && index < slides.length) {
+              setCurrentSlide(index);
+            }
+          }
+        } catch {
+          // Ignore LocalStorage errors
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, [slides.length]);
 
   useEffect(() => {
     // Keyboard navigation
@@ -131,6 +206,22 @@ export default function PresentationMode({
       ref={containerRef}
       className="w-full h-screen bg-gray-900 flex items-center justify-center relative"
     >
+      {/* Popup blocked error overlay */}
+      {presenterBlocked && (
+        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-50 bg-red-800 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-3 max-w-lg">
+          <span className="text-sm">
+            Popup wurde blockiert. Bitte erlauben Sie Popups für diese Seite und versuchen Sie es erneut.
+          </span>
+          <button
+            onClick={() => setPresenterBlocked(false)}
+            className="ml-2 text-white hover:text-red-200 font-bold"
+            title="Schließen"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
       {/* Slide navigation indicators */}
       <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-50 flex items-center gap-2 px-4 py-2 bg-gray-800 rounded-full shadow-lg opacity-50 hover:opacity-100 transition-opacity">
         <button
@@ -153,6 +244,22 @@ export default function PresentationMode({
           title="Nächste Folie (→)"
         >
           →
+        </button>
+        <div className="w-px h-4 bg-gray-600 mx-1" />
+        <button
+          onClick={handleOpenPresenterView}
+          className="px-3 py-1 text-white hover:bg-gray-700 rounded transition-colors text-sm"
+          title="Presenter-View öffnen"
+        >
+          🖥 Presenter-View
+        </button>
+        <div className="w-px h-4 bg-gray-600 mx-1" />
+        <button
+          onClick={handleExit}
+          className="px-3 py-1 text-white hover:bg-gray-700 rounded transition-colors text-sm"
+          title="Präsentation beenden"
+        >
+          ✕
         </button>
       </div>
 
