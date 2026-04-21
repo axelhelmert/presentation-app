@@ -10,9 +10,8 @@ interface RemoteControlProps {
   }>;
 }
 
-// Force cache invalidation with metadata
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+// NOTE: Cannot use export const dynamic/revalidate in client components
+// Cache control is handled by middleware.ts and layout meta tags
 
 export default function RemoteControl({ params }: RemoteControlProps) {
   // Add timestamp to force cache invalidation - show in UI to verify reload
