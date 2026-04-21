@@ -16,13 +16,13 @@ export default function RemoteControl({ params }: RemoteControlProps) {
   const [isConnected, setIsConnected] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [totalSlides, setTotalSlides] = useState(0);
-  const [debugLog, setDebugLog] = useState<string[]>([]);
-  const [showDebug, setShowDebug] = useState(false);
+  const [debugLog, setDebugLog] = useState<string[]>(['App gestartet']);
+  const [showDebug, setShowDebug] = useState(true); // Start with debug visible
 
-  const addDebugLog = (message: string) => {
+  const addDebugLog = useCallback((message: string) => {
     const timestamp = new Date().toLocaleTimeString();
     setDebugLog((prev) => [...prev.slice(-9), `[${timestamp}] ${message}`]);
-  };
+  }, []);
 
   useEffect(() => {
     // Build the Socket.io connection URL explicitly
@@ -79,10 +79,11 @@ export default function RemoteControl({ params }: RemoteControlProps) {
     });
 
     return () => {
+      addDebugLog('Cleaning up connection');
       newSocket.emit('leave-session', sessionId);
       newSocket.disconnect();
     };
-  }, [sessionId]);
+  }, [sessionId, addDebugLog]);
 
   const sendCommand = useCallback(
     (command: RemoteCommandPayload['command'], slideIndex?: number) => {
@@ -201,25 +202,32 @@ export default function RemoteControl({ params }: RemoteControlProps) {
 
       {/* Debug panel */}
       {showDebug && (
-        <div className="fixed bottom-20 left-4 right-4 bg-black bg-opacity-95 text-green-400 p-4 rounded-lg font-mono text-xs max-h-64 overflow-y-auto">
+        <div className="fixed bottom-20 left-4 right-4 bg-black bg-opacity-95 text-green-400 p-4 rounded-lg font-mono text-xs max-h-80 overflow-y-auto z-50 border-2 border-green-500">
           <div className="flex justify-between items-center mb-2 border-b border-gray-700 pb-2">
-            <h3 className="font-bold text-white">Debug-Log</h3>
+            <h3 className="font-bold text-white">🐛 Debug-Log (Live)</h3>
             <button
-              onClick={() => setDebugLog([])}
-              className="text-red-400 hover:text-red-300"
+              onClick={() => {
+                setDebugLog(['Log geleert']);
+              }}
+              className="text-red-400 hover:text-red-300 px-2 py-1 bg-red-900 rounded"
             >
               Clear
             </button>
           </div>
-          {debugLog.length === 0 ? (
-            <p className="text-gray-500">Keine Logs vorhanden</p>
-          ) : (
-            debugLog.map((log, i) => (
-              <div key={i} className="py-1">
-                {log}
-              </div>
-            ))
-          )}
+          <div className="space-y-1">
+            {debugLog.length === 0 ? (
+              <p className="text-gray-500">Keine Logs vorhanden</p>
+            ) : (
+              debugLog.map((log, i) => (
+                <div key={i} className="py-1 border-b border-gray-800 last:border-0">
+                  {log}
+                </div>
+              ))
+            )}
+          </div>
+          <div className="mt-2 pt-2 border-t border-gray-700 text-xs text-gray-400">
+            Total Einträge: {debugLog.length}
+          </div>
         </div>
       )}
     </div>
