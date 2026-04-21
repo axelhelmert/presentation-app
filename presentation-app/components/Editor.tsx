@@ -358,7 +358,7 @@ export default function Editor() {
   };
 
   // Extract slide info for navigation
-  const slideInfos = useMemo(() => extractSlideInfo(markdown), [markdown]);
+  const slideInfos = useMemo(() => extractSlideInfo(markdown, slides), [markdown, slides]);
 
   // Jump to slide in editor
   const handleJumpToSlide = useCallback((slideIndex: number, position: number) => {

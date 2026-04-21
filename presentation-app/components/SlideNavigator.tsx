@@ -1,12 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-
-interface SlideInfo {
-  index: number;
-  title: string;
-  position: number;
-}
+import { SlideInfo } from '../lib/slideExtractor';
 
 interface SlideNavigatorProps {
   slides: SlideInfo[];
@@ -62,26 +57,40 @@ export default function SlideNavigator({
           </div>
         ) : (
           <div className="py-2">
-            {slides.map((slide) => (
-              <button
-                key={slide.index}
-                onClick={() => onSlideClick(slide.index, slide.position)}
-                className={`w-full text-left px-4 py-2 hover:bg-gray-700 transition-colors border-l-4 ${
-                  currentSlide === slide.index
-                    ? 'bg-gray-700 border-blue-500 text-white'
-                    : 'border-transparent text-gray-300'
-                }`}
-              >
-                <div className="flex items-start gap-2">
-                  <span className="text-xs text-gray-500 mt-0.5 flex-shrink-0">
-                    {slide.index + 1}.
-                  </span>
-                  <span className="text-sm line-clamp-2">
-                    {slide.title || 'Untitled Slide'}
-                  </span>
-                </div>
-              </button>
-            ))}
+            {slides.map((slide, i) => {
+              const prevSlide = slides[i - 1];
+              const showChapterHeading =
+                slide.chapterTitle !== undefined &&
+                !slide.isAgendaSlide &&
+                slide.chapterTitle !== prevSlide?.chapterTitle;
+
+              return (
+                <React.Fragment key={slide.index}>
+                  {showChapterHeading && (
+                    <div className="px-4 pt-3 pb-1 text-xs font-semibold text-blue-400 uppercase tracking-wider border-t border-gray-700 first:border-t-0">
+                      {slide.chapterTitle}
+                    </div>
+                  )}
+                  <button
+                    onClick={() => onSlideClick(slide.index, slide.position)}
+                    className={`w-full text-left px-4 py-2 hover:bg-gray-700 transition-colors border-l-4 ${
+                      currentSlide === slide.index
+                        ? 'bg-gray-700 border-blue-500 text-white'
+                        : 'border-transparent text-gray-300'
+                    }`}
+                  >
+                    <div className="flex items-start gap-2">
+                      <span className="text-xs text-gray-500 mt-0.5 flex-shrink-0">
+                        {slide.index + 1}.
+                      </span>
+                      <span className="text-sm line-clamp-2">
+                        {slide.title || 'Untitled Slide'}
+                      </span>
+                    </div>
+                  </button>
+                </React.Fragment>
+              );
+            })}
           </div>
         )}
       </div>
