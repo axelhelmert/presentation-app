@@ -263,47 +263,9 @@ export default function RemoteControl({ params }: RemoteControlProps) {
 
       {/* Footer */}
       <div className="bg-gray-800 p-4 text-center text-sm text-gray-400">
-        <div className="flex items-center justify-center gap-4">
-          <p>Session: {sessionId}</p>
-          <button
-            onClick={() => setShowDebug(!showDebug)}
-            className="text-blue-400 hover:text-blue-300 underline"
-          >
-            {showDebug ? 'Debug ausblenden' : 'Debug anzeigen'}
-          </button>
-        </div>
+        <p>Session: {sessionId}</p>
       </div>
 
-      {/* Debug panel */}
-      {showDebug && (
-        <div className="fixed bottom-20 left-4 right-4 bg-black bg-opacity-95 text-green-400 p-4 rounded-lg font-mono text-xs max-h-80 overflow-y-auto z-50 border-2 border-green-500">
-          <div className="flex justify-between items-center mb-2 border-b border-gray-700 pb-2">
-            <h3 className="font-bold text-white">🐛 Debug-Log (Live)</h3>
-            <button
-              onClick={() => {
-                setDebugLog(['Log geleert']);
-              }}
-              className="text-red-400 hover:text-red-300 px-2 py-1 bg-red-900 rounded"
-            >
-              Clear
-            </button>
-          </div>
-          <div className="space-y-1">
-            {debugLog.length === 0 ? (
-              <p className="text-gray-500">Keine Logs vorhanden</p>
-            ) : (
-              debugLog.map((log, i) => (
-                <div key={i} className="py-1 border-b border-gray-800 last:border-0">
-                  {log}
-                </div>
-              ))
-            )}
-          </div>
-          <div className="mt-2 pt-2 border-t border-gray-700 text-xs text-gray-400">
-            Total Einträge: {debugLog.length}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
