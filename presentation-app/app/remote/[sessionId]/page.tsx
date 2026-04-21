@@ -25,22 +25,35 @@ export default function RemoteControl({ params }: RemoteControlProps) {
   }, []);
 
   useEffect(() => {
+    addDebugLog('useEffect started');
+
     // Build the Socket.io connection URL explicitly
     const protocol = window.location.protocol === 'https:' ? 'https:' : 'http:';
     const host = window.location.host;
     const socketUrl = `${protocol}//${host}`;
 
+    addDebugLog(`Protocol: ${protocol}`);
+    addDebugLog(`Host: ${host}`);
     addDebugLog(`Connecting to: ${socketUrl}`);
     console.log('Connecting to Socket.io server:', socketUrl);
 
+    addDebugLog('Creating socket.io client...');
+
     // Initialize Socket.io connection with explicit URL and options
-    const newSocket = io(socketUrl, {
-      path: '/api/socket',
-      transports: ['polling', 'websocket'],
-      reconnection: true,
-      reconnectionDelay: 1000,
-      reconnectionAttempts: 10,
-    });
+    let newSocket;
+    try {
+      newSocket = io(socketUrl, {
+        path: '/api/socket',
+        transports: ['polling', 'websocket'],
+        reconnection: true,
+        reconnectionDelay: 1000,
+        reconnectionAttempts: 10,
+      });
+      addDebugLog('Socket.io client created');
+    } catch (error) {
+      addDebugLog(`Error creating socket: ${error}`);
+      return;
+    }
 
     newSocket.on('connect', () => {
       addDebugLog(`Connected! Socket ID: ${newSocket.id}`);
@@ -70,13 +83,19 @@ export default function RemoteControl({ params }: RemoteControlProps) {
       }
     });
 
+    addDebugLog('Setting up event listeners...');
     setSocket(newSocket);
 
     // Initialize the socket server
-    fetch('/api/socket').catch((err) => {
-      addDebugLog(`Fetch error: ${err.message}`);
-      console.error(err);
-    });
+    addDebugLog('Fetching /api/socket to initialize server...');
+    fetch('/api/socket')
+      .then(() => {
+        addDebugLog('Server initialization fetch completed');
+      })
+      .catch((err) => {
+        addDebugLog(`Fetch error: ${err.message}`);
+        console.error(err);
+      });
 
     return () => {
       addDebugLog('Cleaning up connection');
