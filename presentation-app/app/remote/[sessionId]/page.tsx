@@ -28,24 +28,30 @@ export default function RemoteControl({ params }: RemoteControlProps) {
     setDebugLog((prev) => [...prev.slice(-19), `[${timestamp}] ${message}`]);
   }, []);
 
-  // Unwrap params - add debug logging
+  // Unwrap params - DON'T call addDebugLog here (causes re-render loop)
   let sessionId = 'unknown';
+  let paramsError = null;
   try {
     const unwrapped = use(params);
     sessionId = unwrapped.sessionId;
-    addDebugLog(`Session ID extracted: ${sessionId}`);
   } catch (error) {
-    addDebugLog(`Error unwrapping params: ${error}`);
+    paramsError = error;
   }
 
   useEffect(() => {
     addDebugLog('useEffect triggered!');
+
+    if (paramsError) {
+      addDebugLog(`ERROR unwrapping params: ${paramsError}`);
+      return;
+    }
 
     if (sessionId === 'unknown') {
       addDebugLog('ERROR: sessionId is unknown, aborting');
       return;
     }
 
+    addDebugLog(`Session ID: ${sessionId}`);
     addDebugLog('useEffect started');
 
     // Build the Socket.io connection URL explicitly
@@ -123,7 +129,8 @@ export default function RemoteControl({ params }: RemoteControlProps) {
       newSocket.emit('leave-session', sessionId);
       newSocket.disconnect();
     };
-  }, [sessionId, addDebugLog]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionId]);
 
   const sendCommand = useCallback(
     (command: RemoteCommandPayload['command'], slideIndex?: number) => {
