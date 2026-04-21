@@ -4,6 +4,8 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { Slide } from '@/lib/markdown';
 import SlidePreview from './SlidePreview';
 import { type StoredImage } from '@/lib/imageStorage';
+import { useRemoteControl } from '@/hooks/useRemoteControl';
+import type { RemoteCommandPayload } from '@/lib/socket';
 
 interface PresentationModeProps {
   slides: Slide[];
@@ -13,6 +15,11 @@ interface PresentationModeProps {
   fontSizeId?: string;
   uploadedImages?: StoredImage[];
   author?: string;
+}
+
+// Generate a unique session ID for this presentation
+function generateSessionId(): string {
+  return `pres-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 }
 
 export default function PresentationMode({
@@ -26,9 +33,47 @@ export default function PresentationMode({
 }: PresentationModeProps) {
   const [currentSlide, setCurrentSlide] = useState<number>(initialSlide);
   const [presenterBlocked, setPresenterBlocked] = useState<boolean>(false);
+  const [showRemoteInfo, setShowRemoteInfo] = useState<boolean>(false);
+  const [sessionId] = useState<string>(() => generateSessionId());
   const containerRef = useRef<HTMLDivElement>(null);
   const wasFullscreenRef = useRef<boolean>(false);
   const presenterWindowRef = useRef<Window | null>(null);
+
+  // Handle remote control commands
+  const handleRemoteCommand = useCallback(
+    (command: RemoteCommandPayload) => {
+      switch (command.command) {
+        case 'next':
+          setCurrentSlide((prev) => Math.min(prev + 1, slides.length - 1));
+          break;
+        case 'prev':
+          setCurrentSlide((prev) => Math.max(prev - 1, 0));
+          break;
+        case 'goto':
+          if (
+            command.slideIndex !== undefined &&
+            command.slideIndex >= 0 &&
+            command.slideIndex < slides.length
+          ) {
+            setCurrentSlide(command.slideIndex);
+          }
+          break;
+        case 'first':
+          setCurrentSlide(0);
+          break;
+        case 'last':
+          setCurrentSlide(slides.length - 1);
+          break;
+      }
+    },
+    [slides.length]
+  );
+
+  // Initialize remote control
+  const { isConnected, broadcastSlideUpdate } = useRemoteControl({
+    sessionId,
+    onRemoteCommand: handleRemoteCommand,
+  });
 
   // Write current slide to LocalStorage for Presenter-View sync
   const updateCurrentSlideStorage = useCallback((index: number) => {
@@ -114,10 +159,11 @@ export default function PresentationMode({
     };
   }, [onExit]);
 
-  // Sync currentSlide to LocalStorage whenever it changes
+  // Sync currentSlide to LocalStorage and broadcast via WebSocket whenever it changes
   useEffect(() => {
     updateCurrentSlideStorage(currentSlide);
-  }, [currentSlide, updateCurrentSlideStorage]);
+    broadcastSlideUpdate(currentSlide, slides.length);
+  }, [currentSlide, slides.length, updateCurrentSlideStorage, broadcastSlideUpdate]);
 
   // Listen for presenter navigation events
   useEffect(() => {
@@ -222,6 +268,45 @@ export default function PresentationMode({
         </div>
       )}
 
+      {/* Remote control info overlay */}
+      {showRemoteInfo && (
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 bg-gray-800 text-white p-8 rounded-lg shadow-2xl max-w-md">
+          <div className="flex justify-between items-start mb-4">
+            <h3 className="text-xl font-bold">Fernsteuerung</h3>
+            <button
+              onClick={() => setShowRemoteInfo(false)}
+              className="text-gray-400 hover:text-white font-bold text-xl"
+            >
+              ✕
+            </button>
+          </div>
+          <div className="space-y-4">
+            <div>
+              <p className="text-sm text-gray-300 mb-2">
+                Öffnen Sie diese URL auf einem anderen Gerät:
+              </p>
+              <div className="bg-gray-900 p-3 rounded font-mono text-sm break-all">
+                {typeof window !== 'undefined' &&
+                  `${window.location.protocol}//${window.location.host}/remote/${sessionId}`}
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <div
+                className={`w-3 h-3 rounded-full ${
+                  isConnected ? 'bg-green-500' : 'bg-red-500'
+                }`}
+              />
+              <span className="text-sm">
+                {isConnected ? 'Verbunden' : 'Nicht verbunden'}
+              </span>
+            </div>
+            <p className="text-xs text-gray-400">
+              Session-ID: {sessionId}
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Slide navigation indicators */}
       <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-50 flex items-center gap-2 px-4 py-2 bg-gray-800 rounded-full shadow-lg opacity-50 hover:opacity-100 transition-opacity">
         <button
@@ -234,6 +319,11 @@ export default function PresentationMode({
         </button>
         <span className="text-white text-sm px-2">
           {currentSlide + 1} / {slides.length}
+          {slides[currentSlide]?.chapterTitle && (
+            <span className="ml-3 text-gray-300 text-xs">
+              {slides[currentSlide].chapterTitle}
+            </span>
+          )}
         </span>
         <button
           onClick={() =>
@@ -252,6 +342,16 @@ export default function PresentationMode({
           title="Presenter-View öffnen"
         >
           🖥 Presenter-View
+        </button>
+        <div className="w-px h-4 bg-gray-600 mx-1" />
+        <button
+          onClick={() => setShowRemoteInfo(!showRemoteInfo)}
+          className={`px-3 py-1 text-white hover:bg-gray-700 rounded transition-colors text-sm ${
+            isConnected ? 'bg-green-600' : ''
+          }`}
+          title="Fernsteuerung anzeigen"
+        >
+          📱 Remote
         </button>
         <div className="w-px h-4 bg-gray-600 mx-1" />
         <button

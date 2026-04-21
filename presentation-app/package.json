@@ -27,6 +27,8 @@
     "remark-math": "^6.0.0",
     "remark-parse": "^11.0.0",
     "remark-rehype": "^11.1.2",
+    "socket.io": "^4.8.3",
+    "socket.io-client": "^4.8.3",
     "unified": "^11.0.5"
   },
   "devDependencies": {
