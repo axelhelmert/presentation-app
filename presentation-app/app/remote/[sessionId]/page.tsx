@@ -10,6 +10,10 @@ interface RemoteControlProps {
   }>;
 }
 
+// Force cache invalidation with metadata
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default function RemoteControl({ params }: RemoteControlProps) {
   // Add timestamp to force cache invalidation - show in UI to verify reload
   const [cacheKey] = useState(() => Date.now());

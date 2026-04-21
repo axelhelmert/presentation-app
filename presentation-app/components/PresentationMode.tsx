@@ -307,7 +307,7 @@ export default function PresentationMode({
                 </p>
                 <div className="bg-white p-4 rounded-lg">
                   <QRCodeSVG
-                    value={`http://${networkHost}/remote/${sessionId}`}
+                    value={`http://${networkHost}/remote/${sessionId}?t=${Date.now()}`}
                     size={200}
                     level="M"
                   />
@@ -322,9 +322,9 @@ export default function PresentationMode({
               </p>
               <div className="bg-gray-900 p-3 rounded font-mono text-xs break-all">
                 {networkHost
-                  ? `http://${networkHost}/remote/${sessionId}`
+                  ? `http://${networkHost}/remote/${sessionId}?t=${Date.now()}`
                   : typeof window !== 'undefined' &&
-                    `${window.location.protocol}//${window.location.host}/remote/${sessionId}`}
+                    `${window.location.protocol}//${window.location.host}/remote/${sessionId}?t=${Date.now()}`}
               </div>
             </div>
 
