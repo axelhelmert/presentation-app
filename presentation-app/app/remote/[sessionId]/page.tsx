@@ -16,6 +16,13 @@ export default function RemoteControl({ params }: RemoteControlProps) {
   const [isConnected, setIsConnected] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [totalSlides, setTotalSlides] = useState(0);
+  const [debugLog, setDebugLog] = useState<string[]>([]);
+  const [showDebug, setShowDebug] = useState(false);
+
+  const addDebugLog = (message: string) => {
+    const timestamp = new Date().toLocaleTimeString();
+    setDebugLog((prev) => [...prev.slice(-9), `[${timestamp}] ${message}`]);
+  };
 
   useEffect(() => {
     // Build the Socket.io connection URL explicitly
@@ -23,6 +30,7 @@ export default function RemoteControl({ params }: RemoteControlProps) {
     const host = window.location.host;
     const socketUrl = `${protocol}//${host}`;
 
+    addDebugLog(`Connecting to: ${socketUrl}`);
     console.log('Connecting to Socket.io server:', socketUrl);
 
     // Initialize Socket.io connection with explicit URL and options
@@ -35,22 +43,26 @@ export default function RemoteControl({ params }: RemoteControlProps) {
     });
 
     newSocket.on('connect', () => {
+      addDebugLog(`Connected! Socket ID: ${newSocket.id}`);
       console.log('Remote control connected, socket ID:', newSocket.id);
       setIsConnected(true);
       newSocket.emit('join-session', sessionId);
     });
 
     newSocket.on('connect_error', (error) => {
+      addDebugLog(`Connection error: ${error.message}`);
       console.error('Socket connection error:', error);
       setIsConnected(false);
     });
 
     newSocket.on('disconnect', (reason) => {
+      addDebugLog(`Disconnected: ${reason}`);
       console.log('Remote control disconnected, reason:', reason);
       setIsConnected(false);
     });
 
     newSocket.on('slide-update', (data: SlideUpdatePayload) => {
+      addDebugLog(`Slide update: ${data.slideIndex + 1}/${data.totalSlides}`);
       console.log('Received slide update:', data);
       if (data.sessionId === sessionId) {
         setCurrentSlide(data.slideIndex);
@@ -61,7 +73,10 @@ export default function RemoteControl({ params }: RemoteControlProps) {
     setSocket(newSocket);
 
     // Initialize the socket server
-    fetch('/api/socket').catch(console.error);
+    fetch('/api/socket').catch((err) => {
+      addDebugLog(`Fetch error: ${err.message}`);
+      console.error(err);
+    });
 
     return () => {
       newSocket.emit('leave-session', sessionId);
@@ -173,8 +188,40 @@ export default function RemoteControl({ params }: RemoteControlProps) {
 
       {/* Footer */}
       <div className="bg-gray-800 p-4 text-center text-sm text-gray-400">
-        <p>Session: {sessionId}</p>
+        <div className="flex items-center justify-center gap-4">
+          <p>Session: {sessionId}</p>
+          <button
+            onClick={() => setShowDebug(!showDebug)}
+            className="text-blue-400 hover:text-blue-300 underline"
+          >
+            {showDebug ? 'Debug ausblenden' : 'Debug anzeigen'}
+          </button>
+        </div>
       </div>
+
+      {/* Debug panel */}
+      {showDebug && (
+        <div className="fixed bottom-20 left-4 right-4 bg-black bg-opacity-95 text-green-400 p-4 rounded-lg font-mono text-xs max-h-64 overflow-y-auto">
+          <div className="flex justify-between items-center mb-2 border-b border-gray-700 pb-2">
+            <h3 className="font-bold text-white">Debug-Log</h3>
+            <button
+              onClick={() => setDebugLog([])}
+              className="text-red-400 hover:text-red-300"
+            >
+              Clear
+            </button>
+          </div>
+          {debugLog.length === 0 ? (
+            <p className="text-gray-500">Keine Logs vorhanden</p>
+          ) : (
+            debugLog.map((log, i) => (
+              <div key={i} className="py-1">
+                {log}
+              </div>
+            ))
+          )}
+        </div>
+      )}
     </div>
   );
 }
