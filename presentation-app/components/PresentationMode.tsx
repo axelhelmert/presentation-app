@@ -6,6 +6,7 @@ import SlidePreview from './SlidePreview';
 import { type StoredImage } from '@/lib/imageStorage';
 import { useRemoteControl } from '@/hooks/useRemoteControl';
 import type { RemoteCommandPayload } from '@/lib/socket';
+import { QRCodeSVG } from 'qrcode.react';
 
 interface PresentationModeProps {
   slides: Slide[];
@@ -35,6 +36,7 @@ export default function PresentationMode({
   const [presenterBlocked, setPresenterBlocked] = useState<boolean>(false);
   const [showRemoteInfo, setShowRemoteInfo] = useState<boolean>(false);
   const [sessionId] = useState<string>(() => generateSessionId());
+  const [networkHost, setNetworkHost] = useState<string>('');
   const containerRef = useRef<HTMLDivElement>(null);
   const wasFullscreenRef = useRef<boolean>(false);
   const presenterWindowRef = useRef<Window | null>(null);
@@ -74,6 +76,22 @@ export default function PresentationMode({
     sessionId,
     onRemoteCommand: handleRemoteCommand,
   });
+
+  // Fetch network information on mount
+  useEffect(() => {
+    fetch('/api/network-info')
+      .then((res) => res.json())
+      .then((data) => {
+        setNetworkHost(data.host);
+      })
+      .catch((err) => {
+        console.error('Failed to fetch network info:', err);
+        // Fallback to window.location.host
+        if (typeof window !== 'undefined') {
+          setNetworkHost(window.location.host);
+        }
+      });
+  }, []);
 
   // Write current slide to LocalStorage for Presenter-View sync
   const updateCurrentSlideStorage = useCallback((index: number) => {
@@ -270,8 +288,8 @@ export default function PresentationMode({
 
       {/* Remote control info overlay */}
       {showRemoteInfo && (
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 bg-gray-800 text-white p-8 rounded-lg shadow-2xl max-w-md">
-          <div className="flex justify-between items-start mb-4">
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 bg-gray-800 text-white p-8 rounded-lg shadow-2xl max-w-lg">
+          <div className="flex justify-between items-start mb-6">
             <h3 className="text-xl font-bold">Fernsteuerung</h3>
             <button
               onClick={() => setShowRemoteInfo(false)}
@@ -280,29 +298,52 @@ export default function PresentationMode({
               ✕
             </button>
           </div>
-          <div className="space-y-4">
+          <div className="space-y-6">
+            {/* QR Code */}
+            {networkHost && (
+              <div className="flex flex-col items-center">
+                <p className="text-sm text-gray-300 mb-3">
+                  Scannen Sie diesen QR-Code mit Ihrem Smartphone:
+                </p>
+                <div className="bg-white p-4 rounded-lg">
+                  <QRCodeSVG
+                    value={`http://${networkHost}/remote/${sessionId}`}
+                    size={200}
+                    level="M"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* URL fallback */}
             <div>
               <p className="text-sm text-gray-300 mb-2">
-                Öffnen Sie diese URL auf einem anderen Gerät:
+                Oder öffnen Sie diese URL manuell:
               </p>
-              <div className="bg-gray-900 p-3 rounded font-mono text-sm break-all">
-                {typeof window !== 'undefined' &&
-                  `${window.location.protocol}//${window.location.host}/remote/${sessionId}`}
+              <div className="bg-gray-900 p-3 rounded font-mono text-xs break-all">
+                {networkHost
+                  ? `http://${networkHost}/remote/${sessionId}`
+                  : typeof window !== 'undefined' &&
+                    `${window.location.protocol}//${window.location.host}/remote/${sessionId}`}
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <div
-                className={`w-3 h-3 rounded-full ${
-                  isConnected ? 'bg-green-500' : 'bg-red-500'
-                }`}
-              />
-              <span className="text-sm">
-                {isConnected ? 'Verbunden' : 'Nicht verbunden'}
-              </span>
+
+            {/* Connection status */}
+            <div className="flex items-center justify-between pt-4 border-t border-gray-700">
+              <div className="flex items-center gap-2">
+                <div
+                  className={`w-3 h-3 rounded-full ${
+                    isConnected ? 'bg-green-500' : 'bg-red-500'
+                  }`}
+                />
+                <span className="text-sm">
+                  {isConnected ? 'Verbunden' : 'Nicht verbunden'}
+                </span>
+              </div>
+              <p className="text-xs text-gray-400">
+                Session: {sessionId.split('-').pop()}
+              </p>
             </div>
-            <p className="text-xs text-gray-400">
-              Session-ID: {sessionId}
-            </p>
           </div>
         </div>
       )}
