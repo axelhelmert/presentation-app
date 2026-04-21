@@ -13,6 +13,7 @@ interface RemoteControlProps {
 export default function RemoteControl({ params }: RemoteControlProps) {
   // Add timestamp to force cache invalidation
   const [cacheKey] = useState(() => Date.now());
+  const [sessionId, setSessionId] = useState<string>('loading...');
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -28,31 +29,26 @@ export default function RemoteControl({ params }: RemoteControlProps) {
     setDebugLog((prev) => [...prev.slice(-19), `[${timestamp}] ${message}`]);
   }, []);
 
-  // Unwrap params - DON'T call addDebugLog here (causes re-render loop)
-  let sessionId = 'unknown';
-  let paramsError = null;
-  try {
-    const unwrapped = use(params);
-    sessionId = unwrapped.sessionId;
-  } catch (error) {
-    paramsError = error;
-  }
+  // Unwrap params in useEffect
+  useEffect(() => {
+    addDebugLog('Unwrapping params...');
+    Promise.resolve(params)
+      .then((p) => {
+        addDebugLog(`Session ID: ${p.sessionId}`);
+        setSessionId(p.sessionId);
+      })
+      .catch((error) => {
+        addDebugLog(`Error unwrapping params: ${error}`);
+        setSessionId('error');
+      });
+  }, [params, addDebugLog]);
 
   useEffect(() => {
-    addDebugLog('useEffect triggered!');
-
-    if (paramsError) {
-      addDebugLog(`ERROR unwrapping params: ${paramsError}`);
-      return;
+    if (sessionId === 'loading...' || sessionId === 'error') {
+      return; // Wait for sessionId to be loaded
     }
 
-    if (sessionId === 'unknown') {
-      addDebugLog('ERROR: sessionId is unknown, aborting');
-      return;
-    }
-
-    addDebugLog(`Session ID: ${sessionId}`);
-    addDebugLog('useEffect started');
+    addDebugLog('Starting Socket.io connection...');
 
     // Build the Socket.io connection URL explicitly
     const protocol = window.location.protocol === 'https:' ? 'https:' : 'http:';
