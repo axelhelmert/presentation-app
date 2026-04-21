@@ -12,16 +12,22 @@ interface RemoteControlProps {
 
 export default function RemoteControl({ params }: RemoteControlProps) {
   const { sessionId } = use(params);
+
+  // Add timestamp to force cache invalidation
+  const [cacheKey] = useState(() => Date.now());
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [totalSlides, setTotalSlides] = useState(0);
-  const [debugLog, setDebugLog] = useState<string[]>(['App gestartet']);
+  const [debugLog, setDebugLog] = useState<string[]>(() => {
+    const now = new Date().toLocaleTimeString();
+    return [`[${now}] App gestartet (Cache: ${cacheKey})`, 'Initialisiere React Component...'];
+  });
   const [showDebug, setShowDebug] = useState(true); // Start with debug visible
 
   const addDebugLog = useCallback((message: string) => {
     const timestamp = new Date().toLocaleTimeString();
-    setDebugLog((prev) => [...prev.slice(-9), `[${timestamp}] ${message}`]);
+    setDebugLog((prev) => [...prev.slice(-19), `[${timestamp}] ${message}`]);
   }, []);
 
   useEffect(() => {
