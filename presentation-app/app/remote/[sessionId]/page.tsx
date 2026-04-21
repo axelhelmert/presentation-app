@@ -11,16 +11,19 @@ interface RemoteControlProps {
 }
 
 export default function RemoteControl({ params }: RemoteControlProps) {
-  // Add timestamp to force cache invalidation
+  // Add timestamp to force cache invalidation - show in UI to verify reload
   const [cacheKey] = useState(() => Date.now());
+
+  // Extract sessionId directly from URL (simpler than async params)
   const [sessionId, setSessionId] = useState<string>('loading...');
+
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [totalSlides, setTotalSlides] = useState(0);
   const [debugLog, setDebugLog] = useState<string[]>(() => {
     const now = new Date().toLocaleTimeString();
-    return [`[${now}] App gestartet (Cache: ${cacheKey})`, 'Initialisiere React Component...'];
+    return [`[${now}] ✅ App gestartet (Cache: ${cacheKey})`, `[${now}] 🔧 React Component initialisiert`];
   });
   const [showDebug, setShowDebug] = useState(true); // Start with debug visible
 
@@ -29,19 +32,23 @@ export default function RemoteControl({ params }: RemoteControlProps) {
     setDebugLog((prev) => [...prev.slice(-19), `[${timestamp}] ${message}`]);
   }, []);
 
-  // Unwrap params in useEffect
+  // Extract sessionId from URL pathname - simpler and more reliable
   useEffect(() => {
-    addDebugLog('Unwrapping params...');
-    Promise.resolve(params)
-      .then((p) => {
-        addDebugLog(`Session ID: ${p.sessionId}`);
-        setSessionId(p.sessionId);
-      })
-      .catch((error) => {
-        addDebugLog(`Error unwrapping params: ${error}`);
-        setSessionId('error');
-      });
-  }, [params, addDebugLog]);
+    addDebugLog('🔍 Extracting session ID from URL...');
+
+    if (typeof window !== 'undefined') {
+      const path = window.location.pathname;
+      addDebugLog(`📍 URL path: ${path}`);
+
+      const parts = path.split('/');
+      const id = parts[parts.length - 1];
+
+      addDebugLog(`✅ Session ID extracted: ${id}`);
+      setSessionId(id);
+    } else {
+      addDebugLog('❌ window not available');
+    }
+  }, [addDebugLog]);
 
   useEffect(() => {
     if (sessionId === 'loading...' || sessionId === 'error') {
