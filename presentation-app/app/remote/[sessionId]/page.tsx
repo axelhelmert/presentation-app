@@ -32,9 +32,18 @@ export default function RemoteControl({ params }: RemoteControlProps) {
     setDebugLog((prev) => [...prev.slice(-19), `[${timestamp}] ${message}`]);
   }, []);
 
-  // Extract sessionId from URL pathname - simpler and more reliable
+  // SIMPLE TEST: Does useEffect run at all?
   useEffect(() => {
-    addDebugLog('🔍 Extracting session ID from URL...');
+    console.log('❗ useEffect #1 EXECUTED');
+    const timestamp = new Date().toLocaleTimeString();
+    setDebugLog(prev => [...prev, `[${timestamp}] ❗ useEffect #1 läuft!`]);
+  }, []);
+
+  // Extract sessionId from URL pathname
+  useEffect(() => {
+    console.log('❗ useEffect #2 STARTING');
+    try {
+      addDebugLog('🔍 Extracting session ID from URL...');
 
     if (typeof window !== 'undefined') {
       const path = window.location.pathname;
@@ -47,6 +56,10 @@ export default function RemoteControl({ params }: RemoteControlProps) {
       setSessionId(id);
     } else {
       addDebugLog('❌ window not available');
+    }
+    } catch (error) {
+      addDebugLog(`❌ ERROR in useEffect #2: ${error}`);
+      console.error('useEffect #2 error:', error);
     }
   }, [addDebugLog]);
 
