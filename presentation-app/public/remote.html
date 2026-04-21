@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Präsentations-Fernsteuerung</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #111827;
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: #1f2937;
+            padding: 1rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ef4444;
+        }
+
+        .status-dot.connected {
+            background: #22c55e;
+        }
+
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 1rem;
+            max-width: 600px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .slide-counter {
+            background: #1f2937;
+            border-radius: 0.5rem;
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .slide-number {
+            font-size: 4rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .slide-total {
+            font-size: 1.5rem;
+            color: #9ca3af;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .btn {
+            padding: 2rem 1.5rem;
+            font-size: 1.5rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: white;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: #2563eb;
+        }
+
+        .btn-primary:active:not(:disabled) {
+            background: #1d4ed8;
+        }
+
+        .btn-secondary {
+            background: #374151;
+            font-size: 1rem;
+            padding: 1rem;
+        }
+
+        .btn-secondary:active:not(:disabled) {
+            background: #4b5563;
+        }
+
+        .debug {
+            position: fixed;
+            bottom: 1rem;
+            left: 1rem;
+            right: 1rem;
+            background: rgba(0,0,0,0.95);
+            border: 2px solid #22c55e;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            font-family: monospace;
+            font-size: 0.75rem;
+            color: #22c55e;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+
+        .debug-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #374151;
+        }
+
+        .debug-title {
+            font-weight: bold;
+            color: white;
+        }
+
+        .debug-clear {
+            background: #7f1d1d;
+            color: #fca5a5;
+            border: none;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            font-size: 0.75rem;
+        }
+
+        .debug-log {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .debug-entry {
+            padding: 0.25rem 0;
+            border-bottom: 1px solid #1f2937;
+        }
+
+        .debug-entry:last-child {
+            border-bottom: none;
+        }
+
+        .warning {
+            background: #713f12;
+            border: 1px solid #92400e;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .warning-title {
+            color: #fef3c7;
+            margin-bottom: 0.5rem;
+        }
+
+        .warning-text {
+            color: #fde68a;
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Fernsteuerung</h1>
+        <div class="status">
+            <div class="status-dot" id="statusDot"></div>
+            <span id="statusText">Nicht verbunden</span>
+        </div>
+    </div>
+
+    <div class="main">
+        <div class="slide-counter">
+            <div class="slide-number" id="slideNumber">—</div>
+            <div class="slide-total" id="slideTotal">von —</div>
+        </div>
+
+        <div class="controls">
+            <button class="btn btn-primary" id="btnPrev" disabled>← Zurück</button>
+            <button class="btn btn-primary" id="btnNext" disabled>Weiter →</button>
+        </div>
+
+        <div class="controls">
+            <button class="btn btn-secondary" id="btnFirst" disabled>⏮ Erste</button>
+            <button class="btn btn-secondary" id="btnLast" disabled>⏭ Letzte</button>
+        </div>
+
+        <div class="warning" id="warning">
+            <div class="warning-title">⚠️ Warte auf Verbindung...</div>
+            <div class="warning-text">
+                Stellen Sie sicher, dass die Präsentation läuft und beide Geräte im gleichen Netzwerk sind.
+            </div>
+        </div>
+    </div>
+
+    <div class="debug" id="debug">
+        <div class="debug-header">
+            <span class="debug-title">🐛 Debug-Log (Static HTML)</span>
+            <button class="debug-clear" onclick="clearLog()">Clear</button>
+        </div>
+        <div class="debug-log" id="debugLog"></div>
+    </div>
+
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script>
+        // Extract session ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const sessionId = urlParams.get('session');
+
+        // State
+        let socket = null;
+        let isConnected = false;
+        let currentSlide = 0;
+        let totalSlides = 0;
+
+        // DOM elements
+        const statusDot = document.getElementById('statusDot');
+        const statusText = document.getElementById('statusText');
+        const slideNumber = document.getElementById('slideNumber');
+        const slideTotal = document.getElementById('slideTotal');
+        const btnPrev = document.getElementById('btnPrev');
+        const btnNext = document.getElementById('btnNext');
+        const btnFirst = document.getElementById('btnFirst');
+        const btnLast = document.getElementById('btnLast');
+        const warning = document.getElementById('warning');
+        const debugLog = document.getElementById('debugLog');
+
+        // Debug logging
+        function log(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.className = 'debug-entry';
+            entry.textContent = `[${timestamp}] ${message}`;
+            debugLog.appendChild(entry);
+
+            // Keep only last 20 entries
+            while (debugLog.children.length > 20) {
+                debugLog.removeChild(debugLog.firstChild);
+            }
+
+            // Scroll to bottom
+            debugLog.parentElement.scrollTop = debugLog.parentElement.scrollHeight;
+
+            console.log(message);
+        }
+
+        function clearLog() {
+            debugLog.innerHTML = '';
+            log('Log cleared');
+        }
+
+        // Update UI
+        function updateUI() {
+            statusDot.className = 'status-dot' + (isConnected ? ' connected' : '');
+            statusText.textContent = isConnected ? 'Verbunden' : 'Nicht verbunden';
+
+            slideNumber.textContent = totalSlides > 0 ? (currentSlide + 1) : '—';
+            slideTotal.textContent = totalSlides > 0 ? `von ${totalSlides}` : 'von —';
+
+            const hasSlides = totalSlides > 0;
+            btnPrev.disabled = !isConnected || currentSlide === 0;
+            btnNext.disabled = !isConnected || currentSlide >= totalSlides - 1;
+            btnFirst.disabled = !isConnected || !hasSlides;
+            btnLast.disabled = !isConnected || !hasSlides;
+
+            warning.style.display = isConnected ? 'none' : 'block';
+        }
+
+        // Socket.io commands
+        function sendCommand(command, slideIndex) {
+            if (!socket || !isConnected) {
+                log('❌ Cannot send command: not connected');
+                return;
+            }
+
+            const payload = {
+                command,
+                slideIndex,
+                sessionId
+            };
+
+            log(`📤 Sending: ${command}${slideIndex !== undefined ? ` (${slideIndex})` : ''}`);
+            socket.emit('remote-command', payload);
+        }
+
+        // Button handlers
+        btnPrev.addEventListener('click', () => sendCommand('prev'));
+        btnNext.addEventListener('click', () => sendCommand('next'));
+        btnFirst.addEventListener('click', () => sendCommand('first'));
+        btnLast.addEventListener('click', () => sendCommand('last'));
+
+        // Initialize
+        log('✅ Static HTML page loaded');
+        log(`🔧 Cache buster: ${Date.now()}`);
+
+        if (!sessionId) {
+            log('❌ ERROR: No session ID in URL!');
+            log('Expected URL: remote.html?session=pres-xxx');
+        } else {
+            log(`✅ Session ID: ${sessionId}`);
+
+            // Get server URL from current location
+            const protocol = window.location.protocol === 'https:' ? 'https:' : 'http:';
+            const host = window.location.host;
+            const socketUrl = `${protocol}//${host}`;
+
+            log(`🔌 Connecting to: ${socketUrl}`);
+
+            // Initialize Socket.io
+            socket = io(socketUrl, {
+                path: '/api/socket',
+                transports: ['polling', 'websocket'],
+                reconnection: true,
+                reconnectionDelay: 1000,
+                reconnectionAttempts: 10
+            });
+
+            socket.on('connect', () => {
+                log(`✅ Connected! Socket ID: ${socket.id}`);
+                isConnected = true;
+                updateUI();
+                socket.emit('join-session', sessionId);
+                log(`📥 Joined session: ${sessionId}`);
+            });
+
+            socket.on('connect_error', (error) => {
+                log(`❌ Connection error: ${error.message}`);
+                isConnected = false;
+                updateUI();
+            });
+
+            socket.on('disconnect', (reason) => {
+                log(`❌ Disconnected: ${reason}`);
+                isConnected = false;
+                updateUI();
+            });
+
+            socket.on('slide-update', (data) => {
+                if (data.sessionId === sessionId) {
+                    log(`📥 Slide update: ${data.slideIndex + 1}/${data.totalSlides}`);
+                    currentSlide = data.slideIndex;
+                    totalSlides = data.totalSlides;
+                    updateUI();
+                }
+            });
+
+            // Initial UI update
+            updateUI();
+        }
+    </script>
+</body>
+</html>
