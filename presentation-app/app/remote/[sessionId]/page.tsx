@@ -11,8 +11,6 @@ interface RemoteControlProps {
 }
 
 export default function RemoteControl({ params }: RemoteControlProps) {
-  const { sessionId } = use(params);
-
   // Add timestamp to force cache invalidation
   const [cacheKey] = useState(() => Date.now());
   const [socket, setSocket] = useState<Socket | null>(null);
@@ -30,7 +28,24 @@ export default function RemoteControl({ params }: RemoteControlProps) {
     setDebugLog((prev) => [...prev.slice(-19), `[${timestamp}] ${message}`]);
   }, []);
 
+  // Unwrap params - add debug logging
+  let sessionId = 'unknown';
+  try {
+    const unwrapped = use(params);
+    sessionId = unwrapped.sessionId;
+    addDebugLog(`Session ID extracted: ${sessionId}`);
+  } catch (error) {
+    addDebugLog(`Error unwrapping params: ${error}`);
+  }
+
   useEffect(() => {
+    addDebugLog('useEffect triggered!');
+
+    if (sessionId === 'unknown') {
+      addDebugLog('ERROR: sessionId is unknown, aborting');
+      return;
+    }
+
     addDebugLog('useEffect started');
 
     // Build the Socket.io connection URL explicitly
