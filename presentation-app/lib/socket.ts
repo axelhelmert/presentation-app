@@ -35,10 +35,13 @@ export const initSocket = (res: NextApiResponseWithSocket): SocketIOServer => {
     const io = new SocketIOServer(res.socket.server, {
       path: '/api/socket',
       addTrailingSlash: false,
+      transports: ['polling', 'websocket'],
       cors: {
         origin: '*',
         methods: ['GET', 'POST'],
+        credentials: false,
       },
+      allowEIO3: true,
     });
 
     io.on('connection', (socket) => {

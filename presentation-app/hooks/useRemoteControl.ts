@@ -15,25 +15,42 @@ export function useRemoteControl({
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
-    // Initialize Socket.io connection
-    const socket = io({
+    // Build the Socket.io connection URL explicitly
+    const protocol = typeof window !== 'undefined' && window.location.protocol === 'https:' ? 'https:' : 'http:';
+    const host = typeof window !== 'undefined' ? window.location.host : 'localhost:3000';
+    const socketUrl = `${protocol}//${host}`;
+
+    console.log('Presentation connecting to Socket.io server:', socketUrl);
+
+    // Initialize Socket.io connection with explicit URL and options
+    const socket = io(socketUrl, {
       path: '/api/socket',
+      transports: ['polling', 'websocket'],
+      reconnection: true,
+      reconnectionDelay: 1000,
+      reconnectionAttempts: 10,
     });
 
     socketRef.current = socket;
 
     socket.on('connect', () => {
-      console.log('Socket connected');
+      console.log('Presentation socket connected, ID:', socket.id);
       setIsConnected(true);
       socket.emit('join-session', sessionId);
     });
 
-    socket.on('disconnect', () => {
-      console.log('Socket disconnected');
+    socket.on('connect_error', (error) => {
+      console.error('Presentation socket connection error:', error);
+      setIsConnected(false);
+    });
+
+    socket.on('disconnect', (reason) => {
+      console.log('Presentation socket disconnected, reason:', reason);
       setIsConnected(false);
     });
 
     socket.on('remote-command', (data: RemoteCommandPayload) => {
+      console.log('Received remote command:', data);
       if (data.sessionId === sessionId && onRemoteCommand) {
         onRemoteCommand(data);
       }

@@ -18,23 +18,40 @@ export default function RemoteControl({ params }: RemoteControlProps) {
   const [totalSlides, setTotalSlides] = useState(0);
 
   useEffect(() => {
-    // Initialize Socket.io connection
-    const newSocket = io({
+    // Build the Socket.io connection URL explicitly
+    const protocol = window.location.protocol === 'https:' ? 'https:' : 'http:';
+    const host = window.location.host;
+    const socketUrl = `${protocol}//${host}`;
+
+    console.log('Connecting to Socket.io server:', socketUrl);
+
+    // Initialize Socket.io connection with explicit URL and options
+    const newSocket = io(socketUrl, {
       path: '/api/socket',
+      transports: ['polling', 'websocket'],
+      reconnection: true,
+      reconnectionDelay: 1000,
+      reconnectionAttempts: 10,
     });
 
     newSocket.on('connect', () => {
-      console.log('Remote control connected');
+      console.log('Remote control connected, socket ID:', newSocket.id);
       setIsConnected(true);
       newSocket.emit('join-session', sessionId);
     });
 
-    newSocket.on('disconnect', () => {
-      console.log('Remote control disconnected');
+    newSocket.on('connect_error', (error) => {
+      console.error('Socket connection error:', error);
+      setIsConnected(false);
+    });
+
+    newSocket.on('disconnect', (reason) => {
+      console.log('Remote control disconnected, reason:', reason);
       setIsConnected(false);
     });
 
     newSocket.on('slide-update', (data: SlideUpdatePayload) => {
+      console.log('Received slide update:', data);
       if (data.sessionId === sessionId) {
         setCurrentSlide(data.slideIndex);
         setTotalSlides(data.totalSlides);
