@@ -35,6 +35,14 @@ export default function RemoteControl({ params }: RemoteControlProps) {
     setDebugLog((prev) => [...prev.slice(-19), `[${timestamp}] ${message}`]);
   }, []);
 
+  // DIRECT TEST: Schedule a log after 1 second (doesn't need useEffect)
+  if (typeof window !== 'undefined') {
+    setTimeout(() => {
+      const timestamp = new Date().toLocaleTimeString();
+      setDebugLog(prev => [...prev, `[${timestamp}] ⏰ setTimeout executed after 1s`]);
+    }, 1000);
+  }
+
   // SIMPLE TEST: Does useEffect run at all?
   useEffect(() => {
     console.log('❗ useEffect #1 EXECUTED');
