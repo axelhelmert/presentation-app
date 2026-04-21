@@ -307,7 +307,7 @@ export default function PresentationMode({
                 </p>
                 <div className="bg-white p-4 rounded-lg">
                   <QRCodeSVG
-                    value={`http://${networkHost}/remote/${sessionId}?t=${Date.now()}`}
+                    value={`http://${networkHost}/remote.html?session=${sessionId}`}
                     size={200}
                     level="M"
                   />
@@ -319,15 +319,6 @@ export default function PresentationMode({
             <div>
               <p className="text-sm text-gray-300 mb-2">
                 Oder öffnen Sie diese URL manuell:
-              </p>
-              <div className="bg-gray-900 p-3 rounded font-mono text-xs break-all mb-2">
-                {networkHost
-                  ? `http://${networkHost}/remote/${sessionId}?t=${Date.now()}`
-                  : typeof window !== 'undefined' &&
-                    `${window.location.protocol}//${window.location.host}/remote/${sessionId}?t=${Date.now()}`}
-              </div>
-              <p className="text-xs text-gray-400 mb-1">
-                Alternative (bei Cache-Problemen):
               </p>
               <div className="bg-gray-900 p-3 rounded font-mono text-xs break-all">
                 {networkHost
