@@ -4,9 +4,9 @@
 
 Die Remote-Control-Funktionalität ermöglicht es, Präsentationen von einem anderen Gerät (z.B. iPhone, iPad) über das Netzwerk zu steuern.
 
-## Zwei verfügbare Lösungen
+## Die Lösung
 
-### ✅ Lösung 1: Statische HTML-Seite (EMPFOHLEN für iOS)
+### ✅ Statische HTML-Seite
 
 **URL:** `http://[SERVER-IP]:3000/remote.html?session=[SESSION-ID]`
 
@@ -15,23 +15,13 @@ Die Remote-Control-Funktionalität ermöglicht es, Präsentationen von einem and
 - ✅ Keine Cache-Probleme
 - ✅ Kein React, kein SSR
 - ✅ Lädt sofort
+- ✅ Wird automatisch im Remote-Overlay angezeigt
 
 **So verwenden:**
 1. Präsentation am Computer starten
 2. "📱 Remote" Button klicken
-3. Die **zweite URL** (mit `remote.html`) kopieren oder QR-Code scannen
+3. QR-Code scannen oder URL kopieren
 4. Am iPhone öffnen
-
-### ⚠️ Lösung 2: Next.js React-Seite (EXPERIMENTELL)
-
-**URL:** `http://[SERVER-IP]:3000/remote/[SESSION-ID]`
-
-**Status:** Funktioniert aktuell NICHT zuverlässig auf Safari iOS
-
-**Problem:** 
-- React useEffect wird nicht ausgeführt
-- Wahrscheinlich SSR-Hydration-Problem
-- Safari cached sehr aggressiv
 
 ## Schnellstart
 
@@ -178,13 +168,30 @@ Jede Präsentation bekommt eine einzigartige Session-ID.
 
 ## Nächste Schritte (TODO)
 
-- [ ] React-Hydration-Problem auf Safari iOS lösen
-- [ ] QR-Code direkt in statischer HTML-Seite integrieren
+### Geplante Features
+
+- [ ] **⌚ Apple Watch App** - Native watchOS Remote Control
+  - Große Swipe-Gesten
+  - Digital Crown Navigation
+  - Haptic Feedback
+  - Minimale, watch-optimierte UI
+  
 - [ ] Service Worker für echtes Offline-Funktionieren
-- [ ] Touch-Gesten (Swipe) für Navigation
+- [ ] Touch-Gesten (Swipe) für Navigation auf iPhone
 - [ ] Vibration-Feedback bei Button-Klicks
 - [ ] Slide-Thumbnails anzeigen
 - [ ] Presenter Notes anzeigen
+- [ ] Timer für Präsentationszeit
+
+### Apple Watch Details
+
+**Technologie:** Swift/SwiftUI + URLSession WebSocket
+**Features:**
+- Eigenständige Watch-App (funktioniert ohne iPhone in der Nähe)
+- WebSocket-Verbindung direkt zum MacBook
+- Digital Crown zum Scrollen durch Folien
+- Haptic Engine für Feedback
+- Always-on Display Support
 
 ## Support
 

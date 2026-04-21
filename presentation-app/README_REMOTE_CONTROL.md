@@ -16,41 +16,39 @@ npm run dev
 ### 2. Remote-Overlay öffnen
 - Präsentationsmodus starten (🎬 Button)
 - "📱 Remote" Button klicken
-- Es werden **2 URLs** angezeigt
+- **Ein QR-Code und eine URL werden angezeigt**
 
-### 3. Die ZWEITE URL verwenden
+### 3. QR-Code scannen oder URL öffnen
 ```
 http://192.168.0.188:3000/remote.html?session=pres-xxx
-                         ^^^^^^^^^^^^
-                    Diese URL verwenden!
 ```
 
 **Auf dem iPhone:**
-- QR-Code scannen **ODER**
+- **QR-Code scannen** (am einfachsten) **ODER**
 - URL manuell eingeben
-- Safari öffnet die Remote-Control-Seite
+- Safari öffnet die Remote-Control-Seite automatisch
 
 ### 4. Folien steuern
 - ← Zurück / Weiter → Buttons
 - ⏮ Erste / Letzte ⏭ Buttons
 - Debug-Panel zeigt Verbindungsstatus
 
-## ✅ Vorteile der statischen HTML-Lösung
+## ✅ Vorteile der Lösung
 
 - **Keine Cache-Probleme** - funktioniert sofort
 - **Einfach** - reines HTML/CSS/JS
 - **Schnell** - lädt sofort
-- **Zuverlässig** - keine React-Hydration-Probleme
+- **Zuverlässig** - funktioniert auf Safari iOS
+- **Kein Setup nötig** - einfach QR-Code scannen
 
-## ⚠️ React-Version (experimentell)
+## 📡 Netzwerk-Anforderungen
 
-Die erste URL (`/remote/pres-xxx`) verwendet Next.js/React und hat aktuell **Probleme auf Safari iOS**:
+**Wichtig:** Beide Geräte müssen im **gleichen WLAN** sein!
 
-**Problem:** useEffect wird nicht ausgeführt
-**Symptom:** Nur 2 Zeilen im Debug-Panel
-**Status:** Wird weiter untersucht
-
-**→ Deshalb: Statische HTML-Version verwenden!**
+- ✅ MacBook und iPhone im selben WLAN
+- ✅ MacBook als Hotspot, iPhone verbindet sich
+- ❌ iPhone im Mobilfunknetz (4G/5G)
+- ❌ Verschiedene WLANs
 
 ## 📖 Vollständige Dokumentation
 
@@ -61,12 +59,12 @@ Siehe `REMOTE_CONTROL_GUIDE.md` für:
 
 ## 🎯 Zusammenfassung
 
-| Was | URL |
-|-----|-----|
-| ✅ **Verwenden (funktioniert)** | `/remote.html?session=xxx` |
-| ⚠️ **Nicht verwenden (Probleme)** | `/remote/xxx` |
-
-**Beide Geräte müssen im gleichen WLAN sein!**
+| Feature | Status |
+|---------|--------|
+| 📱 **iPhone Remote Control** | ✅ Funktioniert (statische HTML) |
+| 🔗 **QR-Code** | ✅ Wird automatisch generiert |
+| 📡 **Netzwerk** | ⚠️ Gleiches WLAN erforderlich |
+| ⌚ **Apple Watch** | 🔜 Geplant (native watchOS App) |
 
 ## 🔍 Schneller Test
 
