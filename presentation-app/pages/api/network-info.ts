@@ -20,8 +20,12 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     if (localIp !== 'localhost') break;
   }
 
+  // Extract port from host header, default to 3000
+  const hostHeader = req.headers.host || '';
+  const port = hostHeader.includes(':') ? hostHeader.split(':')[1] : '3000';
+
   res.status(200).json({
     ip: localIp,
-    host: req.headers.host || `${localIp}:3000`,
+    host: `${localIp}:${port}`,
   });
 }
