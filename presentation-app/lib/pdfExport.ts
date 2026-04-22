@@ -205,9 +205,11 @@ export async function exportToPDF({
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-shrink: 0;
+            z-index: 100;
           ">
             <span>© ${author || 'Author'}, ${new Date().toLocaleString('en-US', { month: 'long' })} ${new Date().getFullYear()}</span>
-            <span>${i + 1} / ${slides.length}</span>
+            <span style="font-weight: bold;">${i + 1} / ${slides.length}</span>
           </div>
         </div>
       `;
@@ -267,7 +269,7 @@ export async function exportToPDF({
 
       // Capture the slide as canvas at fixed presentation size
       const canvas = await html2canvas(container, {
-        scale: 2,
+        scale: 1.5, // Reduced from 2 to 1.5 for smaller file size while maintaining quality
         width: slideWidth,
         height: slideHeight,
         backgroundColor: theme.background.includes('gradient') ? null : theme.background,
@@ -277,8 +279,9 @@ export async function exportToPDF({
         windowHeight: slideHeight,
       });
 
-      // Convert canvas to image
-      const imgData = canvas.toDataURL('image/png');
+      // Convert canvas to JPEG with compression for much smaller file size
+      // JPEG is suitable for slides with images/photos, use quality 0.85 for good balance
+      const imgData = canvas.toDataURL('image/jpeg', 0.85);
 
       // Add new page if not the first slide
       if (i > 0) {
@@ -292,7 +295,7 @@ export async function exportToPDF({
       // Center vertically if needed
       const yOffset = imgHeight < pdfHeight ? (pdfHeight - imgHeight) / 2 : 0;
 
-      pdf.addImage(imgData, 'PNG', 0, yOffset, imgWidth, imgHeight);
+      pdf.addImage(imgData, 'JPEG', 0, yOffset, imgWidth, imgHeight);
     }
 
     // Download the PDF
