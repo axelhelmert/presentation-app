@@ -158,6 +158,7 @@ export async function exportToPDF({
           --theme-code-bg: ${codeBg};
           display: flex;
           flex-direction: column;
+          overflow: hidden;
         ">
           <!-- Product Logo (left) -->
           ${productLogoData?.dataUrl ? `
@@ -172,7 +173,12 @@ export async function exportToPDF({
           </div>
 
           <!-- Content -->
-          <div class="content-wrapper" style="flex: 1; padding: ${isTitleSlide ? '0' : '60px 80px 20px 80px'};">
+          <div class="content-wrapper" style="
+            flex: 1;
+            min-height: 0;
+            padding: ${isTitleSlide ? '0' : '60px 80px 20px 80px'};
+            overflow: hidden;
+          ">
             <div class="prose max-w-none content-scaler" style="
               ${isTitleSlide ? `
                 font-size: 2rem;
@@ -189,7 +195,7 @@ export async function exportToPDF({
                 margin-left: ${productLogoData?.dataUrl ? '4rem' : '0'};
               `}
               color: ${textColor};
-              transform-origin: top center;
+              transform-origin: top left;
             ">
               ${slideHTML}
             </div>
@@ -206,6 +212,7 @@ export async function exportToPDF({
             justify-content: space-between;
             align-items: center;
             flex-shrink: 0;
+            min-height: 72px;
             z-index: 100;
           ">
             <span>© ${author || 'Author'}, ${new Date().toLocaleString('en-US', { month: 'long' })} ${new Date().getFullYear()}</span>
@@ -245,18 +252,25 @@ export async function exportToPDF({
         await new Promise((resolve) => setTimeout(resolve, 300));
       }
 
-      // Scale content if it overflows
+      // Scale content if it overflows - ensure footer is always visible
       if (!isTitleSlide) {
         const contentWrapper = container.querySelector('.content-wrapper') as HTMLElement;
         const footer = container.querySelector('.footer') as HTMLElement;
         const contentScaler = container.querySelector('.content-scaler') as HTMLElement;
 
         if (contentWrapper && footer && contentScaler) {
-          const availableHeight = slideHeight - footer.offsetHeight - 60; // 60px top padding
+          // Get the actual footer height (should be min 72px)
+          const footerHeight = Math.max(footer.offsetHeight, 72);
+
+          // Calculate available height: total height - footer - top padding - bottom padding
+          const topPadding = 60;
+          const bottomPadding = 20;
+          const availableHeight = slideHeight - footerHeight - topPadding - bottomPadding;
           const contentHeight = contentScaler.scrollHeight;
 
           if (contentHeight > availableHeight) {
-            const scale = (availableHeight - 40) / contentHeight; // -40px for safety margin
+            // Scale down with additional safety margin to ensure footer stays visible
+            const scale = (availableHeight - 60) / contentHeight; // -60px extra safety margin
             contentScaler.style.transform = `scale(${scale})`;
             contentScaler.style.transformOrigin = 'top left';
             contentScaler.style.width = `${100 / scale}%`;
@@ -264,7 +278,7 @@ export async function exportToPDF({
         }
 
         // Wait for scaling to apply
-        await new Promise((resolve) => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 150));
       }
 
       // Capture the slide as canvas at fixed presentation size
