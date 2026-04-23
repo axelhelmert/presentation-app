@@ -21,6 +21,7 @@ interface SlidePreviewProps {
   author?: string;
   backgroundImage?: string;
   productLogo?: string;
+  companyLogo?: string;
 }
 
 export default function SlidePreview({
@@ -33,6 +34,7 @@ export default function SlidePreview({
   author = '',
   backgroundImage,
   productLogo,
+  companyLogo = 'msg-logo.png',
 }: SlidePreviewProps) {
   const [html, setHtml] = useState<string>('');
   const [mermaidBlocks, setMermaidBlocks] = useState<MermaidBlock[]>([]);
@@ -48,6 +50,11 @@ export default function SlidePreview({
   // Find product logo data URL
   const productLogoData = productLogo
     ? uploadedImages.find((img) => img.name === productLogo)
+    : null;
+
+  // Find company logo data URL or fallback to public folder
+  const companyLogoData = companyLogo
+    ? uploadedImages.find((img) => img.name === companyLogo)
     : null;
 
   // Check if this slide is just an image (trim whitespace first)
@@ -180,13 +187,15 @@ export default function SlidePreview({
       )}
 
       {/* Firmen-Logo oben rechts */}
-      <div className="absolute top-4 right-4 z-10">
-        <img
-          src="/msg-logo.png"
-          alt="MSG Logo"
-          className={`${isTitleSlide ? 'h-20' : 'h-10'} w-auto opacity-80`}
-        />
-      </div>
+      {companyLogo && (
+        <div className="absolute top-4 right-4 z-10">
+          <img
+            src={companyLogoData?.dataUrl || `/${companyLogo}`}
+            alt="Company Logo"
+            className={`${isTitleSlide ? 'h-20' : 'h-10'} w-auto opacity-80`}
+          />
+        </div>
+      )}
 
       <div className={`flex-1 overflow-auto pt-6 px-12 pb-12 ${isTitleSlide ? 'flex' : ''}`}>
         {isImageSlide && imageUrl ? (

@@ -85,6 +85,8 @@ const STORAGE_CURRENT_SLIDE_KEY = 'presentation-current-slide';
 const STORAGE_SYNC_KEY = 'presentation-sync-trigger';
 const STORAGE_BEAMER_MODE_KEY = 'presentation-beamer-mode';
 const STORAGE_BEAMER_RESOLUTION_KEY = 'presentation-beamer-resolution';
+const STORAGE_COMPANY_LOGO_KEY = 'presentation-company-logo';
+const STORAGE_SHOW_NOTES_KEY = 'presentation-show-notes';
 
 export default function Editor() {
   const [markdown, setMarkdown] = useState<string>('');
@@ -107,12 +109,14 @@ export default function Editor() {
   const [isSeparatePreview, setIsSeparatePreview] = useState<boolean>(false);
   const [isBeamerMode, setIsBeamerMode] = useState<boolean>(false);
   const [beamerResolution, setBeamerResolution] = useState<string>('1920x1080');
+  const [companyLogo, setCompanyLogo] = useState<string>('msg-logo.png');
   const [selectedTextColor, setSelectedTextColor] = useState<string>('orange');
   const [showFormatMenu, setShowFormatMenu] = useState<boolean>(false);
   const [columnCount, setColumnCount] = useState<number>(2);
   const [editorWidth, setEditorWidth] = useState<number>(50); // in percent
   const [isResizing, setIsResizing] = useState<boolean>(false);
   const [notesValue, setNotesValue] = useState<string>('');
+  const [showNotes, setShowNotes] = useState<boolean>(true);
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
   const previewWindowRef = React.useRef<Window | null>(null);
 
@@ -163,6 +167,16 @@ export default function Editor() {
     const savedBeamerResolution = localStorage.getItem(STORAGE_BEAMER_RESOLUTION_KEY);
     if (savedBeamerResolution) {
       setBeamerResolution(savedBeamerResolution);
+    }
+
+    const savedCompanyLogo = localStorage.getItem(STORAGE_COMPANY_LOGO_KEY);
+    if (savedCompanyLogo) {
+      setCompanyLogo(savedCompanyLogo);
+    }
+
+    const savedShowNotes = localStorage.getItem(STORAGE_SHOW_NOTES_KEY);
+    if (savedShowNotes !== null) {
+      setShowNotes(savedShowNotes === 'true');
     }
 
     // Clean up old image data from LocalStorage (if any)
@@ -305,6 +319,16 @@ export default function Editor() {
     localStorage.setItem(STORAGE_BEAMER_RESOLUTION_KEY, beamerResolution);
   }, [beamerResolution]);
 
+  // Save company logo to LocalStorage
+  useEffect(() => {
+    localStorage.setItem(STORAGE_COMPANY_LOGO_KEY, companyLogo);
+  }, [companyLogo]);
+
+  // Save show notes state to LocalStorage
+  useEffect(() => {
+    localStorage.setItem(STORAGE_SHOW_NOTES_KEY, showNotes.toString());
+  }, [showNotes]);
+
   // Save current slide to LocalStorage for preview window sync
   useEffect(() => {
     localStorage.setItem(STORAGE_CURRENT_SLIDE_KEY, currentSlide.toString());
@@ -316,7 +340,7 @@ export default function Editor() {
     if (currentSlide >= parsedSlides.length && parsedSlides.length > 0) {
       setCurrentSlide(parsedSlides.length - 1);
     }
-  }, [markdown, currentSlide]);
+  }, [markdown]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Sync notesValue when currentSlide or slides change
   useEffect(() => {
@@ -424,6 +448,7 @@ export default function Editor() {
         fontSize,
         uploadedImages,
         author,
+        companyLogo,
         onProgress: (current, total) => {
           setExportProgress(`Exporting slide ${current} of ${total}...`);
         },
@@ -951,6 +976,7 @@ export default function Editor() {
         fontSizeId={selectedFontSize}
         uploadedImages={uploadedImages}
         author={author}
+        companyLogo={companyLogo}
       />
     );
   }
@@ -988,6 +1014,17 @@ export default function Editor() {
               title={isSeparatePreview ? 'Vorschau in Editor anzeigen' : 'Vorschau in separatem Fenster öffnen'}
             >
               {isSeparatePreview ? '🖥️ Split View' : '🪟 Separates Fenster'}
+            </button>
+            <button
+              onClick={() => setShowNotes(!showNotes)}
+              className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                showNotes
+                  ? 'bg-green-600 hover:bg-green-500'
+                  : 'bg-gray-600 hover:bg-gray-500'
+              }`}
+              title={showNotes ? 'Notizen ausblenden' : 'Notizen einblenden'}
+            >
+              📝 {showNotes ? 'Notizen' : 'Notizen'}
             </button>
           </div>
           <div className="flex items-center gap-3">
@@ -1158,18 +1195,23 @@ export default function Editor() {
           spellCheck={false}
         />
         {/* Notes Editor */}
-        <div className="border-t border-gray-700 bg-gray-850 flex flex-col" style={{ minHeight: '120px', maxHeight: '200px' }}>
-          <div className="bg-gray-700 text-white px-4 py-1 text-xs font-medium text-gray-300">
-            📝 Notizen (Folie {currentSlide + 1})
+        {showNotes && (
+          <div className="border-t border-gray-700 bg-gray-850 flex flex-col" style={{ minHeight: '120px', maxHeight: '200px' }}>
+            <div className="bg-gray-700 text-white px-4 py-1 text-xs font-medium text-gray-300">
+              📝 Notizen (Folie {currentSlide + 1}/{slides.length})
+              {slides[currentSlide]?.chapterTitle && (
+                <span className="ml-2 text-blue-400">• {slides[currentSlide].chapterTitle}</span>
+              )}
+            </div>
+            <textarea
+              value={notesValue}
+              onChange={(e) => handleNotesChange(e.target.value)}
+              className="flex-1 p-3 font-sans text-sm resize-none focus:outline-none bg-gray-800 text-gray-200 placeholder-gray-500"
+              placeholder="Notizen für diese Folie…"
+              spellCheck={false}
+            />
           </div>
-          <textarea
-            value={notesValue}
-            onChange={(e) => handleNotesChange(e.target.value)}
-            className="flex-1 p-3 font-sans text-sm resize-none focus:outline-none bg-gray-800 text-gray-200 placeholder-gray-500"
-            placeholder="Notizen für diese Folie…"
-            spellCheck={false}
-          />
-        </div>
+        )}
         </div>
 
         {/* Resizer Divider */}
@@ -1264,6 +1306,25 @@ export default function Editor() {
             </div>
 
             <div className="flex items-center gap-2">
+              <label htmlFor="company-logo-select" className="font-medium">
+                Firmenlogo:
+              </label>
+              <select
+                id="company-logo-select"
+                value={companyLogo}
+                onChange={(e) => setCompanyLogo(e.target.value)}
+                className="bg-gray-600 text-white px-3 py-1 rounded border border-gray-500 focus:outline-none focus:border-gray-400"
+              >
+                <option value="">Kein Logo</option>
+                {uploadedImages.map((img) => (
+                  <option key={img.name} value={img.name}>
+                    {img.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex items-center gap-2">
               <label htmlFor="fontsize-select" className="font-medium">
                 Schriftgröße:
               </label>
@@ -1353,6 +1414,7 @@ export default function Editor() {
                   author={author}
                   backgroundImage={slides[currentSlide].backgroundImage}
                   productLogo={slides[currentSlide].productLogo}
+                  companyLogo={companyLogo}
                 />
               </div>
             </div>

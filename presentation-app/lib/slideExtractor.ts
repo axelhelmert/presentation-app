@@ -18,6 +18,69 @@ export interface SlideInfo {
  * Without `slides`, the legacy behaviour is preserved for backwards compatibility.
  */
 export function extractSlideInfo(markdown: string, slides?: Slide[]): SlideInfo[] {
+  // If slides array is provided, use it as the source of truth
+  if (slides && slides.length > 0) {
+    const result: SlideInfo[] = [];
+    const slideContents = markdown.split(/^---$/m);
+
+    let currentPosition = 0;
+    let markdownSlideIndex = 0;
+
+    for (let slideIndex = 0; slideIndex < slides.length; slideIndex++) {
+      const slide = slides[slideIndex];
+
+      // If this is an agenda slide (synthetic, not in markdown)
+      if (slide.isAgendaSlide) {
+        result.push({
+          index: slideIndex,
+          title: 'Agenda',
+          position: 0, // Position doesn't matter for synthetic slides
+          chapterTitle: slide.chapterTitle,
+          chapterIndex: slide.chapterIndex,
+          isAgendaSlide: true,
+        });
+        continue;
+      }
+
+      // Find corresponding markdown content
+      let content = '';
+      while (markdownSlideIndex < slideContents.length) {
+        const trimmed = slideContents[markdownSlideIndex].trim();
+        markdownSlideIndex++;
+        if (trimmed.length > 0) {
+          content = trimmed;
+          break;
+        }
+      }
+
+      if (content) {
+        // Extract first heading as title
+        const headingMatch = content.match(/^#{1,6}\s+(.+)$/m);
+        const title = headingMatch
+          ? headingMatch[1].trim()
+          : content.substring(0, 50).trim() + (content.length > 50 ? '...' : '');
+
+        result.push({
+          index: slideIndex,
+          title,
+          position: currentPosition,
+          chapterTitle: slide.chapterTitle,
+          chapterIndex: slide.chapterIndex,
+          isAgendaSlide: false,
+        });
+      }
+
+      // Update position for next slide
+      const actualIndex = markdownSlideIndex - 1;
+      if (actualIndex < slideContents.length) {
+        currentPosition += slideContents[actualIndex].length + (actualIndex < slideContents.length - 1 ? 4 : 0);
+      }
+    }
+
+    return result;
+  }
+
+  // Legacy behavior when slides array is not provided
   const result: SlideInfo[] = [];
   const slideContents = markdown.split(/^---$/m);
 
@@ -33,18 +96,10 @@ export function extractSlideInfo(markdown: string, slides?: Slide[]): SlideInfo[
         ? headingMatch[1].trim()
         : trimmedContent.substring(0, 50).trim() + (trimmedContent.length > 50 ? '...' : '');
 
-      const slideIndex = result.length;
-      const correspondingSlide = slides?.[slideIndex];
-
       result.push({
-        index: slideIndex,
+        index: result.length,
         title,
         position: currentPosition,
-        ...(slides !== undefined && {
-          chapterTitle: correspondingSlide?.chapterTitle,
-          chapterIndex: correspondingSlide?.chapterIndex,
-          isAgendaSlide: correspondingSlide?.isAgendaSlide,
-        }),
       });
     }
 

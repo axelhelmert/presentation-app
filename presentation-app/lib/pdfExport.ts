@@ -12,6 +12,7 @@ interface ExportOptions {
   fontSize: { size: string; lineHeight: string };
   uploadedImages?: StoredImage[];
   author?: string;
+  companyLogo?: string;
   onProgress?: (current: number, total: number) => void;
 }
 
@@ -21,6 +22,7 @@ export async function exportToPDF({
   fontSize,
   uploadedImages = [],
   author = '',
+  companyLogo = 'msg-logo.png',
   onProgress,
 }: ExportOptions): Promise<void> {
   if (slides.length === 0) {
@@ -132,6 +134,12 @@ export async function exportToPDF({
         ? uploadedImages.find((img) => img.name === slide.productLogo)
         : null;
 
+      // Find company logo data URL or use public folder path
+      const companyLogoData = companyLogo
+        ? uploadedImages.find((img) => img.name === companyLogo)
+        : null;
+      const companyLogoSrc = companyLogoData?.dataUrl || `/${companyLogo}`;
+
       // Determine colors based on background image
       const textColor = bgImageData ? '#ffffff' : theme.textColor;
       const headingColor = bgImageData ? '#ffffff' : theme.headingColor;
@@ -168,9 +176,11 @@ export async function exportToPDF({
           ` : ''}
 
           <!-- Company Logo (right) -->
+          ${companyLogo ? `
           <div style="position: absolute; top: 30px; right: 30px; z-index: 10;">
-            <img src="/msg-logo.png" alt="MSG Logo" style="height: ${isTitleSlide ? '80px' : '48px'}; width: auto; opacity: 0.8;" />
+            <img src="${companyLogoSrc}" alt="Company Logo" style="height: ${isTitleSlide ? '80px' : '48px'}; width: auto; opacity: 0.8;" />
           </div>
+          ` : ''}
 
           <!-- Content -->
           <div class="content-wrapper" style="

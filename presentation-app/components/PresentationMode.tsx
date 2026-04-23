@@ -16,6 +16,7 @@ interface PresentationModeProps {
   fontSizeId?: string;
   uploadedImages?: StoredImage[];
   author?: string;
+  companyLogo?: string;
 }
 
 // Generate a unique session ID for this presentation
@@ -31,6 +32,7 @@ export default function PresentationMode({
   fontSizeId = 'large',
   uploadedImages = [],
   author = '',
+  companyLogo = 'msg-logo.png',
 }: PresentationModeProps) {
   const [currentSlide, setCurrentSlide] = useState<number>(initialSlide);
   const [presenterBlocked, setPresenterBlocked] = useState<boolean>(false);
@@ -421,6 +423,7 @@ export default function PresentationMode({
             author={author}
             backgroundImage={slides[currentSlide].backgroundImage}
             productLogo={slides[currentSlide].productLogo}
+            companyLogo={companyLogo}
           />
         </div>
       </div>

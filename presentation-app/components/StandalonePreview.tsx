@@ -14,6 +14,7 @@ const STORAGE_CURRENT_SLIDE_KEY = 'presentation-current-slide';
 const STORAGE_SYNC_KEY = 'presentation-sync-trigger';
 const STORAGE_BEAMER_MODE_KEY = 'presentation-beamer-mode';
 const STORAGE_BEAMER_RESOLUTION_KEY = 'presentation-beamer-resolution';
+const STORAGE_COMPANY_LOGO_KEY = 'presentation-company-logo';
 
 export default function StandalonePreview() {
   const [markdown, setMarkdown] = useState<string>('');
@@ -22,6 +23,7 @@ export default function StandalonePreview() {
   const [selectedTheme, setSelectedTheme] = useState<string>('default');
   const [selectedFontSize, setSelectedFontSize] = useState<string>('large');
   const [author, setAuthor] = useState<string>('');
+  const [companyLogo, setCompanyLogo] = useState<string>('msg-logo.png');
   const [uploadedImages, setUploadedImages] = useState<StoredImage[]>([]);
   const [isBeamerMode, setIsBeamerMode] = useState<boolean>(false);
   const [beamerResolution, setBeamerResolution] = useState<string>('1920x1080');
@@ -33,6 +35,7 @@ export default function StandalonePreview() {
       const savedTheme = localStorage.getItem(STORAGE_THEME_KEY) || 'default';
       const savedFontSize = localStorage.getItem(STORAGE_FONTSIZE_KEY) || 'large';
       const savedAuthor = localStorage.getItem(STORAGE_AUTHOR_KEY) || '';
+      const savedCompanyLogo = localStorage.getItem(STORAGE_COMPANY_LOGO_KEY) || 'msg-logo.png';
       const savedSlide = localStorage.getItem(STORAGE_CURRENT_SLIDE_KEY);
       const savedBeamerMode = localStorage.getItem(STORAGE_BEAMER_MODE_KEY);
       const savedBeamerResolution = localStorage.getItem(STORAGE_BEAMER_RESOLUTION_KEY) || '1920x1080';
@@ -41,6 +44,7 @@ export default function StandalonePreview() {
       setSelectedTheme(savedTheme);
       setSelectedFontSize(savedFontSize);
       setAuthor(savedAuthor);
+      setCompanyLogo(savedCompanyLogo);
       setIsBeamerMode(savedBeamerMode === 'true');
       setBeamerResolution(savedBeamerResolution);
 
@@ -74,6 +78,8 @@ export default function StandalonePreview() {
         setSelectedFontSize(e.newValue);
       } else if (e.key === STORAGE_AUTHOR_KEY && e.newValue !== null) {
         setAuthor(e.newValue);
+      } else if (e.key === STORAGE_COMPANY_LOGO_KEY && e.newValue !== null) {
+        setCompanyLogo(e.newValue);
       } else if (e.key === STORAGE_CURRENT_SLIDE_KEY && e.newValue !== null) {
         const slideNum = parseInt(e.newValue, 10);
         if (!isNaN(slideNum)) {
@@ -89,6 +95,7 @@ export default function StandalonePreview() {
         const savedTheme = localStorage.getItem(STORAGE_THEME_KEY) || 'default';
         const savedFontSize = localStorage.getItem(STORAGE_FONTSIZE_KEY) || 'large';
         const savedAuthor = localStorage.getItem(STORAGE_AUTHOR_KEY) || '';
+        const savedCompanyLogo = localStorage.getItem(STORAGE_COMPANY_LOGO_KEY) || 'msg-logo.png';
         const savedSlide = localStorage.getItem(STORAGE_CURRENT_SLIDE_KEY);
         const savedBeamerMode = localStorage.getItem(STORAGE_BEAMER_MODE_KEY);
         const savedBeamerResolution = localStorage.getItem(STORAGE_BEAMER_RESOLUTION_KEY) || '1920x1080';
@@ -97,6 +104,7 @@ export default function StandalonePreview() {
         setSelectedTheme(savedTheme);
         setSelectedFontSize(savedFontSize);
         setAuthor(savedAuthor);
+        setCompanyLogo(savedCompanyLogo);
         setIsBeamerMode(savedBeamerMode === 'true');
         setBeamerResolution(savedBeamerResolution);
 
@@ -295,6 +303,7 @@ export default function StandalonePreview() {
               author={author}
               backgroundImage={slides[currentSlide].backgroundImage}
               productLogo={slides[currentSlide].productLogo}
+              companyLogo={companyLogo}
             />
           </div>
         ) : (

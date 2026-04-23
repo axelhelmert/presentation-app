@@ -11,6 +11,7 @@ const STORAGE_FONTSIZE_KEY = 'presentation-fontsize';
 const STORAGE_AUTHOR_KEY = 'presentation-author';
 const STORAGE_CURRENT_SLIDE_KEY = 'presentation-current-slide';
 const STORAGE_PRESENTER_NAV_KEY = 'presentation-presenter-nav';
+const STORAGE_COMPANY_LOGO_KEY = 'presentation-company-logo';
 
 export function formatTimer(seconds: number): string {
   const mins = Math.floor(seconds / 60);
@@ -24,6 +25,7 @@ export default function PresenterView() {
   const [selectedTheme, setSelectedTheme] = useState<string>('default');
   const [selectedFontSize, setSelectedFontSize] = useState<string>('large');
   const [author, setAuthor] = useState<string>('');
+  const [companyLogo, setCompanyLogo] = useState<string>('msg-logo.png');
   const [uploadedImages, setUploadedImages] = useState<StoredImage[]>([]);
   const [timerSeconds, setTimerSeconds] = useState<number>(0);
   const [timerRunning, setTimerRunning] = useState<boolean>(true);
@@ -36,6 +38,7 @@ export default function PresenterView() {
         const savedTheme = localStorage.getItem(STORAGE_THEME_KEY) || 'default';
         const savedFontSize = localStorage.getItem(STORAGE_FONTSIZE_KEY) || 'large';
         const savedAuthor = localStorage.getItem(STORAGE_AUTHOR_KEY) || '';
+        const savedCompanyLogo = localStorage.getItem(STORAGE_COMPANY_LOGO_KEY) || 'msg-logo.png';
         const savedSlide = localStorage.getItem(STORAGE_CURRENT_SLIDE_KEY);
 
         const parsedSlides = parseSlides(savedMarkdown);
@@ -43,6 +46,7 @@ export default function PresenterView() {
         setSelectedTheme(savedTheme);
         setSelectedFontSize(savedFontSize);
         setAuthor(savedAuthor);
+        setCompanyLogo(savedCompanyLogo);
 
         if (savedSlide) {
           const slideNum = parseInt(savedSlide, 10);
@@ -208,6 +212,7 @@ export default function PresenterView() {
                 author={author}
                 backgroundImage={currentSlideData.backgroundImage}
                 productLogo={currentSlideData.productLogo}
+                companyLogo={companyLogo}
               />
             )}
           </div>
@@ -234,6 +239,7 @@ export default function PresenterView() {
                   author={author}
                   backgroundImage={nextSlideData.backgroundImage}
                   productLogo={nextSlideData.productLogo}
+                  companyLogo={companyLogo}
                 />
               ) : null}
             </div>
