@@ -171,10 +171,23 @@ export default function SlidePreview({
   };
 
   return (
-    <div
-      className="w-full h-full flex flex-col rounded-lg shadow-lg overflow-hidden border slide-container relative"
-      style={containerStyle}
-    >
+    <>
+      {/* Chapter header styling */}
+      <style>{`
+        .slide-container .chapter-header {
+          font-size: 0.875em;
+          font-weight: 600;
+          color: var(--theme-accent);
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          margin-bottom: 0.75em;
+          opacity: 0.8;
+        }
+      `}</style>
+      <div
+        className="w-full h-full flex flex-col rounded-lg shadow-lg overflow-hidden border slide-container relative"
+        style={containerStyle}
+      >
       {/* Produkt-Logo oben links */}
       {productLogoData?.dataUrl && (
         <div className="absolute top-4 left-4 z-10">
@@ -246,5 +259,6 @@ export default function SlidePreview({
         </span>
       </div>
     </div>
+    </>
   );
 }

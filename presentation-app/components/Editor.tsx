@@ -22,6 +22,45 @@ import {
 } from '@/lib/templateStorage';
 import { extractSlideInfo, type SlideInfo } from '@/lib/slideExtractor';
 
+// IndexedDB helpers for storing FileSystemDirectoryHandle
+const DB_NAME = 'presentation-settings';
+const DB_VERSION = 1;
+const STORE_NAME = 'handles';
+
+function openIndexedDB(): Promise<IDBDatabase> {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => resolve(request.result);
+    request.onupgradeneeded = (event) => {
+      const db = (event.target as IDBOpenDBRequest).result;
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME);
+      }
+    };
+  });
+}
+
+function saveToIndexedDB(db: IDBDatabase, key: string, value: any): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([STORE_NAME], 'readwrite');
+    const store = transaction.objectStore(STORE_NAME);
+    const request = store.put(value, key);
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+  });
+}
+
+function getFromIndexedDB(db: IDBDatabase, key: string): Promise<any> {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([STORE_NAME], 'readonly');
+    const store = transaction.objectStore(STORE_NAME);
+    const request = store.get(key);
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
 const defaultMarkdown = `# Willkommen zur Präsentation
 
 Dies ist die erste Folie.
@@ -87,12 +126,15 @@ const STORAGE_BEAMER_MODE_KEY = 'presentation-beamer-mode';
 const STORAGE_BEAMER_RESOLUTION_KEY = 'presentation-beamer-resolution';
 const STORAGE_COMPANY_LOGO_KEY = 'presentation-company-logo';
 const STORAGE_SHOW_NOTES_KEY = 'presentation-show-notes';
+const STORAGE_EXPORT_FILENAME_KEY = 'presentation-export-filename';
+const INDEXEDDB_EXPORT_FILE_KEY = 'export-file-handle';
 
 export default function Editor() {
   const [markdown, setMarkdown] = useState<string>('');
   const [slides, setSlides] = useState<Slide[]>([]);
   const [currentSlide, setCurrentSlide] = useState<number>(0);
   const [isPresentationMode, setIsPresentationMode] = useState<boolean>(false);
+  const [hasFileSystemAPI, setHasFileSystemAPI] = useState<boolean>(false);
   const [selectedTheme, setSelectedTheme] = useState<string>('default');
   const [selectedFontSize, setSelectedFontSize] = useState<string>('large');
   const [isExporting, setIsExporting] = useState<boolean>(false);
@@ -117,6 +159,8 @@ export default function Editor() {
   const [isResizing, setIsResizing] = useState<boolean>(false);
   const [notesValue, setNotesValue] = useState<string>('');
   const [showNotes, setShowNotes] = useState<boolean>(true);
+  const [exportFilename, setExportFilename] = useState<string>('presentation.md');
+  const [exportFileHandle, setExportFileHandle] = useState<FileSystemFileHandle | null>(null);
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
   const previewWindowRef = React.useRef<Window | null>(null);
 
@@ -136,6 +180,9 @@ export default function Editor() {
 
   // Load from LocalStorage on mount
   useEffect(() => {
+    // Check if File System Access API is available
+    setHasFileSystemAPI('showSaveFilePicker' in window);
+
     const savedMarkdown = localStorage.getItem(STORAGE_KEY);
     const savedTheme = localStorage.getItem(STORAGE_THEME_KEY);
     const savedFontSize = localStorage.getItem(STORAGE_FONTSIZE_KEY);
@@ -178,6 +225,29 @@ export default function Editor() {
     if (savedShowNotes !== null) {
       setShowNotes(savedShowNotes === 'true');
     }
+
+    const savedExportFilename = localStorage.getItem(STORAGE_EXPORT_FILENAME_KEY);
+    if (savedExportFilename) {
+      setExportFilename(savedExportFilename);
+    }
+
+    // Try to restore export file handle from IndexedDB
+    const loadExportFile = async () => {
+      try {
+        const db = await openIndexedDB();
+        const handle = await getFromIndexedDB(db, INDEXEDDB_EXPORT_FILE_KEY);
+        if (handle) {
+          // Verify we still have permission
+          const permission = await (handle as FileSystemFileHandle).queryPermission({ mode: 'readwrite' });
+          if (permission === 'granted') {
+            setExportFileHandle(handle as FileSystemFileHandle);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to restore export file:', error);
+      }
+    };
+    loadExportFile();
 
     // Clean up old image data from LocalStorage (if any)
     try {
@@ -329,6 +399,26 @@ export default function Editor() {
     localStorage.setItem(STORAGE_SHOW_NOTES_KEY, showNotes.toString());
   }, [showNotes]);
 
+  // Save export filename to LocalStorage
+  useEffect(() => {
+    localStorage.setItem(STORAGE_EXPORT_FILENAME_KEY, exportFilename);
+  }, [exportFilename]);
+
+  // Save export file handle to IndexedDB
+  useEffect(() => {
+    if (exportFileHandle) {
+      const saveHandle = async () => {
+        try {
+          const db = await openIndexedDB();
+          await saveToIndexedDB(db, INDEXEDDB_EXPORT_FILE_KEY, exportFileHandle);
+        } catch (error) {
+          console.error('Failed to save export file:', error);
+        }
+      };
+      saveHandle();
+    }
+  }, [exportFileHandle]);
+
   // Save current slide to LocalStorage for preview window sync
   useEffect(() => {
     localStorage.setItem(STORAGE_CURRENT_SLIDE_KEY, currentSlide.toString());
@@ -465,16 +555,99 @@ export default function Editor() {
     }
   };
 
-  const handleExportMarkdown = () => {
-    const blob = new Blob([markdown], { type: 'text/markdown' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'presentation.md';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+  const handleExportMarkdown = async () => {
+    try {
+      // Check if File System Access API is supported
+      if ('showSaveFilePicker' in window) {
+        let fileHandle = exportFileHandle;
+
+        // Check if we have a saved file handle with permission
+        if (fileHandle) {
+          try {
+            const permission = await fileHandle.queryPermission({ mode: 'readwrite' });
+            if (permission !== 'granted') {
+              const newPermission = await fileHandle.requestPermission({ mode: 'readwrite' });
+              if (newPermission !== 'granted') {
+                fileHandle = null; // Need to ask for new file
+              }
+            }
+          } catch (error) {
+            // Handle might be invalid, ask for new file
+            fileHandle = null;
+          }
+        }
+
+        // If no file handle or permission denied, show save picker
+        if (!fileHandle) {
+          fileHandle = await (window as any).showSaveFilePicker({
+            suggestedName: exportFilename,
+            startIn: 'documents',
+            types: [
+              {
+                description: 'Markdown Files',
+                accept: { 'text/markdown': ['.md'] },
+              },
+            ],
+          });
+          setExportFileHandle(fileHandle);
+          // Update filename from what user chose
+          setExportFilename(fileHandle.name);
+        }
+
+        // Write to file
+        const writable = await fileHandle.createWritable();
+        await writable.write(markdown);
+        await writable.close();
+
+        alert(`Datei gespeichert: ${fileHandle.name}`);
+      } else {
+        // Fallback to traditional download
+        const blob = new Blob([markdown], { type: 'text/markdown' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = exportFilename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+    } catch (error: any) {
+      if (error.name === 'AbortError') {
+        // User cancelled
+        return;
+      }
+      console.error('Export failed:', error);
+      alert('Export fehlgeschlagen: ' + error.message);
+    }
+  };
+
+  const handleChangeExportLocation = async () => {
+    try {
+      if ('showSaveFilePicker' in window) {
+        const fileHandle = await (window as any).showSaveFilePicker({
+          suggestedName: exportFilename,
+          startIn: 'documents',
+          types: [
+            {
+              description: 'Markdown Files',
+              accept: { 'text/markdown': ['.md'] },
+            },
+          ],
+        });
+        setExportFileHandle(fileHandle);
+        setExportFilename(fileHandle.name);
+        alert(`Speicherort ausgewählt: ${fileHandle.name}`);
+      } else {
+        alert('Diese Funktion wird von Ihrem Browser nicht unterstützt.');
+      }
+    } catch (error: any) {
+      if (error.name === 'AbortError') {
+        return;
+      }
+      console.error('Failed to select file:', error);
+      alert('Speicherort-Auswahl fehlgeschlagen: ' + error.message);
+    }
   };
 
   const handleImportMarkdown = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -1176,13 +1349,47 @@ export default function Editor() {
                 onChange={handleImportMarkdown}
                 className="hidden"
               />
-              <button
-                onClick={handleExportMarkdown}
-                className="px-3 py-1 bg-gray-700 rounded hover:bg-gray-600 text-sm transition-colors"
-                title="Markdown-Datei exportieren"
-              >
-                💾 Export
-              </button>
+              <div className="relative group">
+                <button
+                  onClick={handleExportMarkdown}
+                  className="px-3 py-1 bg-gray-700 rounded hover:bg-gray-600 text-sm transition-colors"
+                  title="Markdown-Datei exportieren"
+                >
+                  💾 Export
+                </button>
+                <div className="absolute hidden group-hover:block top-full right-0 mt-1 bg-gray-800 border border-gray-600 rounded shadow-lg z-50 w-[280px] p-3">
+                  <div className="text-xs text-gray-400 mb-2">Export-Einstellungen</div>
+                  <div className="flex flex-col gap-2">
+                    <div>
+                      <label className="text-xs text-gray-300 block mb-1">Dateiname:</label>
+                      <input
+                        type="text"
+                        value={exportFilename}
+                        onChange={(e) => setExportFilename(e.target.value)}
+                        className="w-full bg-gray-700 text-white px-2 py-1 rounded text-sm border border-gray-600 focus:outline-none focus:border-gray-400"
+                        placeholder="presentation.md"
+                      />
+                    </div>
+                    {hasFileSystemAPI ? (
+                      <div className="flex items-center justify-between pt-1 border-t border-gray-700">
+                        <span className="text-xs text-gray-400">
+                          {exportFileHandle ? `💾 ${exportFileHandle.name}` : '💾 Noch kein Speicherort'}
+                        </span>
+                        <button
+                          onClick={handleChangeExportLocation}
+                          className="px-2 py-1 bg-indigo-600 rounded hover:bg-indigo-500 text-xs transition-colors"
+                        >
+                          Speicherort wählen
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="text-xs text-gray-500 pt-1 border-t border-gray-700">
+                        ℹ️ Ihr Browser unterstützt keine Dateiauswahl. Datei wird heruntergeladen.
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>

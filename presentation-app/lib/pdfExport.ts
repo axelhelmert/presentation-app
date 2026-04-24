@@ -61,6 +61,21 @@ export async function exportToPDF({
     document.head.appendChild(styleElement);
   }
 
+  // Inject chapter header styling
+  const chapterStyleElement = document.createElement('style');
+  chapterStyleElement.textContent = `
+    .chapter-header {
+      font-size: 0.875em;
+      font-weight: 600;
+      color: var(--theme-accent);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.75em;
+      opacity: 0.8;
+    }
+  `;
+  document.head.appendChild(chapterStyleElement);
+
   // Ensure KaTeX styles are loaded
   const katexLinkExists = !!document.querySelector('link[href*="katex"]');
   let katexLinkElement: HTMLLinkElement | null = null;
@@ -329,6 +344,9 @@ export async function exportToPDF({
     document.body.removeChild(container);
     if (styleElement) {
       document.head.removeChild(styleElement);
+    }
+    if (chapterStyleElement) {
+      document.head.removeChild(chapterStyleElement);
     }
     if (katexLinkElement) {
       document.head.removeChild(katexLinkElement);

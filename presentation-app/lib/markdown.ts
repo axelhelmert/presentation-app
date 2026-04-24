@@ -123,7 +123,7 @@ function parseSlideContent(rawContent: string, chapterTitle: string | undefined,
 
   // Prepend chapter header to content (not rawMarkdown)
   if (chapterTitle !== undefined) {
-    cleanContent = `## ${chapterTitle}\n${cleanContent}`;
+    cleanContent = `<div class="chapter-header">${chapterTitle}</div>\n\n${cleanContent}`;
   }
 
   return {
