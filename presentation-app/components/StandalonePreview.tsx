@@ -130,10 +130,12 @@ export default function StandalonePreview() {
   useEffect(() => {
     const parsedSlides = parseSlides(markdown);
     setSlides(parsedSlides);
-    if (currentSlide >= parsedSlides.length && parsedSlides.length > 0) {
-      setCurrentSlide(parsedSlides.length - 1);
-    }
-  }, [markdown, currentSlide]);
+    setCurrentSlide((prev) =>
+      prev >= parsedSlides.length && parsedSlides.length > 0
+        ? parsedSlides.length - 1
+        : prev
+    );
+  }, [markdown]);
 
   // Keyboard navigation
   useEffect(() => {
