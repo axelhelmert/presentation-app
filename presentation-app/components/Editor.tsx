@@ -1264,15 +1264,26 @@ export default function Editor() {
                     </div>
                     <div className="p-3">
                       <div className="text-xs text-gray-400 mb-2">Hilfe & Dokumentation</div>
-                      <a
-                        href="/mermaid-hilfe.html"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="block px-3 py-2 bg-teal-600 rounded hover:bg-teal-500 text-sm text-white text-center transition-colors"
-                        title="Mermaid Diagramm Dokumentation öffnen"
-                      >
-                        📊 Mermaid Hilfe
-                      </a>
+                      <div className="flex flex-col gap-2">
+                        <a
+                          href="/benutzerhandbuch.html"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block px-3 py-2 bg-blue-600 rounded hover:bg-blue-500 text-sm text-white text-center transition-colors"
+                          title="Benutzerhandbuch öffnen"
+                        >
+                          📖 Benutzerhandbuch
+                        </a>
+                        <a
+                          href="/mermaid-hilfe.html"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block px-3 py-2 bg-teal-600 rounded hover:bg-teal-500 text-sm text-white text-center transition-colors"
+                          title="Mermaid Diagramm Dokumentation öffnen"
+                        >
+                          📊 Mermaid Hilfe
+                        </a>
+                      </div>
                     </div>
                   </div>
                 )}

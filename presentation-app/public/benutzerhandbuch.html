@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Benutzerhandbuch – Präsentations-App</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 20px 24px 60px;
+            background: #f5f5f5;
+            color: #333;
+            line-height: 1.55;
+        }
+        h1 {
+            color: #2563eb;
+            border-bottom: 3px solid #2563eb;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #059669;
+            margin-top: 36px;
+            border-left: 4px solid #059669;
+            padding-left: 12px;
+        }
+        h3 {
+            color: #1e293b;
+            margin-top: 24px;
+        }
+        h4 {
+            color: #334155;
+            margin-top: 18px;
+            margin-bottom: 6px;
+            font-size: 1.05em;
+        }
+        .tip .code {
+            margin: 8px 0 4px;
+        }
+        .section {
+            background: white;
+            padding: 22px 26px;
+            margin: 22px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+        }
+        .toc {
+            background: #eef2ff;
+            border-left: 4px solid #4f46e5;
+        }
+        .toc ul {
+            columns: 2;
+            -webkit-columns: 2;
+            -moz-columns: 2;
+            list-style: none;
+            padding-left: 0;
+        }
+        .toc li {
+            margin: 4px 0;
+        }
+        .toc a {
+            color: #4338ca;
+            text-decoration: none;
+        }
+        .toc a:hover {
+            text-decoration: underline;
+        }
+        .code {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 14px 16px;
+            border-radius: 6px;
+            font-family: 'SF Mono', 'Courier New', monospace;
+            font-size: 13.5px;
+            overflow-x: auto;
+            white-space: pre;
+            margin: 12px 0;
+        }
+        code {
+            background: #e2e8f0;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'SF Mono', 'Courier New', monospace;
+            font-size: 0.92em;
+        }
+        .tip {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 12px 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        .tip strong {
+            color: #92400e;
+        }
+        .info {
+            background: #dbeafe;
+            border-left: 4px solid #2563eb;
+            padding: 12px 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        .warn {
+            background: #fee2e2;
+            border-left: 4px solid #dc2626;
+            padding: 12px 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0;
+            background: #fff;
+        }
+        th, td {
+            padding: 10px 12px;
+            text-align: left;
+            border: 1px solid #e2e8f0;
+            vertical-align: top;
+        }
+        th {
+            background: #f1f5f9;
+            font-weight: 600;
+        }
+        kbd {
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-bottom-width: 2px;
+            border-radius: 4px;
+            padding: 2px 7px;
+            font-family: 'SF Mono', 'Courier New', monospace;
+            font-size: 0.85em;
+            color: #1e293b;
+            box-shadow: 0 1px 0 rgba(0, 0, 0, 0.05);
+        }
+        .button-ref {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            color: #fff;
+            font-weight: 500;
+        }
+        .btn-format { background: #4338ca; }
+        .btn-table { background: #6b21a8; }
+        .btn-images { background: #1d4ed8; }
+        .btn-templates { background: #047857; }
+        .btn-styles { background: #be185d; }
+        .btn-import { background: #4b5563; }
+        .btn-export { background: #4b5563; }
+        .btn-pdf { background: #2563eb; }
+        .btn-present { background: #16a34a; }
+        .btn-notes { background: #16a34a; }
+        .btn-window { background: #4f46e5; }
+        ul, ol { padding-left: 24px; }
+        li { margin: 4px 0; }
+        a { color: #2563eb; }
+        .back-top {
+            display: inline-block;
+            font-size: 0.85em;
+            margin-top: 8px;
+            color: #6b7280;
+        }
+    </style>
+</head>
+<body>
+    <h1 id="top">📖 Benutzerhandbuch – Präsentations-App</h1>
+    <p>Willkommen! Diese Anleitung führt dich durch alle wichtigen Funktionen des Markdown-basierten Präsentations-Editors.</p>
+
+    <div class="section toc">
+        <h2 style="border-left: none; padding-left: 0; color: #4338ca;">📚 Inhaltsverzeichnis</h2>
+        <ul>
+            <li><a href="#schnellstart">1. Schnellstart</a></li>
+            <li><a href="#editor">2. Der Editor-Aufbau</a></li>
+            <li><a href="#folien">3. Folien & Markdown</a></li>
+            <li><a href="#kapitel">4. Kapitel & Agenda</a></li>
+            <li><a href="#notizen">5. Sprecher­notizen</a></li>
+            <li><a href="#tabellen">6. Tabellen einfügen</a></li>
+            <li><a href="#format">7. Formatierung &amp; Spalten</a></li>
+            <li><a href="#bilder">8. Bilder &amp; Hintergründe</a></li>
+            <li><a href="#templates">9. HTML-Templates</a></li>
+            <li><a href="#styles">10. Eigene CSS-Styles</a></li>
+            <li><a href="#mathe">11. Mathematische Formeln</a></li>
+            <li><a href="#code">12. Code-Blöcke</a></li>
+            <li><a href="#mermaid">13. Mermaid-Diagramme</a></li>
+            <li><a href="#themes">14. Themes &amp; Schriftgröße</a></li>
+            <li><a href="#beamer">15. Beamer-Modus</a></li>
+            <li><a href="#praesentation">16. Präsentations­modus</a></li>
+            <li><a href="#export">17. Export (Markdown &amp; PDF)</a></li>
+            <li><a href="#import">18. Import bestehender Markdown-Dateien</a></li>
+            <li><a href="#shortcuts">19. Tastenkürzel</a></li>
+            <li><a href="#tipps">20. Tipps &amp; FAQ</a></li>
+        </ul>
+    </div>
+
+    <!-- 1. Schnellstart -->
+    <div class="section" id="schnellstart">
+        <h2>1. Schnellstart</h2>
+        <ol>
+            <li>Im linken Bereich Markdown schreiben – die Vorschau rechts aktualisiert sich live.</li>
+            <li>Folien werden mit <code>---</code> in einer eigenen Zeile getrennt.</li>
+            <li>Mit <kbd>F</kbd> startest du den Vollbild-Präsentations­modus.</li>
+            <li>Über <span class="button-ref btn-pdf">📄 PDF Export</span> erzeugst du eine PDF-Datei.</li>
+            <li>Über <span class="button-ref btn-export">💾 Export</span> speicherst du dein Markdown.</li>
+        </ol>
+        <div class="info"><strong>Auto-Save:</strong> Dein Text wird automatisch im Browser-Speicher (LocalStorage) gesichert und beim nächsten Öffnen wiederhergestellt.</div>
+        <p><a href="#top" class="back-top">↑ Nach oben</a></p>
+    </div>
+
+    <!-- 2. Editor -->
+    <div class="section" id="editor">
+        <h2>2. Der Editor-Aufbau</h2>
+        <p>Der Editor besteht aus drei Bereichen:</p>
+        <ul>
+            <li><strong>Folien-Navigator (links):</strong> Übersicht aller Folien mit Sprung-Funktion. Lässt sich einklappen.</li>
+            <li><strong>Markdown-Editor (Mitte):</strong> Hier schreibst du deine Folien. Darunter optional die Notizen-Spalte.</li>
+            <li><strong>Vorschau (rechts):</strong> Live-Darstellung der aktuellen Folie. Per Drag-&amp;-Drop am Trennbalken in der Größe anpassbar.</li>
+        </ul>
+        <p>Mit <span class="button-ref btn-window">🪟 Separates Fenster</span> kannst du die Vorschau in ein separates Browserfenster auslagern – ideal für Dual-Monitor-Setups.</p>
+        <p><a href="#top" class="back-top">↑ Nach oben</a></p>
+    </div>
+
+    <!-- 3. Folien -->
+    <div class="section" id="folien">
+        <h2>3. Folien &amp; Markdown</h2>
+        <p>Folien werden durch <code>---</code> (drei Bindestriche in einer eigenen Zeile) getrennt:</p>
+        <div class="code"># Folie 1
+
+Inhalt der ersten Folie.
+
+---
+
+# Folie 2
+
+Inhalt der zweiten Folie.</div>
+
+        <h3>Unterstützte Markdown-Elemente</h3>
+        <table>
+            <tr><th>Element</th><th>Syntax</th></tr>
+            <tr><td>Überschriften</td><td><code># H1</code> bis <code>###### H6</code></td></tr>
+            <tr><td>Fett</td><td><code>**Text**</code></td></tr>
+            <tr><td>Kursiv</td><td><code>*Text*</code></td></tr>
+            <tr><td>Liste</td><td><code>- Punkt</code> oder <code>1. Punkt</code></td></tr>
+            <tr><td>Link</td><td><code>[Label](https://...)</code></td></tr>
+            <tr><td>Bild</td><td><code>![Alt](datei.png)</code></td></tr>
+            <tr><td>Zitat</td><td><code>&gt; Zitat-Text</code></td></tr>
+            <tr><td>Inline-Code</td><td><code>`code`</code></td></tr>
+            <tr><td>Code-Block</td><td>Drei Backticks + Sprache</td></tr>
+            <tr><td>Tabelle</td><td>GitHub-Flavored-Markdown-Syntax</td></tr>
+        </table>
+        <p><a href="#top" class="back-top">↑ Nach oben</a></p>
+    </div>
+
+    <!-- 4. Kapitel -->
+    <div class="section" id="kapitel">
+        <h2>4. Kapitel &amp; Agenda</h2>
+        <p>Mit der Kapitel-Syntax kannst du deine Präsentation in Abschnitte gliedern. Eine automatische Agenda-Folie wird dann am Anfang erzeugt.</p>
+        <div class="code">===Einleitung
+
+# Begrüßung
+
+Inhalt der ersten Kapitel-Folie.
+
+---
+
+# Überblick
+
+Weitere Folie im selben Kapitel.
+
+===Hauptteil
+
+# Erstes Thema
+
+...</div>
+        <ul>
+            <li>Eine Zeile, die mit <code>===</code> beginnt, leitet ein neues Kapitel ein.</li>
+            <li>Der Text nach <code>===</code> ist der Kapiteltitel (z. B. <code>===Einleitung</code>).</li>
+            <li>In der Vorschau wird oben automatisch eine Agenda-Folie mit allen Kapiteltiteln erzeugt.</li>
+            <li>Im Folien-Navigator werden Kapitel mit ihrer Folienzahl angezeigt.</li>
+        </ul>
+        <p><a href="#top" class="back-top">↑ Nach oben</a></p>
+    </div>
+
+    <!-- 5. Notizen -->
+    <div class="section" id="notizen">
+        <h2>5. Sprechernotizen</h2>
+        <p>Über <span class="button-ref btn-notes">📝 Notizen</span> in der Editor-Toolbar zeigst du den Notizen-Bereich unter dem Markdown-Editor an. Dort kannst du Notizen für die aktuell ausgewählte Folie hinzufügen.</p>
+        <p>Notizen werden im Markdown als HTML-Kommentar gespeichert:</p>
+        <div class="code"># Meine Folie
+
+Sichtbarer Inhalt.
+
+&lt;!--notes:Hier stehen meine Sprechernotizen.--&gt;</div>
+        <div class="info">Notizen sind in der normalen Vorschau und im Export unsichtbar – sie erscheinen nur in der Presenter-View und im separaten Notizen-Editor.</div>
+        <p><a href="#top" class="back-top">↑ Nach oben</a></p>
+    </div>
+
+    <!-- 6. Tabellen -->
+    <div class="section" id="tabellen">
+        <h2>6. Tabellen einfügen</h2>
+        <p>Über <span class="button-ref btn-table">📊 Tabelle</span> stehen vier vorgefertigte Tabellen-Templates zur Auswahl:</p>
+        <ul>
+            <li><strong>Standard mit Kopfzeile:</strong> Klassische Markdown-Tabelle mit Header.</li>
+            <li><strong>Standard ohne Kopfzeile:</strong> Tabelle ohne Header-Beschriftung.</li>
+            <li><strong>🔢 Nummerierte Tabelle:</strong> HTML-Tabelle mit großen Nummern und Detail-Bereich.</li>
+            <li><strong>🔢 Große nummerierte Tabelle:</strong> Variante mit größerer Schrift, ideal für Übersichten.</li>
+        </ul>
+        <p>Manuelle Markdown-Tabellen schreiben:</p>
+        <div class="code">| Spalte 1 | Spalte 2 | Spalte 3 |
+|----------|----------|----------|
+| Zeile 1  | Daten    | Daten    |
+| Zeile 2  | Daten    | Daten    |</div>
+        <p><a href="#top" class="back-top">↑ Nach oben</a></p>
+    </div>
+
+    <!-- 7. Format -->
+    <div class="section" id="format">
+        <h2>7. Formatierung &amp; Spalten</h2>
+        <p>Das <span class="button-ref btn-format">✨ Format</span>-Menü bietet:</p>
+        <h3>🎨 Bold-Coloured</h3>
+        <p>Markiere einen Textabschnitt im Editor und klicke auf <strong>🎨 Bold</strong>. Der Text wird in einen <code>&lt;span&gt;</code> mit Fett-Formatierung und der gewählten Farbe gewickelt:</p>
+        <div class="code">&lt;span style="font-weight: bold; color: orange"&gt;Text&lt;/span&gt;</div>
+        <p>Über das Dropdown rechts wählst du eine Farbe aus der Grass-Terminal-Palette (Orange, Gold, Coral, Tomato, …).</p>
+        <h3>📑 Spalten</h3>
+        <p>Wähle 2–5 Spalten und füge ein Flex-Layout-Template ein:</p>
+        <div class="code">&lt;div style="display: flex; gap: 20px;"&gt;
+  &lt;div style="flex: 1"&gt;
+    Spalte 1
+  &lt;/div&gt;
+  &lt;div style="flex: 1"&gt;
+    Spalte 2
+  &lt;/div&gt;
+&lt;/div&gt;</div>
+        <p><a href="#top" class="back-top">↑ Nach oben</a></p>
+    </div>
+
+    <!-- 8. Bilder -->
+    <div class="section" id="bilder">
+        <h2>8. Bilder &amp; Hintergründe</h2>
+        <p>Bilder können auf <strong>drei verschiedene Arten</strong> in deine Folien eingebunden werden – und auf <strong>zwei verschiedene Arten</strong> in die App geladen werden (UI-Upload oder Terminal-Befehl).</p>
+
+        <h3>8.1 Die drei Einsatzarten von Bildern</h3>
+        <table>
+            <tr>
+                <th>Art</th>
+                <th>Beschreibung</th>
+                <th>Wo es erscheint</th>
+            </tr>
+            <tr>
+                <td><strong>📷 Inline-Bild</strong></td>
+                <td>Wird mitten im Folieninhalt angezeigt – wie eine Abbildung im Text.</td>
+                <td>Innerhalb des Folientexts an der Cursor-Position</td>
+            </tr>
+            <tr>
+                <td><strong>🖼️ Hintergrundbild</strong></td>
+                <td>Füllt die komplette Folie als Hintergrund. Ein dunkler Halbtransparenter Layer wird automatisch eingeblendet, damit Text lesbar bleibt.</td>
+                <td>Über die gesamte Folie, hinter allen Inhalten</td>
+            </tr>
+            <tr>
+                <td><strong>🏷️ Produkt-Logo</strong></td>
+                <td>Erscheint als kleines Logo oben links auf der Folie – ideal für Produktnamen oder Markenzeichen.</td>
+                <td>Oben links auf der Folie</td>
+            </tr>
+        </table>
+        <div class="info">Zusätzlich gibt es das <strong>Firmenlogo</strong> – dieses wird global in der Fußzeile <em>aller</em> Folien angezeigt und über die Vorschau-Toolbar eingestellt (siehe Abschnitt <a href="#themes">14</a>).</div>
+
+        <h3>8.2 Über die UI: Bild-Bibliothek (Upload im Browser)</h3>
+        <p>Klicke in der Editor-Toolbar auf <span class="button-ref btn-images">🖼️ Bilder</span>, um die Bild-Bibliothek zu öffnen.</p>
+        <p><strong>Funktionen der Bibliothek:</strong></p>
+        <ul>
+            <li><strong>➕ Neues Bild hochladen</strong> – Datei auswählen. Das Bild wird automatisch komprimiert (max. 1920 px Breite, JPEG-Qualität 85 %) und in der browser-internen Datenbank (IndexedDB) gespeichert.</li>
+            <li><strong>📷 Bild</strong> – fügt das Bild als Inline-Bild an die aktuelle Cursor-Position ein.</li>
+            <li><strong>🖼️ BG</strong> – setzt das Bild als Hintergrundbild der gerade ausgewählten Folie.</li>
+            <li><strong>🏷️ Logo</strong> – setzt das Bild als Produkt-Logo der gerade ausgewählten Folie.</li>
+            <li><strong>💾 Download</strong> – speichert das Bild lokal als Datei (für Backups).</li>
+            <li><strong>🗑️ Löschen</strong> – entfernt das Bild aus der IndexedDB.</li>
+        </ul>
+
+        <h3>8.3 Manuelle Markdown-Syntax</h3>
+        <p>Wenn du die Bibliothek nicht verwenden möchtest, kannst du die Bilder auch direkt im Markdown referenzieren:</p>
+
+        <h4>Inline-Bild</h4>
+        <div class="code">![Beschreibung des Bildes](dateiname.png)</div>
+        <p>Das Bild wird an dieser Stelle in die Folie gerendert. Beispiel:</p>
+        <div class="code"># Architektur-Übersicht
+
+Hier seht ihr die Komponenten:
+
+![System-Architektur](architektur.png)
+
+- Frontend
+- Backend
+- Datenbank</div>
+
+        <h4>Hintergrundbild</h4>
+        <p>Verwende einen HTML-Kommentar <strong>am Anfang</strong> der Folie:</p>
+        <div class="code">&lt;!--bg: hintergrund.jpg--&gt;
+# Meine Folie mit Hintergrund
+
+Inhalt der Folie …</div>
+
+        <h4>Produkt-Logo</h4>
+        <p>Auch hier ein HTML-Kommentar <strong>am Anfang</strong> der Folie:</p>
+        <div class="code">&lt;!--product-logo: produkt-logo.png--&gt;
+# Folie mit Produktlogo
+
+Inhalt der Folie …</div>
+
+        <div class="tip"><strong>Tipp:</strong> Du kannst Hintergrundbild und Produkt-Logo kombinieren – einfach beide Kommentare untereinander an den Anfang der Folie schreiben.</div>
+
+        <h3>8.4 Bilder per Terminal-Befehl hinzufügen</h3>
+        <p>Inline-Bilder können auch <strong>ohne</strong> die UI-Bibliothek verwendet werden. Dazu legst du die Bilddatei einfach in den <code>public/</code>-Ordner. Die App referenziert solche Dateien direkt per relativen Pfad.</p>
+
+        <div class="info"><strong>Wichtig:</strong> Per Terminal hinzugefügte Bilder funktionieren <strong>für Inline-Bilder</strong> (<code>![alt](datei.png)</code>) und für das <strong>Firmenlogo</strong>. Für <strong>Hintergrundbilder</strong> und <strong>Produkt-Logos</strong> muss das Bild in die IndexedDB hochgeladen werden – verwende dafür die UI.</div>
+
+        <h4>Schritt 1: Bild ins Public-Verzeichnis kopieren</h4>
+        <div class="code"># Aus dem Projekt-Stammverzeichnis:
+cp ~/Downloads/mein-bild.png presentation-app/public/
+
+# Oder mehrere Bilder gleichzeitig:
+cp ~/Downloads/*.png presentation-app/public/
+
+# Verzeichnis innerhalb von public/ anlegen (für Ordnung):
+mkdir -p presentation-app/public/screenshots
+cp ~/Downloads/screen-*.png presentation-app/public/screenshots/</div>
+
+        <h4>Schritt 2: Bild im Markdown referenzieren</h4>
+        <div class="code"># Bild aus public/ direkt
+![Mein Bild](mein-bild.png)
+
+# Bild aus Unterordner public/screenshots/
+![Screenshot](screenshots/screen-1.png)</div>
+
+        <h4>Schritt 3: Browser aktualisieren</h4>
+        <p>Der Next.js-Dev-Server erkennt neue Dateien im <code>public/</code>-Ordner automatisch. Lade einfach die Editor-Seite (<kbd>Cmd</kbd>/<kbd>Ctrl</kbd> + <kbd>R</kbd>) im Browser neu – das Bild ist sofort verfügbar.</p>
+
+        <div class="tip"><strong>Tipp – Bilder optimieren:</strong> Wenn deine Bilder zu groß sind, kannst du sie vorher per Terminal komprimieren:
+<div class="code"># mit ImageMagick installiert
+magick mein-bild.png -resize 1920x -quality 85 presentation-app/public/mein-bild.jpg
+
+# alternativ mit sips (macOS, vorinstalliert)
+sips -Z 1920 mein-bild.png --out presentation-app/public/mein-bild.png
+
+# JPEG-Qualität reduzieren
+sips -s format jpeg -s formatOptions 85 mein-bild.png --out presentation-app/public/mein-bild.jpg</div>
+        </div>
+
+        <h4>Vergleich beider Methoden</h4>
+        <table>
+            <tr>
+                <th>Eigenschaft</th>
+                <th>Bild-Bibliothek (UI)</th>
+                <th>Public-Ordner (Terminal)</th>
+            </tr>
+            <tr>
+                <td>Speicherort</td>
+                <td>Browser (IndexedDB)</td>
+                <td>Dateisystem (<code>public/</code>)</td>
+            </tr>
+            <tr>
+                <td>Inline-Bild</td>
+                <td>✅</td>
+                <td>✅</td>
+            </tr>
+            <tr>
+                <td>Hintergrundbild</td>
+                <td>✅</td>
+                <td>❌</td>
+            </tr>
+            <tr>
+                <td>Produkt-Logo</td>
+                <td>✅</td>
+                <td>❌</td>
+            </tr>
+            <tr>
+                <td>Firmenlogo</td>
+                <td>✅</td>
+                <td>✅</td>
+            </tr>
+            <tr>
+                <td>Auto-Kompression</td>
+                <td>✅ (1920 px / 85 % JPEG)</td>
+                <td>❌ (manuell)</td>
+            </tr>
+            <tr>
+                <td>Browser-übergreifend verfügbar</td>
+                <td>❌ (pro Browser separat)</td>
+                <td>✅ (gleich für alle)</td>
+            </tr>
+            <tr>
+                <td>In Git versionierbar</td>
+                <td>❌</td>
+                <td>✅ (aber nicht empfohlen für große Bilder)</td>
+            </tr>
+        </table>
+
+        <h3>8.5 Hinweise zur Speicherung</h3>
+        <ul>
+            <li>Bilder aus der UI-Bibliothek liegen in der <strong>IndexedDB</strong> deines Browsers – sie wandern <em>nicht</em> automatisch mit, wenn du den Browser oder Computer wechselst. Nutze ggf. den <strong>💾 Download</strong>-Button als Backup.</li>
+            <li>Bilder im <code>public/</code>-Ordner sind Teil des Projekts und immer verfügbar – sie werden allerdings <strong>nicht in der Bild-Bibliothek angezeigt</strong>.</li>
+            <li>Große Bilder sollten laut Projektrichtlinie nicht ins Git-Repository eingecheckt werden. Für externe Verwaltung nutze Cloud-Speicher und lokale Kopien im <code>public/</code>-Ordner.</li>
+        </ul>
+
+        <p><a href="#top" class="back-top">↑ Nach oben</a></p>
+    </div>
+
+    <!-- 9. Templates -->
+    <div class="section" id="templates">
+        <h2>9. HTML-Templates</h2>
+        <p>Über <span class="button-ref btn-templates">📋 Templates</span> verwaltest du wiederverwendbare HTML-Bausteine.</p>
+        <ul>
+            <li>Eigene Templates speichern (z. B. komplexe Tabellen-Layouts oder Karten-Designs).</li>
+            <li>Vorhandene Templates per Klick in die aktuelle Folie einfügen.</li>
+            <li>Standard-Templates <code>default_table</code> und <code>default_big_table</code> sind vorinstalliert.</li>
+        </ul>
+        <p><a href="#top" class="back-top">↑ Nach oben</a></p>
+    </div>
+
+    <!-- 10. Styles -->
+    <div class="section" id="styles">
+        <h2>10. Eigene CSS-Styles</h2>
+        <p>Über <span class="button-ref btn-styles">🎨 Styles</span> öffnest du den Custom-CSS-Editor. Hier kannst du eigenes CSS hinterlegen, das in der Vorschau, im Präsentationsmodus und im PDF-Export angewendet wird.</p>
+        <div class="info">Die Styles werden im Browser gespeichert. Falls keine eigenen Styles vorhanden sind, lädt die App automatisch <code>/custom-styles.css</code> aus dem Public-Ordner.</div>
+        <p><a href="#top" class="back-top">↑ Nach oben</a></p>
+    </div>
+
+    <!-- 11. Mathe -->
+    <div class="section" id="mathe">
+        <h2>11. Mathematische Formeln</h2>
+        <p>Mathe wird über KaTeX gerendert.</p>
+        <h3>Inline-Formel</h3>
+        <div class="code">Die Formel $E = mc^2$ ist berühmt.</div>
+
+        <h3>Block-Formel</h3>
+        <div class="code">$$
+\frac{-b \pm \sqrt{b^2 - 4ac}}{2a}
+$$</div>
+        <p><a href="#top" class="back-top">↑ Nach oben</a></p>
+    </div>
+
+    <!-- 12. Code -->
+    <div class="section" id="code">
+        <h2>12. Code-Blöcke</h2>
+        <p>Code-Blöcke mit Syntax-Highlighting:</p>
+        <div class="code">```javascript
+function hello() {
+  console.log("Hello World!");
+}
+```</div>
+        <p>Unterstützte Sprachen u. a.: <code>javascript</code>, <code>typescript</code>, <code>python</code>, <code>java</code>, <code>bash</code>, <code>json</code>, <code>html</code>, <code>css</code>, <code>sql</code>.</p>
+        <p><a href="#top" class="back-top">↑ Nach oben</a></p>
+    </div>
+
+    <!-- 13. Mermaid -->
+    <div class="section" id="mermaid">
+        <h2>13. Mermaid-Diagramme</h2>
+        <p>Diagramme können direkt in Markdown geschrieben werden:</p>
+        <div class="code">```mermaid
+graph LR
+    A[Start] --&gt; B{Entscheidung}
+    B --&gt;|Ja| C[Aktion 1]
+    B --&gt;|Nein| D[Aktion 2]
+```</div>
+        <p>Eine ausführliche Übersicht aller Mermaid-Formen, -Pfeile und -Stile findest du in der separaten <a href="/mermaid-hilfe.html" target="_blank">📊 Mermaid Hilfe</a>.</p>
+        <p><a href="#top" class="back-top">↑ Nach oben</a></p>
+    </div>
+
+    <!-- 14. Themes -->
+    <div class="section" id="themes">
+        <h2>14. Themes &amp; Schriftgröße</h2>
+        <p>In der Vorschau-Toolbar findest du:</p>
+        <ul>
+            <li><strong>Theme:</strong> Auswahl der Farb- und Stil-Vorlage.</li>
+            <li><strong>Autor:</strong> Wird in Fußzeile / Titelfolie eingeblendet.</li>
+            <li><strong>Firmenlogo:</strong> Wähle ein Bild aus der Bibliothek für die Fußzeile.</li>
+            <li><strong>Schriftgröße:</strong> Globale Skalierung der Folientexte.</li>
+        </ul>
+        <p>Alle Einstellungen werden automatisch gespeichert und beim nächsten Start wiederhergestellt.</p>
+        <p><a href="#top" class="back-top">↑ Nach oben</a></p>
+    </div>
+
+    <!-- 15. Beamer -->
+    <div class="section" id="beamer">
+        <h2>15. Beamer-Modus</h2>
+        <p>Aktiviere die Checkbox <strong>Beamer-Modus (16:9)</strong>, um die Vorschau im richtigen Seitenverhältnis darzustellen. Wähle anschließend die Ziel-Auflösung:</p>
+        <ul>
+            <li>1920×1080 (Full HD)</li>
+            <li>1280×720 (HD)</li>
+            <li>1024×768 (XGA)</li>
+        </ul>
+        <p>So siehst du bereits beim Bearbeiten, wie deine Folien später auf dem Beamer wirken.</p>
+        <p><a href="#top" class="back-top">↑ Nach oben</a></p>
+    </div>
+
+    <!-- 16. Präsentation -->
+    <div class="section" id="praesentation">
+        <h2>16. Präsentationsmodus</h2>
+        <p>Starte mit <span class="button-ref btn-present">🎬 Präsentieren</span> oder der Taste <kbd>F</kbd>:</p>
+        <ul>
+            <li>Wechselt automatisch in den Vollbild-Modus.</li>
+            <li>Navigiere mit <kbd>←</kbd> / <kbd>→</kbd>, <kbd>Leertaste</kbd> oder <kbd>Bild ↓</kbd>.</li>
+            <li>Mit <kbd>ESC</kbd> verlässt du den Präsentationsmodus.</li>
+            <li>Bei aktivem separatem Vorschaufenster kannst du es als Presenter-View nutzen.</li>
+        </ul>
+        <p><a href="#top" class="back-top">↑ Nach oben</a></p>
+    </div>
+
+    <!-- 17. Export -->
+    <div class="section" id="export">
+        <h2>17. Export (Markdown &amp; PDF)</h2>
+
+        <h3>Markdown-Export</h3>
+        <p>Mit <span class="button-ref btn-export">💾 Export</span> speicherst du dein Markdown:</p>
+        <ul>
+            <li>In Browsern mit File-System-Access-API (z. B. Chrome) wählst du <strong>einmal</strong> einen Speicherort. Anschließend wird die Datei beim nächsten Klick direkt überschrieben.</li>
+            <li>Über das Hover-Menü kannst du <strong>Dateiname</strong> und <strong>Speicherort</strong> jederzeit ändern.</li>
+            <li>In anderen Browsern wird die Datei klassisch heruntergeladen.</li>
+        </ul>
+
+        <h3>PDF-Export</h3>
+        <p><span class="button-ref btn-pdf">📄 PDF Export</span> erzeugt eine PDF-Datei mit allen Folien. Während des Exports wird der Fortschritt angezeigt. Der Export berücksichtigt Theme, Schriftgröße, Bilder und Notizen-Einstellungen.</p>
+        <p><a href="#top" class="back-top">↑ Nach oben</a></p>
+    </div>
+
+    <!-- 18. Import -->
+    <div class="section" id="import">
+        <h2>18. Import bestehender Markdown-Dateien</h2>
+        <p>Mit <span class="button-ref btn-import">📂 Import</span> wählst du eine vorhandene <code>.md</code>- oder <code>.markdown</code>-Datei und ersetzt damit den Editor-Inhalt.</p>
+        <div class="warn"><strong>Achtung:</strong> Beim Import wird der aktuelle Editor-Inhalt überschrieben. Speichere ggf. vorher per Export.</div>
+        <p><a href="#top" class="back-top">↑ Nach oben</a></p>
+    </div>
+
+    <!-- 19. Shortcuts -->
+    <div class="section" id="shortcuts">
+        <h2>19. Tastenkürzel</h2>
+        <table>
+            <tr><th>Taste</th><th>Aktion</th></tr>
+            <tr><td><kbd>F</kbd></td><td>Präsentationsmodus starten (außerhalb von Eingabefeldern)</td></tr>
+            <tr><td><kbd>Cmd</kbd>/<kbd>Ctrl</kbd> + <kbd>G</kbd></td><td>„Gehe zu Folie"-Dialog öffnen</td></tr>
+            <tr><td><kbd>←</kbd> / <kbd>→</kbd></td><td>Navigation zwischen Folien</td></tr>
+            <tr><td><kbd>Leertaste</kbd></td><td>Nächste Folie (im Präsentationsmodus)</td></tr>
+            <tr><td><kbd>ESC</kbd></td><td>Präsentationsmodus oder Dialog schließen</td></tr>
+        </table>
+        <p><a href="#top" class="back-top">↑ Nach oben</a></p>
+    </div>
+
+    <!-- 20. Tipps -->
+    <div class="section" id="tipps">
+        <h2>20. Tipps &amp; FAQ</h2>
+
+        <h3>💾 Wo werden meine Daten gespeichert?</h3>
+        <p>Markdown, Theme-Einstellungen, Notizen-Anzeige etc. werden im <strong>LocalStorage</strong> deines Browsers gespeichert. Bilder und Templates liegen in <strong>IndexedDB</strong>. Es findet keine Übertragung an einen Server statt.</p>
+
+        <h3>🔄 Wie wechsle ich den Browser/Computer?</h3>
+        <p>Exportiere dein Markdown per <span class="button-ref btn-export">💾 Export</span>, lade auf dem neuen Gerät die Datei per <span class="button-ref btn-import">📂 Import</span>. Bilder müssen separat über die Bild-Bibliothek hochgeladen werden.</p>
+
+        <h3>🖥️ Dual-Monitor-Setup</h3>
+        <p>Klicke auf <span class="button-ref btn-window">🪟 Separates Fenster</span>. Verschiebe das Vorschau-Fenster auf den Beamer, behalte den Editor mit Notizen auf deinem Hauptmonitor.</p>
+
+        <h3>📝 Wie zeige ich nur den Notizen-Editor an?</h3>
+        <p>Schalte <span class="button-ref btn-notes">📝 Notizen</span> ein/aus. Die Einstellung bleibt erhalten.</p>
+
+        <h3>🚫 Vorschau aktualisiert sich nicht?</h3>
+        <p>Stelle sicher, dass deine Folientrenner <code>---</code> in einer eigenen, leeren Zeile stehen. Innerhalb von Tabellen oder Code-Blöcken werden sie nicht als Folientrenner interpretiert.</p>
+
+        <p><a href="#top" class="back-top">↑ Nach oben</a></p>
+    </div>
+
+    <p style="text-align: center; color: #6b7280; margin-top: 40px;">
+        © Präsentations-App – Viel Erfolg mit deinen Slides!
+    </p>
+</body>
+</html>
