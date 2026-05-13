@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef, useLayoutEffect, useCallback } from 'react';
 import { renderMarkdownToHTML } from '@/lib/markdown';
 import { getTheme, fontSizes } from '@/lib/themes';
 import { type StoredImage } from '@/lib/imageStorage';
@@ -41,6 +41,36 @@ export default function SlidePreview({
   const theme = getTheme(themeId);
   const fontSize = fontSizes.find((s) => s.id === fontSizeId) || fontSizes[2];
   const isTitleSlide = slideNumber === 1;
+
+  const titleContainerRef = useRef<HTMLDivElement>(null);
+  const titleContentRef = useRef<HTMLDivElement>(null);
+  const TITLE_BASE_REM = 1.65;
+
+  const fitTitleSlide = useCallback(() => {
+    if (!isTitleSlide) return;
+    const content = titleContentRef.current;
+    const container = titleContainerRef.current;
+    if (!content || !container) return;
+
+    content.style.fontSize = `${TITLE_BASE_REM}rem`;
+
+    const containerW = container.clientWidth;
+    const containerH = container.clientHeight;
+    const contentW = content.scrollWidth;
+    const contentH = content.scrollHeight;
+
+    if (containerW === 0 || contentW === 0 || contentH === 0) return;
+
+    // Leave breathing room so text doesn't kiss the slide edges or the logos.
+    const availableW = containerW * 0.88;
+    const availableH = containerH * 0.78;
+
+    const ratio = Math.min(1, availableW / contentW, availableH / contentH);
+
+    if (ratio < 0.99) {
+      content.style.fontSize = `${TITLE_BASE_REM * ratio}rem`;
+    }
+  }, [isTitleSlide]);
 
   // Find background image data URL
   const bgImageData = backgroundImage
@@ -140,6 +170,19 @@ export default function SlidePreview({
     render();
   }, [processedMarkdown, isImageSlide, extractedMermaidBlocks]);
 
+  useLayoutEffect(() => {
+    fitTitleSlide();
+  }, [html, fontSizeId, fitTitleSlide]);
+
+  useEffect(() => {
+    if (!isTitleSlide) return;
+    const container = titleContainerRef.current;
+    if (!container) return;
+    const observer = new ResizeObserver(() => fitTitleSlide());
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, [isTitleSlide, fitTitleSlide]);
+
   const containerStyle: React.CSSProperties = bgImageData?.dataUrl
     ? {
         backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url(${bgImageData.dataUrl})`,
@@ -210,7 +253,10 @@ export default function SlidePreview({
         </div>
       )}
 
-      <div className={`flex-1 overflow-auto pt-6 px-12 pb-12 ${isTitleSlide ? 'flex' : ''}`}>
+      <div
+        ref={titleContainerRef}
+        className={`flex-1 pt-6 px-12 pb-12 ${isTitleSlide ? 'flex relative overflow-hidden' : 'overflow-auto'}`}
+      >
         {isImageSlide && imageUrl ? (
           <div className="w-full h-full flex items-center justify-center">
             <img
@@ -222,15 +268,17 @@ export default function SlidePreview({
         ) : (
           <>
             <div
+              ref={isTitleSlide ? titleContentRef : null}
               className={`prose max-w-none ${isTitleSlide ? 'title-slide' : 'w-full'}`}
               style={isTitleSlide ? {
                 ...contentStyle,
-                fontSize: '1.65rem',
+                fontSize: `${TITLE_BASE_REM}rem`,
                 textAlign: 'center',
                 position: 'absolute',
                 left: productLogoData?.dataUrl ? '50%' : '25%',
                 top: '33%',
                 transform: 'translate(-50%, -50%)',
+                maxWidth: '90%',
               } : {
                 ...contentStyle,
                 marginLeft: productLogoData?.dataUrl ? '4rem' : '0',
