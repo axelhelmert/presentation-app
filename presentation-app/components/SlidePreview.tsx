@@ -45,6 +45,7 @@ export default function SlidePreview({
   const titleContainerRef = useRef<HTMLDivElement>(null);
   const titleContentRef = useRef<HTMLDivElement>(null);
   const TITLE_BASE_REM = 1.65;
+  const [titleFontRem, setTitleFontRem] = useState(TITLE_BASE_REM);
 
   const fitTitleSlide = useCallback(() => {
     if (!isTitleSlide) return;
@@ -52,24 +53,42 @@ export default function SlidePreview({
     const container = titleContainerRef.current;
     if (!content || !container) return;
 
-    content.style.fontSize = `${TITLE_BASE_REM}rem`;
-
     const containerW = container.clientWidth;
     const containerH = container.clientHeight;
-    const contentW = content.scrollWidth;
-    const contentH = content.scrollHeight;
-
-    if (containerW === 0 || contentW === 0 || contentH === 0) return;
+    if (containerW === 0 || containerH === 0) return;
 
     // Leave breathing room so text doesn't kiss the slide edges or the logos.
-    const availableW = containerW * 0.88;
-    const availableH = containerH * 0.78;
+    const maxW = containerW * 0.88;
+    const maxH = containerH * 0.78;
 
-    const ratio = Math.min(1, availableW / contentW, availableH / contentH);
+    // Measure the natural unwrapped width: title-slide H1 (3.5em) gets huge fast,
+    // and `maxWidth: 90%` would cap scrollWidth so a wrapping heading reads as
+    // "fits". Briefly disable wrapping + the width cap to see how much horizontal
+    // space the longest line really wants, then shrink proportionally.
+    content.style.fontSize = `${TITLE_BASE_REM}rem`;
+    const prevWhiteSpace = content.style.whiteSpace;
+    const prevMaxWidth = content.style.maxWidth;
+    content.style.whiteSpace = 'nowrap';
+    content.style.maxWidth = 'none';
+    const naturalW = content.scrollWidth;
+    content.style.whiteSpace = prevWhiteSpace;
+    content.style.maxWidth = prevMaxWidth;
 
-    if (ratio < 0.99) {
-      content.style.fontSize = `${TITLE_BASE_REM * ratio}rem`;
+    let size = TITLE_BASE_REM;
+    if (naturalW > maxW) {
+      size = TITLE_BASE_REM * (maxW / naturalW);
     }
+    content.style.fontSize = `${size}rem`;
+
+    // Even when the longest line now fits, multi-paragraph titles can still
+    // exceed the height; shrink the rest of the way iteratively.
+    for (let i = 0; i < 12; i++) {
+      if (content.scrollHeight <= maxH) break;
+      size *= 0.92;
+      if (size < 0.4) break;
+      content.style.fontSize = `${size}rem`;
+    }
+    setTitleFontRem(size);
   }, [isTitleSlide]);
 
   // Find background image data URL
@@ -272,10 +291,10 @@ export default function SlidePreview({
               className={`prose max-w-none ${isTitleSlide ? 'title-slide' : 'w-full'}`}
               style={isTitleSlide ? {
                 ...contentStyle,
-                fontSize: `${TITLE_BASE_REM}rem`,
+                fontSize: `${titleFontRem}rem`,
                 textAlign: 'center',
                 position: 'absolute',
-                left: productLogoData?.dataUrl ? '50%' : '25%',
+                left: '50%',
                 top: '33%',
                 transform: 'translate(-50%, -50%)',
                 maxWidth: '90%',
