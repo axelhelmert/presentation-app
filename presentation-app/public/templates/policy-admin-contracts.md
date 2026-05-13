@@ -21,7 +21,7 @@ classDiagram
     class ContractSegment {
         +str contractSegmentId
         +str policyFormGeneration
-        +LAUFEND|EINMALIG beitragsart
+        +Beitragsart beitragsart
         +dict inputs
     }
     class InsuredPerson {
