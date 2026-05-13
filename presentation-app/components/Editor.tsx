@@ -664,6 +664,23 @@ export default function Editor() {
     event.target.value = '';
   };
 
+  const handleLoadStaticTemplate = async (name: string, label: string) => {
+    if (markdown.trim() && !confirm(`Aktuelles Markdown durch "${label}" ersetzen?`)) {
+      return;
+    }
+    try {
+      const response = await fetch(`/templates/${name}`);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      setMarkdown(await response.text());
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error('Failed to load template:', error);
+      alert(`Template "${label}" konnte nicht geladen werden: ${message}`);
+    }
+  };
+
   const handleInsertTable = (withHeader: boolean = true) => {
     const tableTemplate = withHeader
       ? `\n\n| Spalte 1 | Spalte 2 | Spalte 3 |
@@ -1345,6 +1362,18 @@ export default function Editor() {
                 title="CSS-Templates bearbeiten"
               >
                 🎨 Styles
+              </button>
+              <button
+                onClick={() =>
+                  handleLoadStaticTemplate(
+                    'policy-admin-contracts.md',
+                    'PAS Vertragsstrukturen'
+                  )
+                }
+                className="px-3 py-1 bg-emerald-700 rounded hover:bg-emerald-600 text-sm transition-colors"
+                title="PAS-Vertragsstruktur-Diagramme laden (aus policy-admin generiert)"
+              >
+                📐 PAS-Demo
               </button>
               <label
                 htmlFor="markdown-import"
