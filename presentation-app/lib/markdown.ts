@@ -176,6 +176,22 @@ export function parseSlides(markdown: string): Slide[] {
   return allSlides.map((slide, i) => ({ ...slide, id: i }));
 }
 
+// :::embed https://example.com [height=600] [height=70vh]
+const EMBED_REGEX = /^:::embed[ \t]+(\S+)(?:[ \t]+([^\n]*))?$/gm;
+
+export function preprocessEmbeds(markdown: string): string {
+  return markdown.replace(EMBED_REGEX, (_match, url: string, opts: string | undefined) => {
+    let height = '70vh';
+    const heightMatch = opts?.match(/height=(\d+)(px|vh|%)?/);
+    if (heightMatch) {
+      height = `${heightMatch[1]}${heightMatch[2] ?? 'px'}`;
+    }
+    const safeUrl = url.replace(/"/g, '&quot;');
+    // Block-level HTML must be surrounded by blank lines to be parsed as raw HTML.
+    return `\n<iframe src="${safeUrl}" class="slide-embed" style="width:100%;height:${height};border:0;border-radius:8px;" sandbox="allow-same-origin allow-scripts allow-forms allow-popups" loading="lazy"></iframe>\n`;
+  });
+}
+
 export async function renderMarkdownToHTML(markdown: string): Promise<string> {
   const result = await unified()
     .use(remarkParse)
@@ -185,7 +201,7 @@ export async function renderMarkdownToHTML(markdown: string): Promise<string> {
     .use(rehypeRaw)
     .use(rehypeKatex)
     .use(rehypeStringify)
-    .process(markdown);
+    .process(preprocessEmbeds(markdown));
 
   return String(result);
 }
