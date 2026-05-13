@@ -295,7 +295,9 @@ describe('parseSlides – Property 8: Chapter-Header steht am Anfang von content
           slides
             .filter(s => s.chapterTitle !== undefined)
             .forEach(slide => {
-              expect(slide.content.startsWith(`## ${slide.chapterTitle}`)).toBe(true);
+              expect(
+                slide.content.startsWith(`<div class="chapter-header">${slide.chapterTitle}</div>`)
+              ).toBe(true);
             });
         }
       ),
@@ -373,7 +375,7 @@ describe('parseSlides – Edge-Cases', () => {
     const slides = parseSlides(md);
     const chapterSlide = slides.find(s => s.chapterTitle === 'Einführung');
     expect(chapterSlide).toBeDefined();
-    expect(chapterSlide!.content).toMatch(/^## Einführung\n/);
+    expect(chapterSlide!.content).toMatch(/^<div class="chapter-header">Einführung<\/div>\n/);
     expect(chapterSlide!.content).toContain('# Haupttitel');
   });
 
