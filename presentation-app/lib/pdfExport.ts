@@ -205,7 +205,15 @@ export async function exportToPDF({
             overflow: hidden;
           ">
             <div class="prose max-w-none content-scaler" style="
-              ${isTitleSlide ? `
+              ${isTitleSlide ? (bgImageData ? `
+                font-size: 2rem;
+                text-align: left;
+                position: absolute;
+                left: 6%;
+                top: 33%;
+                transform: translateY(-50%);
+                width: 44%;
+              ` : `
                 font-size: 2rem;
                 text-align: center;
                 position: absolute;
@@ -213,7 +221,7 @@ export async function exportToPDF({
                 top: 33%;
                 transform: translate(-50%, -50%);
                 width: 50%;
-              ` : `
+              `) : `
                 font-size: ${fontSize.size};
                 line-height: ${fontSize.lineHeight};
                 width: 100%;

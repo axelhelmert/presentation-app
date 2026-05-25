@@ -47,6 +47,13 @@ export default function SlidePreview({
   const TITLE_BASE_REM = 1.65;
   const [titleFontRem, setTitleFontRem] = useState(TITLE_BASE_REM);
 
+  // Find background image data URL
+  const bgImageData = backgroundImage
+    ? uploadedImages.find((img) => img.name === backgroundImage)
+    : null;
+  const hasBgImage = !!bgImageData?.dataUrl;
+  const titleLeftHalf = isTitleSlide && hasBgImage;
+
   const fitTitleSlide = useCallback(() => {
     if (!isTitleSlide) return;
     const content = titleContentRef.current;
@@ -58,7 +65,11 @@ export default function SlidePreview({
     if (containerW === 0 || containerH === 0) return;
 
     // Leave breathing room so text doesn't kiss the slide edges or the logos.
-    const maxW = containerW * 0.88;
+    // When a background image is present, the title is constrained to the left
+    // half so the image (typically right-half) stays unobscured. The left-half
+    // factor is a hair under maxWidth (44%) to absorb font-rendering rounding
+    // and keep long titles on a single line.
+    const maxW = containerW * (titleLeftHalf ? 0.39 : 0.88);
     const maxH = containerH * 0.78;
 
     // Measure the natural unwrapped width: title-slide H1 (3.5em) gets huge fast,
@@ -89,12 +100,7 @@ export default function SlidePreview({
       content.style.fontSize = `${size}rem`;
     }
     setTitleFontRem(size);
-  }, [isTitleSlide]);
-
-  // Find background image data URL
-  const bgImageData = backgroundImage
-    ? uploadedImages.find((img) => img.name === backgroundImage)
-    : null;
+  }, [isTitleSlide, titleLeftHalf]);
 
   // Find product logo data URL
   const productLogoData = productLogo
@@ -292,12 +298,21 @@ export default function SlidePreview({
               style={isTitleSlide ? {
                 ...contentStyle,
                 fontSize: `${titleFontRem}rem`,
-                textAlign: 'center',
+                textAlign: titleLeftHalf ? 'left' : 'center',
                 position: 'absolute',
-                left: '50%',
-                top: '33%',
-                transform: 'translate(-50%, -50%)',
-                maxWidth: '90%',
+                ...(titleLeftHalf
+                  ? {
+                      left: '6%',
+                      top: '33%',
+                      transform: 'translateY(-50%)',
+                      maxWidth: '44%',
+                    }
+                  : {
+                      left: '50%',
+                      top: '33%',
+                      transform: 'translate(-50%, -50%)',
+                      maxWidth: '90%',
+                    }),
               } : {
                 ...contentStyle,
                 marginLeft: productLogoData?.dataUrl ? '4rem' : '0',
