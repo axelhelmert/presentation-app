@@ -4,3 +4,14 @@
 
 # macOS
 .DS_Store
+
+# Lokaler Arbeitsstand — nicht ins Repo
+# `gamma-lab-arch` ist ein Symlink auf das Schwester-Repo
+# `claude_projects/gamma-lab/docs/architektur/`, damit Next.js die
+# dortigen Diagramme unter `/gamma-lab-arch/...` ausliefern kann.
+# Symlink + Inhalte gehören nicht ins Repo (Image-Policy aus CLAUDE.md,
+# und die Quelle lebt ohnehin in gamma-lab).
+presentation-app/public/gamma-lab-arch
+
+# Git-Bundles (z.B. lokaler Repo-Snapshot)
+*.bundle
