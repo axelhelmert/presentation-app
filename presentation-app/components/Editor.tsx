@@ -1375,6 +1375,18 @@ export default function Editor() {
               >
                 📐 PAS-Demo
               </button>
+              <button
+                onClick={() =>
+                  handleLoadStaticTemplate(
+                    'gamma-lab-vorgehen.md',
+                    'gamma-lab Vorgehen'
+                  )
+                }
+                className="px-3 py-1 bg-emerald-700 rounded hover:bg-emerald-600 text-sm transition-colors"
+                title="gamma-lab Vorgehen & Architektur (aus docs/zielbild.md generiert)"
+              >
+                𝛄-lab Vorgehen
+              </button>
               <label
                 htmlFor="markdown-import"
                 className="px-3 py-1 bg-gray-700 rounded hover:bg-gray-600 text-sm cursor-pointer transition-colors"
