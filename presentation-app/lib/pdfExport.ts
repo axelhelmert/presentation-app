@@ -6,6 +6,54 @@ import { Theme } from './themes';
 import { type StoredImage } from './imageStorage';
 import { extractMermaidBlocks } from './mermaidProcessor';
 
+// html2canvas taints the canvas as soon as it draws an <img> whose response
+// does not advertise CORS (most public CDNs don't). We sidestep this by
+// fetching every remote http(s) image through our same-origin /api/image-proxy
+// and embedding the bytes as a data URL before html2canvas ever sees them.
+const remoteImageCache = new Map<string, string>();
+
+async function inlineRemoteImages(html: string): Promise<string> {
+  const imgRegex = /<img\b([^>]*?)\bsrc\s*=\s*("([^"]+)"|'([^']+)')([^>]*)>/gi;
+  const matches = Array.from(html.matchAll(imgRegex));
+  if (matches.length === 0) return html;
+
+  const replacements = await Promise.all(
+    matches.map(async (match) => {
+      const src = match[3] ?? match[4] ?? '';
+      if (!/^https?:\/\//i.test(src)) return null;
+
+      let dataUrl = remoteImageCache.get(src);
+      if (!dataUrl) {
+        try {
+          const res = await fetch(`/api/image-proxy?url=${encodeURIComponent(src)}`);
+          if (!res.ok) throw new Error(`proxy ${res.status}`);
+          const blob = await res.blob();
+          dataUrl = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.onerror = () => reject(reader.error);
+            reader.readAsDataURL(blob);
+          });
+          remoteImageCache.set(src, dataUrl);
+        } catch (err) {
+          console.warn(`[pdfExport] could not inline remote image ${src}:`, err);
+          return null;
+        }
+      }
+
+      const before = match[1] ?? '';
+      const after = match[5] ?? '';
+      return { original: match[0], replacement: `<img${before}src="${dataUrl}"${after}>` };
+    })
+  );
+
+  let out = html;
+  for (const r of replacements) {
+    if (r) out = out.split(r.original).join(r.replacement);
+  }
+  return out;
+}
+
 interface ExportOptions {
   slides: Slide[];
   theme: Theme;
@@ -138,6 +186,10 @@ export async function exportToPDF({
         const regex = new RegExp(`<img([^>]*)src=["']${img.name}["']([^>]*)>`, 'g');
         slideHTML = slideHTML.replace(regex, `<img$1src="${img.dataUrl}"$2>`);
       });
+
+      // Pull remaining remote http(s) images through the same-origin proxy and
+      // inline them as data URLs so html2canvas cannot taint the canvas.
+      slideHTML = await inlineRemoteImages(slideHTML);
 
       // Find background image if specified
       const bgImageData = slide.backgroundImage
