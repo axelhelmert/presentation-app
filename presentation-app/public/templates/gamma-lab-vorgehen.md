@@ -1,3 +1,6 @@
+<!--default-product-logo: gamma-lab-logo.png-->
+<!--bg-logo: gamma-lab-logo.png-->
+
 # gamma-lab — Vorgehen
 
 Vom Tarif-Konzept zum Product Information Hub

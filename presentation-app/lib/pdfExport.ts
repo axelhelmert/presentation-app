@@ -196,9 +196,21 @@ export async function exportToPDF({
         ? uploadedImages.find((img) => img.name === slide.backgroundImage)
         : null;
 
-      // Find product logo if specified
+      // Hero-logo background (mostly title slide)
+      const bgLogoData = slide.backgroundLogo
+        ? uploadedImages.find((img) => img.name === slide.backgroundLogo)
+        : null;
+      const bgLogoSrc = slide.backgroundLogo
+        ? bgLogoData?.dataUrl || `/${slide.backgroundLogo}`
+        : null;
+      const hasBgLogo = !!bgLogoSrc;
+
+      // Find product logo if specified, falling back to public folder path
       const productLogoData = slide.productLogo
         ? uploadedImages.find((img) => img.name === slide.productLogo)
+        : null;
+      const productLogoSrc = slide.productLogo && !hasBgLogo
+        ? productLogoData?.dataUrl || `/${slide.productLogo}`
         : null;
 
       // Find company logo data URL or use public folder path
@@ -207,15 +219,20 @@ export async function exportToPDF({
         : null;
       const companyLogoSrc = companyLogoData?.dataUrl || `/${companyLogo}`;
 
-      // Determine colors based on background image
-      const textColor = bgImageData ? '#ffffff' : theme.textColor;
-      const headingColor = bgImageData ? '#ffffff' : theme.headingColor;
-      const accentColor = bgImageData ? '#ffffff' : theme.accentColor;
-      const codeBg = bgImageData ? 'rgba(255, 255, 255, 0.1)' : theme.codeBackground;
+      // Determine colors based on background image / hero logo
+      const onDarkBg = !!bgImageData || hasBgLogo;
+      const textColor = onDarkBg ? '#ffffff' : theme.textColor;
+      const headingColor = onDarkBg ? '#ffffff' : theme.headingColor;
+      const accentColor = onDarkBg ? '#ffffff' : theme.accentColor;
+      const codeBg = onDarkBg ? 'rgba(255, 255, 255, 0.1)' : theme.codeBackground;
+
+      const NIGHT_SKY_BG = 'linear-gradient(to bottom right, #111827, #1e3a8a, #581c87)';
 
       // Build background style
       const backgroundStyle = bgImageData?.dataUrl
         ? `background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url(${bgImageData.dataUrl}); background-size: cover; background-position: center; background-repeat: no-repeat;`
+        : hasBgLogo
+        ? `background: ${NIGHT_SKY_BG};`
         : `background: ${theme.background};`;
 
       // Create slide content with exact presentation styling
@@ -235,10 +252,23 @@ export async function exportToPDF({
           flex-direction: column;
           overflow: hidden;
         ">
+          <!-- Hero Logo Background -->
+          ${hasBgLogo ? `
+          <img src="${bgLogoSrc}" alt="" aria-hidden="true" style="
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            height: 135%;
+            width: auto;
+            pointer-events: none;
+            z-index: 1;
+          " />
+          ` : ''}
+
           <!-- Product Logo (left) -->
-          ${productLogoData?.dataUrl ? `
+          ${productLogoSrc ? `
           <div style="position: absolute; top: 30px; left: 30px; z-index: 10;">
-            <img src="${productLogoData.dataUrl}" alt="Product Logo" style="height: ${isTitleSlide ? '96px' : '58px'}; width: auto; opacity: 0.8;" />
+            <img src="${productLogoSrc}" alt="Product Logo" style="height: ${isTitleSlide ? '96px' : '58px'}; width: auto; opacity: 0.8;" />
           </div>
           ` : ''}
 
@@ -257,7 +287,18 @@ export async function exportToPDF({
             overflow: hidden;
           ">
             <div class="prose max-w-none content-scaler" style="
-              ${isTitleSlide ? (bgImageData ? `
+              ${isTitleSlide ? (hasBgLogo ? `
+                font-size: 1.5rem;
+                text-align: left;
+                position: absolute;
+                left: 4%;
+                top: 50%;
+                transform: translateY(-50%);
+                width: 24%;
+                color: #ffffff;
+                text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+                z-index: 2;
+              ` : bgImageData ? `
                 font-size: 2rem;
                 text-align: left;
                 position: absolute;
@@ -269,7 +310,7 @@ export async function exportToPDF({
                 font-size: 2rem;
                 text-align: center;
                 position: absolute;
-                left: ${productLogoData?.dataUrl ? '50%' : '25%'};
+                left: ${productLogoSrc ? '50%' : '25%'};
                 top: 33%;
                 transform: translate(-50%, -50%);
                 width: 50%;
@@ -277,7 +318,7 @@ export async function exportToPDF({
                 font-size: ${fontSize.size};
                 line-height: ${fontSize.lineHeight};
                 width: 100%;
-                margin-left: ${productLogoData?.dataUrl ? '4rem' : '0'};
+                margin-left: ${productLogoSrc ? '4rem' : '0'};
               `}
               color: ${textColor};
               transform-origin: top left;

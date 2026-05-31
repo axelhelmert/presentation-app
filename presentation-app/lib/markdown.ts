@@ -13,6 +13,7 @@ export interface Slide {
   rawMarkdown: string;        // Original-Markdown ohne Chapter-Header; '' für Agenda-Folie
   notes: string;              // Sprechernotizen (leer wenn keine)
   backgroundImage?: string;
+  backgroundLogo?: string;    // Logo als Hero-Background (typ. nur Titelfolie)
   productLogo?: string;
   chapterTitle?: string;      // Titel des Chapters, zu dem diese Folie gehört
   chapterIndex?: number;      // Nullbasierter Index des Chapters
@@ -117,6 +118,16 @@ function parseSlideContent(rawContent: string, chapterTitle: string | undefined,
     cleanContent = cleanContent.replace(/<!--\s*product-logo:\s*.+?\s*-->\s*/g, '');
   }
 
+  // Check for background-logo syntax: <!--bg-logo: filename.png-->
+  // Renders the logo as a large hero background with night-sky surround.
+  const bgLogoMatch = cleanContent.match(/<!--\s*bg-logo:\s*(.+?)\s*-->/);
+  let backgroundLogo: string | undefined;
+
+  if (bgLogoMatch) {
+    backgroundLogo = bgLogoMatch[1].trim();
+    cleanContent = cleanContent.replace(/<!--\s*bg-logo:\s*.+?\s*-->\s*/g, '');
+  }
+
   // Extract notes and remove notes comment from content
   const notes = extractNotes(cleanContent);
   cleanContent = removeNotesComment(cleanContent);
@@ -131,6 +142,7 @@ function parseSlideContent(rawContent: string, chapterTitle: string | undefined,
     rawMarkdown: rawContent,
     notes,
     backgroundImage,
+    backgroundLogo,
     productLogo,
     chapterTitle,
     chapterIndex: chapterIdx,
@@ -138,6 +150,14 @@ function parseSlideContent(rawContent: string, chapterTitle: string | undefined,
 }
 
 export function parseSlides(markdown: string): Slide[] {
+  // Document-level default product logo: applies to all slides except the title slide.
+  let defaultProductLogo: string | undefined;
+  const defaultLogoMatch = markdown.match(/<!--\s*default-product-logo:\s*(.+?)\s*-->/);
+  if (defaultLogoMatch) {
+    defaultProductLogo = defaultLogoMatch[1].trim();
+    markdown = markdown.replace(/<!--\s*default-product-logo:\s*.+?\s*-->\s*/g, '');
+  }
+
   const chapters = splitByChapters(markdown);
   const hasChapters = chapters.some(c => c.title !== undefined);
 
@@ -171,6 +191,15 @@ export function parseSlides(markdown: string): Slide[] {
     // Insert agenda slide after first slide (index 1), or at 0 if no slides before first chapter
     const insertAt = allSlides[0] && allSlides[0].chapterTitle === undefined ? 1 : 0;
     allSlides.splice(insertAt, 0, buildAgendaSlide(chapterTitles, -1));
+  }
+
+  if (defaultProductLogo) {
+    for (const slide of allSlides) {
+      const isTitleSlide = slide.chapterTitle === undefined && !slide.isAgendaSlide;
+      if (!isTitleSlide && !slide.productLogo) {
+        slide.productLogo = defaultProductLogo;
+      }
+    }
   }
 
   return allSlides.map((slide, i) => ({ ...slide, id: i }));

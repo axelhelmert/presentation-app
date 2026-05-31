@@ -211,6 +211,7 @@ export default function PresenterView() {
                 uploadedImages={uploadedImages}
                 author={author}
                 backgroundImage={currentSlideData.backgroundImage}
+                backgroundLogo={currentSlideData.backgroundLogo}
                 productLogo={currentSlideData.productLogo}
                 companyLogo={companyLogo}
               />
@@ -238,6 +239,7 @@ export default function PresenterView() {
                   uploadedImages={uploadedImages}
                   author={author}
                   backgroundImage={nextSlideData.backgroundImage}
+                  backgroundLogo={nextSlideData.backgroundLogo}
                   productLogo={nextSlideData.productLogo}
                   companyLogo={companyLogo}
                 />

@@ -20,6 +20,7 @@ interface SlidePreviewProps {
   uploadedImages?: StoredImage[];
   author?: string;
   backgroundImage?: string;
+  backgroundLogo?: string;
   productLogo?: string;
   companyLogo?: string;
 }
@@ -33,6 +34,7 @@ export default function SlidePreview({
   uploadedImages = [],
   author = '',
   backgroundImage,
+  backgroundLogo,
   productLogo,
   companyLogo = 'msg-logo.png',
 }: SlidePreviewProps) {
@@ -52,7 +54,16 @@ export default function SlidePreview({
     ? uploadedImages.find((img) => img.name === backgroundImage)
     : null;
   const hasBgImage = !!bgImageData?.dataUrl;
-  const titleLeftHalf = isTitleSlide && hasBgImage;
+
+  // Hero-logo background (mostly title slide): falls back to public folder.
+  const bgLogoData = backgroundLogo
+    ? uploadedImages.find((img) => img.name === backgroundLogo)
+    : null;
+  const bgLogoSrc = backgroundLogo
+    ? bgLogoData?.dataUrl || `/${backgroundLogo}`
+    : null;
+  const hasBgLogo = !!bgLogoSrc;
+  const titleLeftHalf = isTitleSlide && (hasBgImage || hasBgLogo);
 
   const fitTitleSlide = useCallback(() => {
     if (!isTitleSlide) return;
@@ -68,9 +79,12 @@ export default function SlidePreview({
     // When a background image is present, the title is constrained to the left
     // half so the image (typically right-half) stays unobscured. The left-half
     // factor is a hair under maxWidth (44%) to absorb font-rendering rounding
-    // and keep long titles on a single line.
-    const maxW = containerW * (titleLeftHalf ? 0.39 : 0.88);
-    const maxH = containerH * 0.78;
+    // and keep long titles on a single line. For a hero-logo background the
+    // text must fit inside the visible green-circle band left of the gamma —
+    // a much narrower column.
+    const widthFactor = hasBgLogo ? 0.22 : titleLeftHalf ? 0.39 : 0.88;
+    const maxW = containerW * widthFactor;
+    const maxH = containerH * (hasBgLogo ? 0.62 : 0.78);
 
     // Measure the natural unwrapped width: title-slide H1 (3.5em) gets huge fast,
     // and `maxWidth: 90%` would cap scrollWidth so a wrapping heading reads as
@@ -100,7 +114,7 @@ export default function SlidePreview({
       content.style.fontSize = `${size}rem`;
     }
     setTitleFontRem(size);
-  }, [isTitleSlide, titleLeftHalf]);
+  }, [isTitleSlide, titleLeftHalf, hasBgLogo]);
 
   // Find product logo data URL
   const productLogoData = productLogo
@@ -208,6 +222,8 @@ export default function SlidePreview({
     return () => observer.disconnect();
   }, [isTitleSlide, fitTitleSlide]);
 
+  const NIGHT_SKY_BG = 'linear-gradient(to bottom right, #111827, #1e3a8a, #581c87)';
+
   const containerStyle: React.CSSProperties = bgImageData?.dataUrl
     ? {
         backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url(${bgImageData.dataUrl})`,
@@ -217,6 +233,16 @@ export default function SlidePreview({
         borderColor: theme.borderColor,
         color: '#ffffff',
         // CSS Variables for theme colors
+        ['--theme-text' as any]: '#ffffff',
+        ['--theme-heading' as any]: '#ffffff',
+        ['--theme-accent' as any]: '#ffffff',
+        ['--theme-code-bg' as any]: 'rgba(255, 255, 255, 0.1)',
+      }
+    : hasBgLogo
+    ? {
+        background: NIGHT_SKY_BG,
+        borderColor: theme.borderColor,
+        color: '#ffffff',
         ['--theme-text' as any]: '#ffffff',
         ['--theme-heading' as any]: '#ffffff',
         ['--theme-accent' as any]: '#ffffff',
@@ -256,11 +282,28 @@ export default function SlidePreview({
         className="w-full h-full flex flex-col rounded-lg shadow-lg overflow-hidden border slide-container relative"
         style={containerStyle}
       >
+      {/* Hero-Logo als großer Hintergrund (Titelfolie) */}
+      {hasBgLogo && (
+        <img
+          src={bgLogoSrc!}
+          alt=""
+          aria-hidden
+          className="pointer-events-none absolute select-none"
+          style={{
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            height: '135%',
+            width: 'auto',
+            zIndex: 1,
+          }}
+        />
+      )}
       {/* Produkt-Logo oben links */}
-      {productLogoData?.dataUrl && (
+      {productLogo && !hasBgLogo && (
         <div className="absolute top-4 left-4 z-10">
           <img
-            src={productLogoData.dataUrl}
+            src={productLogoData?.dataUrl || `/${productLogo}`}
             alt="Product Logo"
             className={`${isTitleSlide ? 'h-24' : 'h-12'} w-auto opacity-80`}
           />
@@ -300,7 +343,17 @@ export default function SlidePreview({
                 fontSize: `${titleFontRem}rem`,
                 textAlign: titleLeftHalf ? 'left' : 'center',
                 position: 'absolute',
-                ...(titleLeftHalf
+                zIndex: 2,
+                ...(hasBgLogo
+                  ? {
+                      left: '4%',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      maxWidth: '24%',
+                      color: '#ffffff',
+                      textShadow: '0 1px 3px rgba(0, 0, 0, 0.45)',
+                    }
+                  : titleLeftHalf
                   ? {
                       left: '6%',
                       top: '33%',
@@ -315,7 +368,7 @@ export default function SlidePreview({
                     }),
               } : {
                 ...contentStyle,
-                marginLeft: productLogoData?.dataUrl ? '4rem' : '0',
+                marginLeft: productLogo ? '4rem' : '0',
               }}
               dangerouslySetInnerHTML={{ __html: html }}
             />

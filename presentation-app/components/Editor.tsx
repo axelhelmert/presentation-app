@@ -1672,6 +1672,7 @@ export default function Editor() {
                   uploadedImages={uploadedImages}
                   author={author}
                   backgroundImage={slides[currentSlide].backgroundImage}
+                  backgroundLogo={slides[currentSlide].backgroundLogo}
                   productLogo={slides[currentSlide].productLogo}
                   companyLogo={companyLogo}
                 />
