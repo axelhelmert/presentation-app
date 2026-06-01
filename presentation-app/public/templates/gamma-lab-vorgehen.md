@@ -1,5 +1,5 @@
 <!--default-product-logo: gamma-lab-logo.png-->
-<!--bg-logo: gamma-lab-logo.png-->
+<!--bg-logo: gamma-lab-logo.svg-->
 
 # gamma-lab — Vorgehen
 
