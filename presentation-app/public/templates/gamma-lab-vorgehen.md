@@ -1,9 +1,9 @@
 <!--default-product-logo: gamma-lab-logo.png-->
 <!--bg-logo: gamma-lab-logo.svg-->
 
-# 𝛄-lab: Aktuarielles Produktentwicklungssystem
+# 𝛄-lab: Aktuarielles<br>Produktentwicklungssystem
 
-*Skizze auf Basis von `gamma-lab/docs/zielbild.md` und `docs/architektur/`*
+*Skizze auf Basis von `gamma-lab/docs/zielbild.md`<br>und `docs/architektur/`*
 
 ---
 

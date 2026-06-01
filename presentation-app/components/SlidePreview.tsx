@@ -82,7 +82,7 @@ export default function SlidePreview({
     // and keep long titles on a single line. For a hero-logo background the
     // text must fit inside the visible green-circle band left of the gamma —
     // a much narrower column.
-    const widthFactor = hasBgLogo ? 0.36 : titleLeftHalf ? 0.39 : 0.88;
+    const widthFactor = hasBgLogo ? 0.26 : titleLeftHalf ? 0.39 : 0.88;
     const maxW = containerW * widthFactor;
     const maxH = containerH * (hasBgLogo ? 0.62 : 0.78);
 
@@ -90,14 +90,19 @@ export default function SlidePreview({
     // and `maxWidth: 90%` would cap scrollWidth so a wrapping heading reads as
     // "fits". Briefly disable wrapping + the width cap to see how much horizontal
     // space the longest line really wants, then shrink proportionally.
+    // Hero-logo titles measure the H1 in isolation so a long italic subtitle
+    // (e.g. file paths with inline code) doesn't dominate the fit and crush the H1.
     content.style.fontSize = `${TITLE_BASE_REM}rem`;
-    const prevWhiteSpace = content.style.whiteSpace;
-    const prevMaxWidth = content.style.maxWidth;
-    content.style.whiteSpace = 'nowrap';
-    content.style.maxWidth = 'none';
-    const naturalW = content.scrollWidth;
-    content.style.whiteSpace = prevWhiteSpace;
-    content.style.maxWidth = prevMaxWidth;
+    const measureEl: HTMLElement = hasBgLogo
+      ? (content.querySelector('h1') as HTMLElement | null) ?? content
+      : content;
+    const prevWhiteSpace = measureEl.style.whiteSpace;
+    const prevMaxWidth = measureEl.style.maxWidth;
+    measureEl.style.whiteSpace = 'nowrap';
+    measureEl.style.maxWidth = 'none';
+    const naturalW = measureEl.scrollWidth;
+    measureEl.style.whiteSpace = prevWhiteSpace;
+    measureEl.style.maxWidth = prevMaxWidth;
 
     let size = TITLE_BASE_REM;
     if (naturalW > maxW) {
@@ -346,10 +351,10 @@ export default function SlidePreview({
                 zIndex: 2,
                 ...(hasBgLogo
                   ? {
-                      left: '14%',
+                      left: '4%',
                       top: '50%',
                       transform: 'translateY(-50%)',
-                      maxWidth: '38%',
+                      maxWidth: '28%',
                       color: '#ffffff',
                       textShadow: '0 1px 3px rgba(0, 0, 0, 0.45)',
                     }
