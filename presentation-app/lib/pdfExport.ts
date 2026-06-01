@@ -258,7 +258,7 @@ export async function exportToPDF({
             position: absolute;
             top: 50%; left: 50%;
             transform: translate(-50%, -50%);
-            height: 135%;
+            height: 115%;
             width: auto;
             pointer-events: none;
             z-index: 1;
@@ -288,13 +288,13 @@ export async function exportToPDF({
           ">
             <div class="prose max-w-none content-scaler" style="
               ${isTitleSlide ? (hasBgLogo ? `
-                font-size: 1.5rem;
+                font-size: 2.4rem;
                 text-align: left;
                 position: absolute;
-                left: 4%;
+                left: 14%;
                 top: 50%;
                 transform: translateY(-50%);
-                width: 24%;
+                width: 38%;
                 color: #ffffff;
                 text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
                 z-index: 2;

@@ -82,7 +82,7 @@ export default function SlidePreview({
     // and keep long titles on a single line. For a hero-logo background the
     // text must fit inside the visible green-circle band left of the gamma —
     // a much narrower column.
-    const widthFactor = hasBgLogo ? 0.22 : titleLeftHalf ? 0.39 : 0.88;
+    const widthFactor = hasBgLogo ? 0.36 : titleLeftHalf ? 0.39 : 0.88;
     const maxW = containerW * widthFactor;
     const maxH = containerH * (hasBgLogo ? 0.62 : 0.78);
 
@@ -293,7 +293,7 @@ export default function SlidePreview({
             top: '50%',
             left: '50%',
             transform: 'translate(-50%, -50%)',
-            height: '135%',
+            height: '115%',
             width: 'auto',
             zIndex: 1,
           }}
@@ -346,10 +346,10 @@ export default function SlidePreview({
                 zIndex: 2,
                 ...(hasBgLogo
                   ? {
-                      left: '4%',
+                      left: '14%',
                       top: '50%',
                       transform: 'translateY(-50%)',
-                      maxWidth: '24%',
+                      maxWidth: '38%',
                       color: '#ffffff',
                       textShadow: '0 1px 3px rgba(0, 0, 0, 0.45)',
                     }

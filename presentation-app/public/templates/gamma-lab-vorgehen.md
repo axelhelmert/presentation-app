@@ -1,9 +1,7 @@
 <!--default-product-logo: gamma-lab-logo.png-->
 <!--bg-logo: gamma-lab-logo.svg-->
 
-# gamma-lab — Vorgehen
-
-Vom Tarif-Konzept zum Product Information Hub
+# 𝛄-lab: Aktuarielles Produktentwicklungssystem
 
 *Skizze auf Basis von `gamma-lab/docs/zielbild.md` und `docs/architektur/`*
 
