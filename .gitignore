@@ -15,3 +15,6 @@ presentation-app/public/gamma-lab-arch
 
 # Git-Bundles (z.B. lokaler Repo-Snapshot)
 *.bundle
+
+# Exportierte PDFs (Artefakte aus dem PDF-Export, nicht versionieren)
+presentation.pdf
