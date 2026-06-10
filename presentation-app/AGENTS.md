@@ -46,6 +46,18 @@ schlägt alles außer anderen Inline-Styles. Rekursiv auf Descendants
 anwenden (innere `<span style="font-size:…em">` würden sonst
 zurückskalieren).
 
+## Inline-`font-size`-Spans auf Inhaltsfolien sind gewollt
+
+Der Deck-Autor vergrößert Fließtext bewusst per
+`<span style="font-size: 1.3em;">…</span>` bzw. `<div style="font-size: 1.3em;">`
+(Konvention dokumentiert in `templates/update-ai-deck.README.md`). Diese
+Inline-Styles **müssen den Export überleben** — auf Inhaltsfolien tun sie das,
+weil dort nichts sie überschreibt (`em` skaliert proportional zur
+Content-Scaler-Größe und über den Auto-Scaler hinweg). **Die Titelfolien-
+Sonderbehandlung** (rekursives `font-size: inherit !important` auf Subtitle-
+Kinder, ~Z. 530) **darf nicht auf Inhaltsfolien ausgeweitet werden** — sonst
+werden genau diese Spans plattgedrückt.
+
 ## Editor.tsx double-rendert
 
 `Editor.tsx` (~525) ruft `renderMarkdownToHTML(slide.content)` **vor**
@@ -67,14 +79,33 @@ Die synthetische Agenda-Folie (von `parseSlides` eingefügt) hat
   Vollbild-Präsentation unbrauchbar.
 - **Body-Text auf Content-Folien:** `calc(${fontSize.size} * 1.6)` —
   Default ist am 1920×1080-Canvas zu klein.
-- **Chapter-Header:** `font-size: 1.75em !important` — SlidePreviews
+- **Chapter-Header:** `font-size: 1.4em !important` (−20% von ehem.
+  1.75em, weil die Kapitelüberschrift im PDF sonst oft umbrach) —
+  SlidePreviews
   React-injected `.slide-container .chapter-header`-Rule wäre sonst in
   DOM-Reihenfolge gleich-spezifisch und später → würde gewinnen.
 - **Content-Wrapper-Padding:** `15px 80px 10px 80px`, **Footer**
   `min-height: 48px`, `padding: 12px 48px` — knapper als ursprünglich,
   weil Diagramm-Folien (z.B. Folie 3) sonst unten gecroppt werden.
+- **Overflow-Scaler (`.content-scaler`):** bei Überlauf
+  `transform: scale((availableHeight − 16) / contentHeight)`, `origin top left`,
+  **ohne Breiten-Kompensation**. KEIN `width: 100/scale%` mehr (war drin, ist
+  raus): Verbreitern lässt den Text **kürzer umbrechen** als bei `width:100%`
+  gemessen → nach dem Skalieren bleibt der Block weit unter der verfügbaren
+  Höhe und klebt oben, darunter ein großes leeres Band → genau der Effekt
+  „Überschrift rutscht nach oben" auf dichten Folien (Maturity-Model /
+  Specialized-Agents). Ohne Breitenänderung bleibt die gemessene Höhe gültig
+  und der Block füllt die Höhe exakt; Preis ist etwas ungenutzte Breite rechts
+  (akzeptiert). Verifiziert per Headless-Chrome gegen `localhost:3000` mit
+  echter `prose`-CSS. **Nicht** wieder iterativ re-messen + Breite koppeln —
+  das oszilliert (Breite↔Scale invers) und kippt in Unter-/Überlauf.
 - **List-Marker** (`ol`/`ul`): `::before`-Counter, **nicht** `::marker`
-  — html2canvas paintet `::marker` nicht zuverlässig.
+  — html2canvas paintet `::marker` nicht zuverlässig. Der Counter wird per
+  `counter-reset: pdf-ol` auf **jedem** `<ol>` genullt → eine Liste mit
+  `start` > 1 (z.B. zweiteilige Agenda, die nach einer Zwischenüberschrift
+  bei `6.` weiterzählt) zeigte sonst wieder 1, 2 …. Deshalb seedet eine
+  Schleife nach dem `innerHTML`-Set jedes `.prose ol[start]` per Inline-
+  `counter-reset: pdf-ol (start − 1)`. **Nicht** entfernen.
 - **Titelfolien-Subtitle:** `font-size: 0.95em`, `margin-top: 3em`,
   inline-`!important` per JS auf Kindern ab Index 1 der `.content-scaler`.
   (Iteration: 0.42 → 0.63 → 0.95em.)

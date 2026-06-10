@@ -32,12 +32,13 @@ Source: Update-AI.md → "Eine regulatorisch konforme Architektur für die LV".
 
 # Two foundations before autonomy
 
-(Semi-)autonomous, **agentic** AI in life insurance only works on solid ground. Two foundations come first:
+<span style="font-size: 1.3em;">(Semi-)autonomous, **agentic** AI in life insurance only works on solid ground.<br>
+Two foundations come first:</span>
 
 - **Regulation** — what the law lets the AI see and decide
 - **Security** — most AI runs in the cloud, so cloud risk *is* AI risk
 
-Get these right and a **simplifying lens** follows: cleanly separate **Build** from **Run**.
+<span style="font-size: 1.3em;">Get these right and a **simplifying lens** follows: cleanly separate **Build** from **Run**.</span>
 
 <!--notes:
 Opening of Chapter 1. Sets up the agenda threads: Regulation, Security, Build/Run, Standard software.
@@ -47,11 +48,11 @@ Opening of Chapter 1. Sets up the agenda threads: Regulation, Security, Build/Ru
 
 # The regulatory frame
 
-For life insurance, four bodies of rules shape what agentic AI may do:
+<span style="font-size: 1.3em;">For life insurance, four bodies of rules shape what agentic AI may do:</span>
 
 - **GDPR** — which personal data the agent may process
 - **EU AI Act (KI-VO)** — risk class, obligations, prohibited uses
-- **Compliance & antitrust** — Kartellrecht and market conduct
+- **Compliance & antitrust** — Antitrust law and market conduct
 - **IP rights** — ownership of generated artifacts and of training inputs
 
 <!--notes:
@@ -60,34 +61,15 @@ Regulatorik aus der Outline: DSGVO, KI-VO, Compliance/Kartellrecht, IP-Rechte.
 
 ---
 
-# Which data, which rules
-
-GenAI processing in life insurance spans a **ladder of data sensitivity**:
-
-Public · Personal (GDPR) · Internal · Customer · Customer-strategic · **Core IP / proprietary**
-
-The governing frame applies across all of it:
-
-- **EU AI Act (KI-VO)** · **GeschGehG** (trade secrets) · **antitrust** (Kartellrecht) · **data protection** (GDPR / DSG)
-
-→ The higher the sensitivity, the tighter the controls on what may leave the core.
-
-<!--notes:
-Aus PPTX-Folie 5: Datenkategorien (Public → Core IP) und maßgebliche Regulatorik
-(KI-VO, GeschGehG, Kartellrecht, DSGVO/DSG).
--->
-
----
-
 # Security is cloud security
 
-Most AI workloads run in the **cloud** — so the cloud's risks become the AI's risks.
+<span style="font-size: 1.3em;">Most AI workloads run in the **cloud** — so the cloud's risks become the AI's risks.</span>
 
 - **DORA** — operational resilience for financial entities
 - **Availability & performance** — the agent layer must not become the weak link
 - **General IT security** — data protection, access control, isolation
 
-Regulation and plain IT engineering meet here.
+<span style="font-size: 1.3em;">Regulation and plain IT engineering meet here.</span>
 
 <!--notes:
 Security-Teil: Cloud, DORA, Verfügbarkeit/Performance/Sicherheit.
@@ -97,13 +79,13 @@ Security-Teil: Cloud, DORA, Verfügbarkeit/Performance/Sicherheit.
 
 # The simplifying lens: Build vs. Run
 
-A clean separation of **Build** and **Run** makes the discussion tractable.
+<span style="font-size: 1.3em;"> A clean separation of **Build** and **Run** makes the discussion tractable.</span>
 
 - In **Build**, agentic AI is increasingly used in SWE — but it mostly produces **rule-based code** (Python, Java)
 - The engineering process is **not fundamentally different** from the conventional one: under **human oversight**, artifacts are produced wholly or partly by agents
 - At the end stand **extensive quality-assurance** measures
 
-→ The genuinely new governance questions live in **Run** (see Chapter 4).
+<span style="font-size: 1.3em;">→ The genuinely new governance questions live in **Run** (see Chapter 4).</span>
 
 <!--notes:
 Build/Run-Trennung als Vereinfachung. Verweist nach vorne auf Kapitel 4 (Run).
@@ -113,12 +95,13 @@ Build/Run-Trennung als Vereinfachung. Verweist nach vorne auf Kapitel 4 (Run).
 
 # Standard software: a two-part Build
 
-Developing **standard software** for life insurers splits the Build process in two:
+<span style="font-size: 1.3em;">Developing **standard software** for life insurers splits the Build process in two:</span>
 
 1. **Building the standard software** for life insurance — the shared product
 2. **Customizing it & developing products** — done by the individual insurer (LV)
 
-This is the **Shared industry commons** layer from the architecture picture: one common core, many insurer-specific configurations on top.
+<span style="font-size: 1.3em;">This is the **Shared industry commons** layer from the architecture picture:<br>
+one common core, many insurer-specific configurations on top.</span>
 
 <!--notes:
 Neuer Outline-Teil "Besonderheiten für die Entwicklung von Standardsoftware":
@@ -149,12 +132,12 @@ Scrollen auf eine Folie passen (global ist .prose img sonst 80vh + 2em Margin).
 
 # Two concepts this raises
 
-The two-part Build makes two engineering concepts central:
+<span style="font-size: 1.3em;">The two-part Build makes two engineering concepts central:</span>
 
 - **Continuous Delivery** — the standard software ships continuously, not in rare big-bang releases
 - **Merge — standard release vs. customer** — each insurer's customizing must absorb new standard releases without losing local changes
 
-Agentic AI has to respect **both** lines of change — standard and customer.
+<span style="font-size: 1.3em;">Agentic AI has to respect **both** lines of change — standard and customer.</span>
 
 <!--notes:
 Outline: Continuous Delivery; Merge (Standardrelease vs. Customer) — beide Begriffe müssen adressiert werden.
@@ -194,7 +177,7 @@ Falls zu groß: per gescopetem .arch-fit-Style auf z.B. 58vh begrenzen (siehe RE
 
 # From chatbot to domain assistant
 
-ask:it moves from simple chatbots to **integrated, source-based assistants**:
+<span style="font-size: 1.3em;">ask:it moves from simple chatbots to **integrated, source-based assistants**:</span>
 
 - **Domains, not chats** — a domain holds all approved documents; alongside **DAV**, a **Regulation** domain is set up
 - **Source-based** — every answer **references its sources**; connects to applications
@@ -210,7 +193,7 @@ quellenbasiert, Agent-zu-Agent, mehrsprachig, beste Modelle.
 
 # The user stays in control
 
-The user sets the terms of every query:
+<span style="font-size: 1.3em;">The user sets the terms of every query:</span>
 
 - **Context** — "where do I search?", plus depth, format and required **reliability**
 - **Personas** — **Luna** for fast, domain-focused search · **Dex** for deep, detailed analysis
@@ -226,7 +209,7 @@ Personal Domain, temporäres Verbinden; Glossar & Filter.
 
 # Source-based — and auditable by design
 
-ask:it's promise is **source-based answers**. Here is the processing chain behind them:
+<span style="font-size: 1.3em;">ask:it's promise is **source-based answers**. Here is the processing chain behind them:</span>
 
 ```mermaid
 graph LR
@@ -239,9 +222,13 @@ graph LR
     class RAG audit;
 ```
 
+<div style="font-size: 1.3em;">
+
 The **RAG pipeline** behind it: ① Chunking → ② Embedding → ③ Metadata → ④ Vector DB.
 
 **Data lineage & audit trail** span the whole chain — auditability by design.
+
+</div>
 
 <!--notes:
 Verarbeitungskette des Wissensmanagements (vormals in Kapitel 1, dorthin gehörte nur die
@@ -254,11 +241,15 @@ Audit-Trail/Data-Lineage. Schließt den ask:it-Fundament-Block ab, bevor ACE beg
 
 # Agentic Context Engineering (ACE)
 
+<div style="font-size: 1.3em;">
+
 A major step forward for **all** chatbots — worldwide, not just our industry.
 
 But for **life insurance** it matters especially: intangible products and heavy regulation raise the stakes.
 
 The core idea: **self-learning** in communication — **human ↔ machine** *and* **machine ↔ machine**.
+
+</div>
 
 <!--notes:
 ACE als branchenübergreifende Weiterentwicklung, in der LV besonders relevant
@@ -267,8 +258,7 @@ ACE als branchenübergreifende Weiterentwicklung, in der LV besonders relevant
 
 ---
 
-# ACE in the words of the research
-
+# ACE in the words of the research (Quote from Stanford University, 10/2025)
 ![Agentic Context Engineering — quote from the paper](agentic_context_engin.png)
 
 *Quote from a Stanford University paper, 10/2025.*
@@ -282,7 +272,11 @@ Stanford University (10/2025). Wird über den exakten Dateinamen aus der Bild-Bi
 
 # What ACE actually is
 
+<div style="font-size: 1.3em;">
+
 **Context engineering** = (partially) autonomous methods that improve a model's behavior by **creating, modifying and managing additive, natural-language context** for an LLM — **not by changing its weights**.
+
+</div>
 
 - Contexts are **interpretable**
 - They allow **rapid integration** of new knowledge
@@ -297,12 +291,12 @@ Gewichtsänderung; interpretierbar, schnell integrierbar, modellübergreifend te
 
 # Why we avoid fine-tuning
 
-In most applications we have deliberately **not** fine-tuned. Two reasons:
+<span style="font-size: 1.3em;">In most applications we have deliberately **not** fine-tuned. Two reasons:</span>
 
 - **Cost** — training and maintaining tuned models is expensive
 - **Regulation & compliance** — fine-tuning on customer data would bake **company-specific, personal context** into the model
 
-That is **not permitted**: we must guarantee customers that **their data is never used for training**.
+<span style="font-size: 1.3em;">That is **not permitted**: we must guarantee customers that **their data is never used for training**.</span>
 
 <!--notes:
 Begründung gegen fine-tuning: Kosten + Regulatorik. Training/fine-tuning auf Kundendaten
@@ -314,12 +308,12 @@ Garantie an Kunden: keine Trainings mit ihren Daten.
 
 # RAG closes only part of the gap
 
-To bring in current knowledge **without** training, we have used **RAG**.
+<span style="font-size: 1.3em;">To bring in current knowledge **without** training, we have used **RAG**.</span>
 
 - It works well — **but only for knowledge already documented** in some form
 - Knowledge that emerges **in the conversation** with the bot is regularly **lost**
 
-→ A gap remains between what the bot learns in dialogue and what it can reuse.
+<span style="font-size: 1.3em;">→ A gap remains between what the bot learns in dialogue and what it can reuse.</span>
 
 <!--notes:
 RAG integriert aktuelles Wissen ohne Training, funktioniert aber nur bei bereits
@@ -330,14 +324,14 @@ dokumentiertem Wissen. Wissen aus der Bot-Kommunikation geht verloren.
 
 # What ACE promises
 
-ACE finally offers a new path to that lost knowledge:
+<span style="font-size: 1.3em;">ACE finally offers a new path to that lost knowledge:</span>
 
 - **Self-learning** from the dialogue itself — human ↔ machine and machine ↔ machine
 - Captures context **without** training the model on customer data
 - Learned context stays **isolated per customer** — one tenant's dialogue never informs another's answers
 - The system **gets better with use** while the regulatory guarantee stays intact
 
-→ **Self-learning machines** — within the life-insurance compliance frame.
+<span style="font-size: 1.3em;">→ **Self-learning machines** — within the life-insurance compliance frame.</span>
 
 <!--notes:
 ACE als neuer Zugang zu dem bislang verlorenen Wissen aus der Kommunikation —
@@ -348,7 +342,7 @@ ohne Training auf Kundendaten, Regulatorik-Garantie bleibt erhalten.
 
 # The ACE framework
 
-Inspired by the *Dynamic Cheatsheet*, ACE uses an agentic architecture of **three specialized roles**:
+<span style="font-size: 1.3em;">Inspired by the *Dynamic Cheatsheet*, ACE uses an agentic architecture of **three specialized roles**:</span>
 
 ```mermaid
 graph LR
@@ -357,7 +351,7 @@ graph LR
     CUR -.->|feeds back| GEN
 ```
 
-The loop keeps the natural-language context **useful, current and compact**.
+<span style="font-size: 1.3em;">The loop keeps the natural-language context **useful, current and compact**.</span>
 
 <!--notes:
 Aus PPTX-Folie 6: ACE-Framework mit Rollen Generator / Reflector / Curator,
@@ -368,13 +362,13 @@ inspiriert vom "Dynamic Cheatsheet". Natives Mermaid-Diagramm.
 
 # ACE meets Knowledge Graphs
 
-Decades of **neurosymbolic** research point the same way: combine symbolic and neural approaches in **hybrid, modular** systems — symbols give **abstraction**.
+<span style="font-size: 1.3em;">Decades of **neurosymbolic** research point the same way: combine symbolic and neural approaches in **hybrid, modular** systems — symbols give **abstraction**.</span>
 
 - **Knowledge Graphs** serve as **symbolic memory** and a **rule repository**
 - Especially valuable in deep, domain-specific work — e.g. **product development**
 - Self-learning spans **human ↔ machine** and **machine ↔ machine**
 
-→ ACE + KGs: the bridge from conversation to durable, reusable knowledge.
+<span style="font-size: 1.3em;">→ ACE + KGs: the bridge from conversation to durable, reusable knowledge.</span>
 
 <!--notes:
 Aus PPTX-Folie 4: Knowledge Graphs / Neurosymbolik — KGs als symbolisches Gedächtnis
@@ -403,7 +397,7 @@ Source: Update-AI.md → "Automation und Flexibilisierung von Geschäftsvorfäll
 
 # msg.process:it — orchestrating end to end
 
-AI agents orchestrate business processes **end-to-end**, (semi-)autonomously — steered in **human language**, not in rule-based code.
+<span style="font-size: 1.3em;">AI agents orchestrate business processes **end-to-end**, (semi-)autonomously — steered in **human language**, not in rule-based code.</span>
 
 - Agents **know the processes** they can run — and their APIs — and do the **mapping themselves**
 - They **execute** the process, process the results, and **close the case**
@@ -428,7 +422,7 @@ Falls zu groß: wie beim Architekturbild per gescopetem .arch-fit-Style auf z.B.
 
 # Agents fetch, understand, create
 
-When needed, the agent gathers and produces information:
+<span style="font-size: 1.3em;">When needed, the agent gathers and produces information:</span>
 
 - **Analyze & verify external input** — email, chatbot, WhatsApp (e.g. by querying data)
 - **Analyze internal data** — contract data, (intermediate) simulation results
@@ -444,7 +438,7 @@ analysieren, Output erzeugen, Vorschläge machen und dokumentieren.
 
 # Automation with a human safety net
 
-When it matters, the AI agent **calls a human agent** and hands over all relevant context.
+<span style="font-size: 1.3em;">When it matters, the AI agent **calls a human agent** and hands over all relevant context.</span>
 
 - The goal: **automation** — plus a **perfect customer experience** (instant answers, 24×7)
 - Optimal **scalability** — cloud-based, SaaS subscription, usage-based
@@ -458,7 +452,7 @@ Kundenerlebnis 24x7, Skalierbarkeit, Cloud/SaaS/nutzenbasiert.
 
 # Demo: an additional payment, end to end
 
-Our standing live demo — a policyholder wants to **pay an additional amount** into their life policy:
+</span>Our standing live demo — a policyholder wants to **pay an additional amount** into their life policy:</span>
 
 1. **Intake** — the request arrives in plain language (portal, email, chat): *"I'd like to pay €5,000 extra into my policy."*
 2. **Understand & verify** — the agent identifies the policy, reads the contract data, checks the additional payment is **admissible** (tariff rules, limits)
@@ -475,12 +469,11 @@ Kapitels (E2E-Orchestrierung, fetch/understand/create, Human-Safety-Net) an dem 
 der live gezeigt wird. Beträge/Felder beim echten Demo-Stand anpassen.
 Die Simulation (Schritt 3) ruft den deterministischen Kern (gamma-lab/rechenkern).
 -->
-
 ---
 
 # Beyond policy administration
 
-It is not only about administration — **self-service and sales** systems too (possibly hybrid):
+<span style="font-size: 1.3em;">It is not only about administration — **self-service and sales** systems too (possibly hybrid):</span>
 
 - Built as **adaptable standard software** (cost-sharing)
 - Goal: cover the **whole policy lifecycle** step by step — **pain points first**
@@ -497,7 +490,7 @@ Customizing durch Experten; setzt auf regelbasierten Gevos (AF) auf.
 
 # Regulation: a low-risk autonomous agent
 
-The orchestration is designed as a **low-risk AI system** — an autonomous agent with **no risk assessment** and **no pricing**.
+<span style="font-size: 1.3em;">The orchestration is designed as a **low-risk AI system** — an autonomous agent with **no risk assessment** and **no pricing**.</span>
 
 - **Purpose** (Art. 3(12) AI Act) — agentic steering of insurance processes and customer communication through to execution
 - **Out of scope** of Annex I + III; **no** risk rating or pricing (Recital 58)
@@ -544,14 +537,16 @@ Platzhalter für den noch offenen Agenda-Punkt Conversational AI.
 
 # Agents Across Build and Run
 
-**Build — developing the product**
+<span style="font-size: 1.3em;">**Build — developing the product**</span>
+
 1. From code generation to product management
 2. The product lifecycle, end to end
 3. Standard product + customer customizing
 4. Specialized agents, standardized practice
 5. A maturity model
 
-**Run — operating the product**
+<span style="font-size: 1.3em;">**Run — operating the product**</span>
+
 6. The deterministic core meets the conversational layer
 7. Use cases, governance & outlook
 
@@ -565,7 +560,7 @@ Build half draws on gamma-lab docs/prozess/E2E-AutomationProduktmanagement.md.
 
 # Build vs. Run — a clean separation
 
-A recurring theme of this update: **separate Build from Run.**
+<span style="font-size: 1.3em;">A recurring theme of this update: **separate Build from Run.**</span>
 
 - **Build** — agents help create code, tests, docs, architecture. Output is largely *deterministic, rule-based* software (Python, Java).
 - **Run** — the system is *in production*, running real business processes.
@@ -581,12 +576,12 @@ This slide is the chapter bracket: it sets up both the Build block (next slides)
 
 # Build — from code generation to product management
 
-The headline used to be "AI writes code." That undersells it.
+<span style="font-size: 1.3em;">The headline used to be "AI writes code." That undersells it.</span>
 
 - **Today:** Claude Code automates large parts of the **SWE** process.
 - **Tomorrow:** agents accompany the **entire product-management** lifecycle — idea, requirements, design, implementation, test, docs, operations, compliance, EOL.
 
-Generating code is now just **one building block**. Under **Human-on-the-Loop**, agents create, review and extend requirements, ADRs, test suites, manuals — *and* code. Every change touches the whole cycle.
+<span style="font-size: 1.3em;">Generating code is now just **one building block**. Under **Human-on-the-Loop**, agents create, review and extend requirements, ADRs, test suites, manuals — *and* code. Every change touches the whole cycle.</span>
 
 <!--notes:
 Source: gamma-lab docs/prozess/E2E-AutomationProduktmanagement.md ("Zielsetzung").
@@ -597,7 +592,7 @@ Key reframing: code generation is necessary but no longer the differentiator.
 
 # The product lifecycle, end to end
 
-A full process runs far beyond implementation:
+<span style="font-size: 1.3em;">A full process runs far beyond implementation:</span>
 
 <style>.lifecycle-cols { display: flex; gap: 3em; } .lifecycle-cols > div { flex: 1; } .lifecycle-cols ol { margin: 0.2em 0; }</style>
 <div class="lifecycle-cols">
@@ -631,7 +626,7 @@ We are at maturity level 1-2 today (5, 6, partially 7). The arc of this block is
 
 # Two lifecycles: standard product + customer customizing
 
-The point most SWE talks omit — and it shapes everything (it picks up the Build split from Chapter 1):
+<span style="font-size: 1.3em;">The point most SWE talks omit — and it shapes everything (it picks up the Build split from Chapter 1):</span>
 
 - We build **standard software** — one product for many customers.
 - Customers **customize** it: configuration, extension, or their own code layer.
@@ -663,7 +658,7 @@ This is the most distinctive slide of the Build block. Connect explicitly to Cha
 
 # Release upgrade: standard → customer
 
-Standard goes N → N+1, and **every** customer instance must be upgraded:
+Standard goes N → N+1, and customer instance must be upgraded:
 
 ```
 Impact analysis → Merge → Test per instance → Customer sign-off → Deploy
@@ -671,7 +666,7 @@ Impact analysis → Merge → Test per instance → Customer sign-off → Deploy
 
 *Note: this is a **code** upgrade of the customer layer — the insurer's contracts are never touched.*
 
-Complexity is **N customers × M releases** — without automation it does not scale.
+Complexity is **N customers × M releases** — automation / scale.
 
 **Where AI helps — strictly within one tenant:**
 

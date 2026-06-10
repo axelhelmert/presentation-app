@@ -1366,6 +1366,18 @@ export default function Editor() {
               <button
                 onClick={() =>
                   handleLoadStaticTemplate(
+                    'update-ai-deck.md',
+                    'Update AI (Gesamtdeck)'
+                  )
+                }
+                className="px-3 py-1 bg-emerald-700 rounded hover:bg-emerald-600 text-sm transition-colors"
+                title="Update AI @ msg life — Gesamtpräsentation, 4 Kapitel (Topic 4 fertig, 1–3 in Arbeit)"
+              >
+                🗂️ Update AI
+              </button>
+              <button
+                onClick={() =>
+                  handleLoadStaticTemplate(
                     'policy-admin-contracts.md',
                     'PAS Vertragsstrukturen'
                   )

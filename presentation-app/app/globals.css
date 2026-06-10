@@ -58,7 +58,9 @@ body {
 }
 
 .prose h1 {
-  font-size: 1.8em;
+  /* −~10% (1.8em → 1.6em): lange Folientitel (z.B. Folie 17 "ACE in the
+     words of the research …") brachen sonst um. Gilt für Preview + PDF. */
+  font-size: 1.6em;
   line-height: 1.1;
   margin-top: 0;
   margin-bottom: 2em;

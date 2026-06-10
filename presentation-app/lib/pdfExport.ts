@@ -131,7 +131,9 @@ export async function exportToPDF({
        guarantee that the PDF export's larger size takes effect regardless
        of whether SlidePreview is mounted on the page. */
     .pdf-export .chapter-header {
-      font-size: 1.75em !important;
+      /* -20% gegenüber 1.75em: Kapitelüberschrift brach im PDF sonst
+         häufig um. */
+      font-size: 1.4em !important;
       font-weight: 600;
       color: var(--theme-accent);
       text-transform: uppercase;
@@ -464,6 +466,21 @@ export async function exportToPDF({
       // Wait for rendering
       await new Promise((resolve) => setTimeout(resolve, 100));
 
+      // Honor the `start` attribute on ordered lists. The list markers are
+      // drawn via a CSS `::before` counter (html2canvas can't paint native
+      // `::marker` reliably), and that counter resets to 0 on every <ol> —
+      // so a markdown list that starts at e.g. 6 (`6.` after a heading, a
+      // common pattern for a two-part agenda split across a subheading)
+      // would otherwise render as 1, 2 … in the PDF. Seed the counter from
+      // the start value so it continues correctly. Inline style beats the
+      // stylesheet's `counter-reset: pdf-ol`.
+      container.querySelectorAll('.prose ol[start]').forEach((ol) => {
+        const start = parseInt((ol as HTMLElement).getAttribute('start') || '', 10);
+        if (!Number.isNaN(start)) {
+          (ol as HTMLElement).style.counterReset = `pdf-ol ${start - 1}`;
+        }
+      });
+
       // Render Mermaid diagrams if any
       if (mermaidBlocks.length > 0) {
         const contentDiv = container.querySelector('.prose');
@@ -553,11 +570,21 @@ export async function exportToPDF({
           const contentHeight = contentScaler.scrollHeight;
 
           if (contentHeight > availableHeight) {
-            // Scale down with additional safety margin to ensure footer stays visible
-            const scale = (availableHeight - 60) / contentHeight; // -60px extra safety margin
-            contentScaler.style.transform = `scale(${scale})`;
+            // Scale the whole block down to fit the available height. Small
+            // breathing margin above the footer; origin top-left keeps the
+            // heading anchored top-left like non-overflowing slides.
+            const scale = (availableHeight - 16) / contentHeight;
             contentScaler.style.transformOrigin = 'top left';
-            contentScaler.style.width = `${100 / scale}%`;
+            contentScaler.style.transform = `scale(${scale})`;
+            // Deliberately NO width compensation (`width: 100/scale%`).
+            // Widening the scaler makes text reflow SHORTER than it measured
+            // at width:100%, so after scaling the block ends far short of the
+            // available height and clusters at the top with a large empty band
+            // below — that is the "heading floats up" symptom on dense slides
+            // (e.g. the maturity-model / specialized-agents slides). Leaving
+            // width at 100% keeps the measured height valid so the block fills
+            // the height exactly; the only cost is some unused width on the
+            // right, far less jarring than the top-heavy gap.
           }
         }
 
