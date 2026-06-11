@@ -143,17 +143,21 @@
             color: #fff;
             font-weight: 500;
         }
-        .btn-format { background: #4338ca; }
-        .btn-table { background: #6b21a8; }
-        .btn-images { background: #1d4ed8; }
-        .btn-templates { background: #047857; }
-        .btn-styles { background: #be185d; }
-        .btn-import { background: #4b5563; }
-        .btn-export { background: #4b5563; }
+        .menu-ref {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            color: #fff;
+            font-weight: 500;
+            background: #1f2937;
+            border: 1px solid #4b5563;
+        }
         .btn-pdf { background: #2563eb; }
         .btn-present { background: #16a34a; }
-        .btn-notes { background: #16a34a; }
+        .btn-notes { background: #15803d; }
         .btn-window { background: #4f46e5; }
+        .btn-deck { background: #7e22ce; }
         ul, ol { padding-left: 24px; }
         li { margin: 4px 0; }
         a { color: #2563eb; }
@@ -174,24 +178,25 @@
         <ul>
             <li><a href="#schnellstart">1. Schnellstart</a></li>
             <li><a href="#editor">2. Der Editor-Aufbau</a></li>
-            <li><a href="#folien">3. Folien & Markdown</a></li>
-            <li><a href="#kapitel">4. Kapitel & Agenda</a></li>
-            <li><a href="#notizen">5. Sprecher­notizen</a></li>
-            <li><a href="#tabellen">6. Tabellen einfügen</a></li>
-            <li><a href="#format">7. Formatierung &amp; Spalten</a></li>
-            <li><a href="#bilder">8. Bilder &amp; Hintergründe</a></li>
-            <li><a href="#templates">9. HTML-Templates</a></li>
-            <li><a href="#styles">10. Eigene CSS-Styles</a></li>
-            <li><a href="#mathe">11. Mathematische Formeln</a></li>
-            <li><a href="#code">12. Code-Blöcke</a></li>
-            <li><a href="#mermaid">13. Mermaid-Diagramme</a></li>
-            <li><a href="#themes">14. Themes &amp; Schriftgröße</a></li>
-            <li><a href="#beamer">15. Beamer-Modus</a></li>
-            <li><a href="#praesentation">16. Präsentations­modus</a></li>
-            <li><a href="#export">17. Export (Markdown &amp; PDF)</a></li>
-            <li><a href="#import">18. Import bestehender Markdown-Dateien</a></li>
-            <li><a href="#shortcuts">19. Tastenkürzel</a></li>
-            <li><a href="#tipps">20. Tipps &amp; FAQ</a></li>
+            <li><a href="#vorschau">3. Vorschau-Fenster</a></li>
+            <li><a href="#folien">4. Folien & Markdown</a></li>
+            <li><a href="#kapitel">5. Kapitel & Agenda</a></li>
+            <li><a href="#notizen">6. Sprecher­notizen</a></li>
+            <li><a href="#tabellen">7. Tabellen einfügen</a></li>
+            <li><a href="#format">8. Formatierung &amp; Spalten</a></li>
+            <li><a href="#bilder">9. Bilder &amp; Hintergründe</a></li>
+            <li><a href="#templates">10. HTML-Templates</a></li>
+            <li><a href="#styles">11. Eigene CSS-Styles</a></li>
+            <li><a href="#mathe">12. Mathematische Formeln</a></li>
+            <li><a href="#code">13. Code-Blöcke</a></li>
+            <li><a href="#mermaid">14. Mermaid-Diagramme</a></li>
+            <li><a href="#themes">15. Einstellungen (Theme, Autor, Logo, Schrift)</a></li>
+            <li><a href="#beamer">16. Beamer-Modus</a></li>
+            <li><a href="#praesentation">17. Präsentations­modus</a></li>
+            <li><a href="#export">18. Export (Markdown &amp; PDF)</a></li>
+            <li><a href="#import">19. Import bestehender Markdown-Dateien</a></li>
+            <li><a href="#shortcuts">20. Tastenkürzel</a></li>
+            <li><a href="#tipps">21. Tipps &amp; FAQ</a></li>
         </ul>
     </div>
 
@@ -199,11 +204,11 @@
     <div class="section" id="schnellstart">
         <h2>1. Schnellstart</h2>
         <ol>
-            <li>Im linken Bereich Markdown schreiben – die Vorschau rechts aktualisiert sich live.</li>
-            <li>Folien werden mit <code>---</code> in einer eigenen Zeile getrennt.</li>
-            <li>Mit <kbd>F</kbd> startest du den Vollbild-Präsentations­modus.</li>
-            <li>Über <span class="button-ref btn-pdf">📄 PDF Export</span> erzeugst du eine PDF-Datei.</li>
-            <li>Über <span class="button-ref btn-export">💾 Export</span> speicherst du dein Markdown.</li>
+            <li>Im Editor Markdown schreiben – Folien werden mit <code>---</code> in einer eigenen Zeile getrennt.</li>
+            <li>Mit <span class="button-ref btn-window">🪟 Folien-Vorschau</span> öffnest du die Live-Vorschau der aktuellen Folie in einem eigenen Fenster.</li>
+            <li>Mit <span class="button-ref btn-deck">🎞️ Deck-Vorschau</span> siehst du alle Folien scrollbar auf einen Blick.</li>
+            <li>Mit <kbd>F</kbd> oder <span class="button-ref btn-present">🎬 Präsentieren</span> startest du den Vollbild-Präsentations­modus.</li>
+            <li>Über <span class="button-ref btn-pdf">📄 PDF</span> erzeugst du eine PDF-Datei, über <span class="menu-ref">Datei</span> → <strong>Markdown exportieren</strong> speicherst du dein Markdown.</li>
         </ol>
         <div class="info"><strong>Auto-Save:</strong> Dein Text wird automatisch im Browser-Speicher (LocalStorage) gesichert und beim nächsten Öffnen wiederhergestellt.</div>
         <p><a href="#top" class="back-top">↑ Nach oben</a></p>
@@ -212,19 +217,63 @@
     <!-- 2. Editor -->
     <div class="section" id="editor">
         <h2>2. Der Editor-Aufbau</h2>
-        <p>Der Editor besteht aus drei Bereichen:</p>
+        <p>Der Editor nutzt die volle Fensterbreite und besteht aus drei Bereichen:</p>
         <ul>
             <li><strong>Folien-Navigator (links):</strong> Übersicht aller Folien mit Sprung-Funktion. Lässt sich einklappen.</li>
-            <li><strong>Markdown-Editor (Mitte):</strong> Hier schreibst du deine Folien. Darunter optional die Notizen-Spalte.</li>
-            <li><strong>Vorschau (rechts):</strong> Live-Darstellung der aktuellen Folie. Per Drag-&amp;-Drop am Trennbalken in der Größe anpassbar.</li>
+            <li><strong>Toolbar (oben):</strong> Alle Funktionen, gegliedert in Menüs und Direkt-Buttons (siehe unten).</li>
+            <li><strong>Markdown-Editor:</strong> Hier schreibst du deine Folien. Darunter optional die Notizen-Leiste mit Folien-Navigation.</li>
         </ul>
-        <p>Mit <span class="button-ref btn-window">🪟 Separates Fenster</span> kannst du die Vorschau in ein separates Browserfenster auslagern – ideal für Dual-Monitor-Setups.</p>
+
+        <h3>Die Menüs der Toolbar</h3>
+        <table>
+            <tr><th>Menü</th><th>Inhalt</th></tr>
+            <tr><td><span class="menu-ref">Datei</span></td><td>Markdown importieren/exportieren, PDF exportieren, Export-Einstellungen (Dateiname, Speicherort)</td></tr>
+            <tr><td><span class="menu-ref">Einfügen</span></td><td>Tabellen (4 Varianten), Bild aus Bibliothek, HTML-Templates, Spalten-Layout</td></tr>
+            <tr><td><span class="menu-ref">Format</span></td><td>Text fett + farbig formatieren (Farbpalette), Custom-CSS-Editor</td></tr>
+            <tr><td><span class="menu-ref">Decks</span></td><td>Vordefinierte Präsentationen laden (Update AI, PAS-Demo, 𝛄-lab Vorgehen)</td></tr>
+            <tr><td><span class="menu-ref">Einstellungen</span></td><td>Theme, Autor, Firmenlogo, Schriftgröße, Beamer-Modus + Auflösung</td></tr>
+            <tr><td><span class="menu-ref">Hilfe</span></td><td>Dieses Benutzerhandbuch, Mermaid-Hilfe, Tastenkürzel-Übersicht</td></tr>
+        </table>
+
+        <h3>Direkt-Buttons (immer sichtbar, rechts)</h3>
+        <ul>
+            <li><span class="button-ref btn-notes">📝 Notizen</span> – Notizen-Leiste ein-/ausblenden</li>
+            <li><span class="button-ref btn-pdf">📄 PDF</span> – PDF-Export starten</li>
+            <li><span class="button-ref btn-window">🪟 Folien-Vorschau</span> – Live-Vorschau der aktuellen Folie in eigenem Fenster</li>
+            <li><span class="button-ref btn-deck">🎞️ Deck-Vorschau</span> – alle Folien scrollbar in eigenem Fenster</li>
+            <li><span class="button-ref btn-present">🎬 Präsentieren</span> – Vollbild-Präsentation starten</li>
+        </ul>
         <p><a href="#top" class="back-top">↑ Nach oben</a></p>
     </div>
 
-    <!-- 3. Folien -->
+    <!-- 3. Vorschau -->
+    <div class="section" id="vorschau">
+        <h2>3. Vorschau-Fenster</h2>
+        <p>Die Vorschau läuft immer in einem <strong>eigenen Browserfenster</strong> – der Editor bleibt dadurch in voller Breite nutzbar. Es gibt zwei Varianten:</p>
+
+        <h3>🪟 Folien-Vorschau (live)</h3>
+        <p>Öffnet die <strong>aktuelle Folie</strong> in einem eigenen Fenster und aktualisiert sich <strong>live beim Tippen</strong>.</p>
+        <ul>
+            <li>Folgt automatisch der im Editor ausgewählten Folie (Navigator, Notizen-Leiste, <kbd>Cmd</kbd>+<kbd>G</kbd>).</li>
+            <li>Navigation auch direkt im Vorschau-Fenster: Klick = weiter, Rechtsklick/<kbd>Shift</kbd>+Klick = zurück, <kbd>←</kbd>/<kbd>→</kbd>, <kbd>Home</kbd>/<kbd>End</kbd> – der Editor folgt automatisch.</li>
+            <li>Beamer-Modus (16:9) kann direkt im Fenster umgeschaltet werden.</li>
+            <li>Erneuter Klick auf den Button schließt das Fenster wieder.</li>
+        </ul>
+
+        <h3>🎞️ Deck-Vorschau (ganzes Deck)</h3>
+        <p>Zeigt <strong>alle Folien untereinander scrollbar</strong> – ideal zum Prüfen des Gesamtdecks vor Export oder Präsentation.</p>
+        <ul>
+            <li>Lädt den Stand beim Öffnen; über <strong>🔄 Aktualisieren</strong> holst du den aktuellen Editor-Stand.</li>
+            <li><strong>Klick auf eine Folie</strong> wählt sie im Editor (und in der Folien-Vorschau) an.</li>
+        </ul>
+        <div class="info"><strong>Warum kein Live-Sync in der Deck-Vorschau?</strong> Das Rendern aller Folien (inkl. Mermaid-Diagrammen) bei jedem Tastendruck wäre zu teuer. Die Deck-Vorschau lädt deshalb bewusst nur auf Anforderung – die Folien-Vorschau bleibt das Live-Fenster.</div>
+        <div class="tip"><strong>Tipp:</strong> Browser-Popup-Blocker können das Öffnen der Fenster verhindern – erlaube Popups für diese Seite.</div>
+        <p><a href="#top" class="back-top">↑ Nach oben</a></p>
+    </div>
+
+    <!-- 4. Folien -->
     <div class="section" id="folien">
-        <h2>3. Folien &amp; Markdown</h2>
+        <h2>4. Folien &amp; Markdown</h2>
         <p>Folien werden durch <code>---</code> (drei Bindestriche in einer eigenen Zeile) getrennt:</p>
         <div class="code"># Folie 1
 
@@ -253,9 +302,9 @@ Inhalt der zweiten Folie.</div>
         <p><a href="#top" class="back-top">↑ Nach oben</a></p>
     </div>
 
-    <!-- 4. Kapitel -->
+    <!-- 5. Kapitel -->
     <div class="section" id="kapitel">
-        <h2>4. Kapitel &amp; Agenda</h2>
+        <h2>5. Kapitel &amp; Agenda</h2>
         <p>Mit der Kapitel-Syntax kannst du deine Präsentation in Abschnitte gliedern. Eine automatische Agenda-Folie wird dann am Anfang erzeugt.</p>
         <div class="code">===Einleitung
 
@@ -283,27 +332,28 @@ Weitere Folie im selben Kapitel.
         <p><a href="#top" class="back-top">↑ Nach oben</a></p>
     </div>
 
-    <!-- 5. Notizen -->
+    <!-- 6. Notizen -->
     <div class="section" id="notizen">
-        <h2>5. Sprechernotizen</h2>
-        <p>Über <span class="button-ref btn-notes">📝 Notizen</span> in der Editor-Toolbar zeigst du den Notizen-Bereich unter dem Markdown-Editor an. Dort kannst du Notizen für die aktuell ausgewählte Folie hinzufügen.</p>
+        <h2>6. Sprechernotizen</h2>
+        <p>Über <span class="button-ref btn-notes">📝 Notizen</span> rechts in der Toolbar zeigst du die Notizen-Leiste unter dem Markdown-Editor an. Dort kannst du Notizen für die aktuell ausgewählte Folie hinzufügen.</p>
+        <p>In der Kopfzeile der Notizen-Leiste siehst du die aktuelle Foliennummer (und ggf. das Kapitel) und kannst mit den <strong>←/→</strong>-Buttons zwischen den Folien wechseln.</p>
         <p>Notizen werden im Markdown als HTML-Kommentar gespeichert:</p>
         <div class="code"># Meine Folie
 
 Sichtbarer Inhalt.
 
 &lt;!--notes:Hier stehen meine Sprechernotizen.--&gt;</div>
-        <div class="info">Notizen sind in der normalen Vorschau und im Export unsichtbar – sie erscheinen nur in der Presenter-View und im separaten Notizen-Editor.</div>
+        <div class="info">Notizen sind in der normalen Vorschau und im Export unsichtbar – sie erscheinen nur in der Presenter-View und im Notizen-Editor.</div>
         <p><a href="#top" class="back-top">↑ Nach oben</a></p>
     </div>
 
-    <!-- 6. Tabellen -->
+    <!-- 7. Tabellen -->
     <div class="section" id="tabellen">
-        <h2>6. Tabellen einfügen</h2>
-        <p>Über <span class="button-ref btn-table">📊 Tabelle</span> stehen vier vorgefertigte Tabellen-Templates zur Auswahl:</p>
+        <h2>7. Tabellen einfügen</h2>
+        <p>Im Menü <span class="menu-ref">Einfügen</span> stehen vier vorgefertigte Tabellen-Templates zur Auswahl:</p>
         <ul>
-            <li><strong>Standard mit Kopfzeile:</strong> Klassische Markdown-Tabelle mit Header.</li>
-            <li><strong>Standard ohne Kopfzeile:</strong> Tabelle ohne Header-Beschriftung.</li>
+            <li><strong>Tabelle mit Kopfzeile:</strong> Klassische Markdown-Tabelle mit Header.</li>
+            <li><strong>Tabelle ohne Kopfzeile:</strong> Tabelle ohne Header-Beschriftung.</li>
             <li><strong>🔢 Nummerierte Tabelle:</strong> HTML-Tabelle mit großen Nummern und Detail-Bereich.</li>
             <li><strong>🔢 Große nummerierte Tabelle:</strong> Variante mit größerer Schrift, ideal für Übersichten.</li>
         </ul>
@@ -315,16 +365,15 @@ Sichtbarer Inhalt.
         <p><a href="#top" class="back-top">↑ Nach oben</a></p>
     </div>
 
-    <!-- 7. Format -->
+    <!-- 8. Format -->
     <div class="section" id="format">
-        <h2>7. Formatierung &amp; Spalten</h2>
-        <p>Das <span class="button-ref btn-format">✨ Format</span>-Menü bietet:</p>
+        <h2>8. Formatierung &amp; Spalten</h2>
         <h3>🎨 Bold-Coloured</h3>
-        <p>Markiere einen Textabschnitt im Editor und klicke auf <strong>🎨 Bold</strong>. Der Text wird in einen <code>&lt;span&gt;</code> mit Fett-Formatierung und der gewählten Farbe gewickelt:</p>
+        <p>Markiere einen Textabschnitt im Editor und klicke im Menü <span class="menu-ref">Format</span> auf <strong>🎨 Bold</strong>. Der Text wird in einen <code>&lt;span&gt;</code> mit Fett-Formatierung und der gewählten Farbe gewickelt:</p>
         <div class="code">&lt;span style="font-weight: bold; color: orange"&gt;Text&lt;/span&gt;</div>
-        <p>Über das Dropdown rechts wählst du eine Farbe aus der Grass-Terminal-Palette (Orange, Gold, Coral, Tomato, …).</p>
+        <p>Über das Dropdown daneben wählst du eine Farbe aus der Grass-Terminal-Palette (Orange, Gold, Coral, Tomato, …).</p>
         <h3>📑 Spalten</h3>
-        <p>Wähle 2–5 Spalten und füge ein Flex-Layout-Template ein:</p>
+        <p>Im Menü <span class="menu-ref">Einfügen</span> wählst du unter <strong>Spalten einfügen</strong> 2–5 Spalten und fügst ein Flex-Layout-Template ein:</p>
         <div class="code">&lt;div style="display: flex; gap: 20px;"&gt;
   &lt;div style="flex: 1"&gt;
     Spalte 1
@@ -336,12 +385,12 @@ Sichtbarer Inhalt.
         <p><a href="#top" class="back-top">↑ Nach oben</a></p>
     </div>
 
-    <!-- 8. Bilder -->
+    <!-- 9. Bilder -->
     <div class="section" id="bilder">
-        <h2>8. Bilder &amp; Hintergründe</h2>
+        <h2>9. Bilder &amp; Hintergründe</h2>
         <p>Bilder können auf <strong>drei verschiedene Arten</strong> in deine Folien eingebunden werden – und auf <strong>zwei verschiedene Arten</strong> in die App geladen werden (UI-Upload oder Terminal-Befehl).</p>
 
-        <h3>8.1 Die drei Einsatzarten von Bildern</h3>
+        <h3>9.1 Die drei Einsatzarten von Bildern</h3>
         <table>
             <tr>
                 <th>Art</th>
@@ -364,10 +413,10 @@ Sichtbarer Inhalt.
                 <td>Oben links auf der Folie</td>
             </tr>
         </table>
-        <div class="info">Zusätzlich gibt es das <strong>Firmenlogo</strong> – dieses wird global in der Fußzeile <em>aller</em> Folien angezeigt und über die Vorschau-Toolbar eingestellt (siehe Abschnitt <a href="#themes">14</a>).</div>
+        <div class="info">Zusätzlich gibt es das <strong>Firmenlogo</strong> – dieses wird global in der Fußzeile <em>aller</em> Folien angezeigt und im Menü <span class="menu-ref">Einstellungen</span> ausgewählt (siehe Abschnitt <a href="#themes">15</a>).</div>
 
-        <h3>8.2 Über die UI: Bild-Bibliothek (Upload im Browser)</h3>
-        <p>Klicke in der Editor-Toolbar auf <span class="button-ref btn-images">🖼️ Bilder</span>, um die Bild-Bibliothek zu öffnen.</p>
+        <h3>9.2 Über die UI: Bild-Bibliothek (Upload im Browser)</h3>
+        <p>Öffne die Bild-Bibliothek über <span class="menu-ref">Einfügen</span> → <strong>🖼️ Bild aus Bibliothek…</strong></p>
         <p><strong>Funktionen der Bibliothek:</strong></p>
         <ul>
             <li><strong>➕ Neues Bild hochladen</strong> – Datei auswählen. Das Bild wird automatisch komprimiert (max. 1920 px Breite, JPEG-Qualität 85 %) und in der browser-internen Datenbank (IndexedDB) gespeichert.</li>
@@ -378,7 +427,7 @@ Sichtbarer Inhalt.
             <li><strong>🗑️ Löschen</strong> – entfernt das Bild aus der IndexedDB.</li>
         </ul>
 
-        <h3>8.3 Manuelle Markdown-Syntax</h3>
+        <h3>9.3 Manuelle Markdown-Syntax</h3>
         <p>Wenn du die Bibliothek nicht verwenden möchtest, kannst du die Bilder auch direkt im Markdown referenzieren:</p>
 
         <h4>Inline-Bild</h4>
@@ -410,7 +459,7 @@ Inhalt der Folie …</div>
 
         <div class="tip"><strong>Tipp:</strong> Du kannst Hintergrundbild und Produkt-Logo kombinieren – einfach beide Kommentare untereinander an den Anfang der Folie schreiben.</div>
 
-        <h3>8.4 Bilder per Terminal-Befehl hinzufügen</h3>
+        <h3>9.4 Bilder per Terminal-Befehl hinzufügen</h3>
         <p>Inline-Bilder können auch <strong>ohne</strong> die UI-Bibliothek verwendet werden. Dazu legst du die Bilddatei einfach in den <code>public/</code>-Ordner. Die App referenziert solche Dateien direkt per relativen Pfad.</p>
 
         <div class="info"><strong>Wichtig:</strong> Per Terminal hinzugefügte Bilder funktionieren <strong>für Inline-Bilder</strong> (<code>![alt](datei.png)</code>) und für das <strong>Firmenlogo</strong>. Für <strong>Hintergrundbilder</strong> und <strong>Produkt-Logos</strong> muss das Bild in die IndexedDB hochgeladen werden – verwende dafür die UI.</div>
@@ -496,7 +545,7 @@ sips -s format jpeg -s formatOptions 85 mein-bild.png --out presentation-app/pub
             </tr>
         </table>
 
-        <h3>8.5 Hinweise zur Speicherung</h3>
+        <h3>9.5 Hinweise zur Speicherung</h3>
         <ul>
             <li>Bilder aus der UI-Bibliothek liegen in der <strong>IndexedDB</strong> deines Browsers – sie wandern <em>nicht</em> automatisch mit, wenn du den Browser oder Computer wechselst. Nutze ggf. den <strong>💾 Download</strong>-Button als Backup.</li>
             <li>Bilder im <code>public/</code>-Ordner sind Teil des Projekts und immer verfügbar – sie werden allerdings <strong>nicht in der Bild-Bibliothek angezeigt</strong>.</li>
@@ -506,10 +555,10 @@ sips -s format jpeg -s formatOptions 85 mein-bild.png --out presentation-app/pub
         <p><a href="#top" class="back-top">↑ Nach oben</a></p>
     </div>
 
-    <!-- 9. Templates -->
+    <!-- 10. Templates -->
     <div class="section" id="templates">
-        <h2>9. HTML-Templates</h2>
-        <p>Über <span class="button-ref btn-templates">📋 Templates</span> verwaltest du wiederverwendbare HTML-Bausteine.</p>
+        <h2>10. HTML-Templates</h2>
+        <p>Über <span class="menu-ref">Einfügen</span> → <strong>📋 HTML-Template…</strong> verwaltest du wiederverwendbare HTML-Bausteine.</p>
         <ul>
             <li>Eigene Templates speichern (z. B. komplexe Tabellen-Layouts oder Karten-Designs).</li>
             <li>Vorhandene Templates per Klick in die aktuelle Folie einfügen.</li>
@@ -518,17 +567,17 @@ sips -s format jpeg -s formatOptions 85 mein-bild.png --out presentation-app/pub
         <p><a href="#top" class="back-top">↑ Nach oben</a></p>
     </div>
 
-    <!-- 10. Styles -->
+    <!-- 11. Styles -->
     <div class="section" id="styles">
-        <h2>10. Eigene CSS-Styles</h2>
-        <p>Über <span class="button-ref btn-styles">🎨 Styles</span> öffnest du den Custom-CSS-Editor. Hier kannst du eigenes CSS hinterlegen, das in der Vorschau, im Präsentationsmodus und im PDF-Export angewendet wird.</p>
+        <h2>11. Eigene CSS-Styles</h2>
+        <p>Über <span class="menu-ref">Format</span> → <strong>🎨 Custom-CSS bearbeiten…</strong> öffnest du den Custom-CSS-Editor. Hier kannst du eigenes CSS hinterlegen, das in der Vorschau, im Präsentationsmodus und im PDF-Export angewendet wird.</p>
         <div class="info">Die Styles werden im Browser gespeichert. Falls keine eigenen Styles vorhanden sind, lädt die App automatisch <code>/custom-styles.css</code> aus dem Public-Ordner.</div>
         <p><a href="#top" class="back-top">↑ Nach oben</a></p>
     </div>
 
-    <!-- 11. Mathe -->
+    <!-- 12. Mathe -->
     <div class="section" id="mathe">
-        <h2>11. Mathematische Formeln</h2>
+        <h2>12. Mathematische Formeln</h2>
         <p>Mathe wird über KaTeX gerendert.</p>
         <h3>Inline-Formel</h3>
         <div class="code">Die Formel $E = mc^2$ ist berühmt.</div>
@@ -540,9 +589,9 @@ $$</div>
         <p><a href="#top" class="back-top">↑ Nach oben</a></p>
     </div>
 
-    <!-- 12. Code -->
+    <!-- 13. Code -->
     <div class="section" id="code">
-        <h2>12. Code-Blöcke</h2>
+        <h2>13. Code-Blöcke</h2>
         <p>Code-Blöcke mit Syntax-Highlighting:</p>
         <div class="code">```javascript
 function hello() {
@@ -553,9 +602,9 @@ function hello() {
         <p><a href="#top" class="back-top">↑ Nach oben</a></p>
     </div>
 
-    <!-- 13. Mermaid -->
+    <!-- 14. Mermaid -->
     <div class="section" id="mermaid">
-        <h2>13. Mermaid-Diagramme</h2>
+        <h2>14. Mermaid-Diagramme</h2>
         <p>Diagramme können direkt in Markdown geschrieben werden:</p>
         <div class="code">```mermaid
 graph LR
@@ -563,104 +612,110 @@ graph LR
     B --&gt;|Ja| C[Aktion 1]
     B --&gt;|Nein| D[Aktion 2]
 ```</div>
-        <p>Eine ausführliche Übersicht aller Mermaid-Formen, -Pfeile und -Stile findest du in der separaten <a href="/mermaid-hilfe.html" target="_blank">📊 Mermaid Hilfe</a>.</p>
+        <p>Eine ausführliche Übersicht aller Mermaid-Formen, -Pfeile und -Stile findest du in der separaten <a href="/mermaid-hilfe.html" target="_blank">📊 Mermaid Hilfe</a> (auch über das Menü <span class="menu-ref">Hilfe</span> erreichbar).</p>
         <p><a href="#top" class="back-top">↑ Nach oben</a></p>
     </div>
 
-    <!-- 14. Themes -->
+    <!-- 15. Einstellungen -->
     <div class="section" id="themes">
-        <h2>14. Themes &amp; Schriftgröße</h2>
-        <p>In der Vorschau-Toolbar findest du:</p>
+        <h2>15. Einstellungen (Theme, Autor, Logo, Schrift)</h2>
+        <p>Im Menü <span class="menu-ref">Einstellungen</span> findest du:</p>
         <ul>
             <li><strong>Theme:</strong> Auswahl der Farb- und Stil-Vorlage.</li>
             <li><strong>Autor:</strong> Wird in Fußzeile / Titelfolie eingeblendet.</li>
             <li><strong>Firmenlogo:</strong> Wähle ein Bild aus der Bibliothek für die Fußzeile.</li>
             <li><strong>Schriftgröße:</strong> Globale Skalierung der Folientexte.</li>
+            <li><strong>Beamer-Modus + Auflösung:</strong> siehe Abschnitt <a href="#beamer">16</a>.</li>
         </ul>
-        <p>Alle Einstellungen werden automatisch gespeichert und beim nächsten Start wiederhergestellt.</p>
+        <p>Alle Einstellungen werden automatisch gespeichert, beim nächsten Start wiederhergestellt und wirken auch in den Vorschau-Fenstern.</p>
         <p><a href="#top" class="back-top">↑ Nach oben</a></p>
     </div>
 
-    <!-- 15. Beamer -->
+    <!-- 16. Beamer -->
     <div class="section" id="beamer">
-        <h2>15. Beamer-Modus</h2>
-        <p>Aktiviere die Checkbox <strong>Beamer-Modus (16:9)</strong>, um die Vorschau im richtigen Seitenverhältnis darzustellen. Wähle anschließend die Ziel-Auflösung:</p>
+        <h2>16. Beamer-Modus</h2>
+        <p>Aktiviere im Menü <span class="menu-ref">Einstellungen</span> die Checkbox <strong>Beamer-Modus (16:9)</strong>, um die Folien-Vorschau im richtigen Seitenverhältnis darzustellen. Wähle anschließend die Ziel-Auflösung:</p>
         <ul>
             <li>1920×1080 (Full HD)</li>
             <li>1280×720 (HD)</li>
             <li>1024×768 (XGA)</li>
         </ul>
-        <p>So siehst du bereits beim Bearbeiten, wie deine Folien später auf dem Beamer wirken.</p>
+        <p>Der Beamer-Modus lässt sich auch direkt im Folien-Vorschau-Fenster umschalten. So siehst du bereits beim Bearbeiten, wie deine Folien später auf dem Beamer wirken.</p>
         <p><a href="#top" class="back-top">↑ Nach oben</a></p>
     </div>
 
-    <!-- 16. Präsentation -->
+    <!-- 17. Präsentation -->
     <div class="section" id="praesentation">
-        <h2>16. Präsentationsmodus</h2>
+        <h2>17. Präsentationsmodus</h2>
         <p>Starte mit <span class="button-ref btn-present">🎬 Präsentieren</span> oder der Taste <kbd>F</kbd>:</p>
         <ul>
             <li>Wechselt automatisch in den Vollbild-Modus.</li>
             <li>Navigiere mit <kbd>←</kbd> / <kbd>→</kbd>, <kbd>Leertaste</kbd> oder <kbd>Bild ↓</kbd>.</li>
             <li>Mit <kbd>ESC</kbd> verlässt du den Präsentationsmodus.</li>
-            <li>Bei aktivem separatem Vorschaufenster kannst du es als Presenter-View nutzen.</li>
+            <li>Bei geöffnetem Folien-Vorschau-Fenster kannst du es als Presenter-View nutzen.</li>
         </ul>
         <p><a href="#top" class="back-top">↑ Nach oben</a></p>
     </div>
 
-    <!-- 17. Export -->
+    <!-- 18. Export -->
     <div class="section" id="export">
-        <h2>17. Export (Markdown &amp; PDF)</h2>
+        <h2>18. Export (Markdown &amp; PDF)</h2>
 
         <h3>Markdown-Export</h3>
-        <p>Mit <span class="button-ref btn-export">💾 Export</span> speicherst du dein Markdown:</p>
+        <p>Über <span class="menu-ref">Datei</span> → <strong>💾 Markdown exportieren</strong> speicherst du dein Markdown:</p>
         <ul>
             <li>In Browsern mit File-System-Access-API (z. B. Chrome) wählst du <strong>einmal</strong> einen Speicherort. Anschließend wird die Datei beim nächsten Klick direkt überschrieben.</li>
-            <li>Über das Hover-Menü kannst du <strong>Dateiname</strong> und <strong>Speicherort</strong> jederzeit ändern.</li>
+            <li>Unter <strong>Export-Einstellungen</strong> im selben Menü kannst du <strong>Dateiname</strong> und <strong>Speicherort</strong> jederzeit ändern.</li>
             <li>In anderen Browsern wird die Datei klassisch heruntergeladen.</li>
         </ul>
 
         <h3>PDF-Export</h3>
-        <p><span class="button-ref btn-pdf">📄 PDF Export</span> erzeugt eine PDF-Datei mit allen Folien. Während des Exports wird der Fortschritt angezeigt. Der Export berücksichtigt Theme, Schriftgröße, Bilder und Notizen-Einstellungen.</p>
+        <p><span class="button-ref btn-pdf">📄 PDF</span> (rechts in der Toolbar, ebenso unter <span class="menu-ref">Datei</span>) erzeugt eine PDF-Datei mit allen Folien. Während des Exports wird der Fortschritt in der Toolbar angezeigt. Der Export berücksichtigt Theme, Schriftgröße, Bilder und Notizen-Einstellungen.</p>
         <p><a href="#top" class="back-top">↑ Nach oben</a></p>
     </div>
 
-    <!-- 18. Import -->
+    <!-- 19. Import -->
     <div class="section" id="import">
-        <h2>18. Import bestehender Markdown-Dateien</h2>
-        <p>Mit <span class="button-ref btn-import">📂 Import</span> wählst du eine vorhandene <code>.md</code>- oder <code>.markdown</code>-Datei und ersetzt damit den Editor-Inhalt.</p>
+        <h2>19. Import bestehender Markdown-Dateien</h2>
+        <p>Über <span class="menu-ref">Datei</span> → <strong>📂 Markdown importieren…</strong> wählst du eine vorhandene <code>.md</code>- oder <code>.markdown</code>-Datei und ersetzt damit den Editor-Inhalt.</p>
         <div class="warn"><strong>Achtung:</strong> Beim Import wird der aktuelle Editor-Inhalt überschrieben. Speichere ggf. vorher per Export.</div>
+        <div class="info">Im Menü <span class="menu-ref">Decks</span> kannst du außerdem vordefinierte Präsentationen laden (Update AI, PAS-Demo, 𝛄-lab Vorgehen) – auch hier wird der Editor-Inhalt nach Rückfrage ersetzt.</div>
         <p><a href="#top" class="back-top">↑ Nach oben</a></p>
     </div>
 
-    <!-- 19. Shortcuts -->
+    <!-- 20. Shortcuts -->
     <div class="section" id="shortcuts">
-        <h2>19. Tastenkürzel</h2>
+        <h2>20. Tastenkürzel</h2>
         <table>
             <tr><th>Taste</th><th>Aktion</th></tr>
             <tr><td><kbd>F</kbd></td><td>Präsentationsmodus starten (außerhalb von Eingabefeldern)</td></tr>
             <tr><td><kbd>Cmd</kbd>/<kbd>Ctrl</kbd> + <kbd>G</kbd></td><td>„Gehe zu Folie"-Dialog öffnen</td></tr>
-            <tr><td><kbd>←</kbd> / <kbd>→</kbd></td><td>Navigation zwischen Folien</td></tr>
+            <tr><td><kbd>←</kbd> / <kbd>→</kbd></td><td>Navigation zwischen Folien (in Folien-Vorschau und Präsentation)</td></tr>
             <tr><td><kbd>Leertaste</kbd></td><td>Nächste Folie (im Präsentationsmodus)</td></tr>
             <tr><td><kbd>ESC</kbd></td><td>Präsentationsmodus oder Dialog schließen</td></tr>
         </table>
+        <p>Die Übersicht ist auch jederzeit im Menü <span class="menu-ref">Hilfe</span> verfügbar.</p>
         <p><a href="#top" class="back-top">↑ Nach oben</a></p>
     </div>
 
-    <!-- 20. Tipps -->
+    <!-- 21. Tipps -->
     <div class="section" id="tipps">
-        <h2>20. Tipps &amp; FAQ</h2>
+        <h2>21. Tipps &amp; FAQ</h2>
 
         <h3>💾 Wo werden meine Daten gespeichert?</h3>
         <p>Markdown, Theme-Einstellungen, Notizen-Anzeige etc. werden im <strong>LocalStorage</strong> deines Browsers gespeichert. Bilder und Templates liegen in <strong>IndexedDB</strong>. Es findet keine Übertragung an einen Server statt.</p>
 
         <h3>🔄 Wie wechsle ich den Browser/Computer?</h3>
-        <p>Exportiere dein Markdown per <span class="button-ref btn-export">💾 Export</span>, lade auf dem neuen Gerät die Datei per <span class="button-ref btn-import">📂 Import</span>. Bilder müssen separat über die Bild-Bibliothek hochgeladen werden.</p>
+        <p>Exportiere dein Markdown über <span class="menu-ref">Datei</span> → <strong>Markdown exportieren</strong>, lade auf dem neuen Gerät die Datei über <span class="menu-ref">Datei</span> → <strong>Markdown importieren…</strong>. Bilder müssen separat über die Bild-Bibliothek hochgeladen werden.</p>
 
         <h3>🖥️ Dual-Monitor-Setup</h3>
-        <p>Klicke auf <span class="button-ref btn-window">🪟 Separates Fenster</span>. Verschiebe das Vorschau-Fenster auf den Beamer, behalte den Editor mit Notizen auf deinem Hauptmonitor.</p>
+        <p>Öffne die <span class="button-ref btn-window">🪟 Folien-Vorschau</span> und verschiebe das Fenster auf den Beamer bzw. zweiten Monitor. Der Editor mit Notizen bleibt auf deinem Hauptmonitor – beide Fenster bleiben synchron.</p>
 
         <h3>📝 Wie zeige ich nur den Notizen-Editor an?</h3>
         <p>Schalte <span class="button-ref btn-notes">📝 Notizen</span> ein/aus. Die Einstellung bleibt erhalten.</p>
+
+        <h3>🎞️ Die Deck-Vorschau zeigt einen alten Stand?</h3>
+        <p>Das ist beabsichtigt – sie lädt nur beim Öffnen. Klicke auf <strong>🔄 Aktualisieren</strong>, um den aktuellen Editor-Stand zu holen.</p>
 
         <h3>🚫 Vorschau aktualisiert sich nicht?</h3>
         <p>Stelle sicher, dass deine Folientrenner <code>---</code> in einer eigenen, leeren Zeile stehen. Innerhalb von Tabellen oder Code-Blöcken werden sie nicht als Folientrenner interpretiert.</p>
