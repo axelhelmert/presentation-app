@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { parseSlides, Slide, renderMarkdownToHTML, setNotes } from '@/lib/markdown';
-import SlidePreview from './SlidePreview';
 import PresentationMode from './PresentationMode';
 import ImageLibrary from './ImageLibrary';
 import CustomCSSEditor from './CustomCSSEditor';
@@ -141,28 +140,26 @@ export default function Editor() {
   const [exportProgress, setExportProgress] = useState<string>('');
   const [uploadedImages, setUploadedImages] = useState<StoredImage[]>([]);
   const [storedTemplates, setStoredTemplates] = useState<StoredTemplate[]>([]);
-  const [showTableMenu, setShowTableMenu] = useState<boolean>(false);
+  const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [showImageLibrary, setShowImageLibrary] = useState<boolean>(false);
   const [showTemplateLibrary, setShowTemplateLibrary] = useState<boolean>(false);
   const [showCustomCSSEditor, setShowCustomCSSEditor] = useState<boolean>(false);
   const [author, setAuthor] = useState<string>('');
   const [isNavigatorCollapsed, setIsNavigatorCollapsed] = useState<boolean>(false);
   const [showGoToDialog, setShowGoToDialog] = useState<boolean>(false);
-  const [isSeparatePreview, setIsSeparatePreview] = useState<boolean>(false);
+  const [isPreviewWindowOpen, setIsPreviewWindowOpen] = useState<boolean>(false);
   const [isBeamerMode, setIsBeamerMode] = useState<boolean>(false);
   const [beamerResolution, setBeamerResolution] = useState<string>('1920x1080');
   const [companyLogo, setCompanyLogo] = useState<string>('msg-logo.png');
   const [selectedTextColor, setSelectedTextColor] = useState<string>('orange');
-  const [showFormatMenu, setShowFormatMenu] = useState<boolean>(false);
   const [columnCount, setColumnCount] = useState<number>(2);
-  const [editorWidth, setEditorWidth] = useState<number>(50); // in percent
-  const [isResizing, setIsResizing] = useState<boolean>(false);
   const [notesValue, setNotesValue] = useState<string>('');
   const [showNotes, setShowNotes] = useState<boolean>(true);
   const [exportFilename, setExportFilename] = useState<string>('presentation.md');
   const [exportFileHandle, setExportFileHandle] = useState<FileSystemFileHandle | null>(null);
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
   const previewWindowRef = React.useRef<Window | null>(null);
+  const deckPreviewWindowRef = React.useRef<Window | null>(null);
 
   // Grass terminal color scheme (text colors)
   const grassColors = [
@@ -719,7 +716,7 @@ export default function Editor() {
       setMarkdown((prev) => prev + tableTemplate);
     }
 
-    setShowTableMenu(false);
+    setOpenMenu(null);
   };
 
   const handleInsertNumberedTable = () => {
@@ -782,7 +779,7 @@ export default function Editor() {
       setMarkdown((prev) => prev + numberedTableTemplate);
     }
 
-    setShowTableMenu(false);
+    setOpenMenu(null);
   };
 
   const handleInsertBigNumberedTable = () => {
@@ -845,7 +842,7 @@ export default function Editor() {
       setMarkdown((prev) => prev + bigNumberedTableTemplate);
     }
 
-    setShowTableMenu(false);
+    setOpenMenu(null);
   };
 
   const handleInsertImageFromLibrary = (filename: string) => {
@@ -1024,34 +1021,34 @@ export default function Editor() {
       setMarkdown((prev) => prev + columnsTemplate);
     }
 
-    setShowFormatMenu(false);
+    setOpenMenu(null);
   };
 
-  const handleToggleSeparatePreview = () => {
-    if (isSeparatePreview) {
+  const handleTogglePreviewWindow = () => {
+    if (isPreviewWindowOpen) {
       // Close the preview window
       if (previewWindowRef.current && !previewWindowRef.current.closed) {
         previewWindowRef.current.close();
       }
       previewWindowRef.current = null;
-      setIsSeparatePreview(false);
+      setIsPreviewWindowOpen(false);
     } else {
-      // Open preview in new window
+      // Open preview in new window, as large as the screen allows
       const previewWindow = window.open(
         '/preview',
         'presentation-preview',
-        'width=1280,height=720,menubar=no,toolbar=no,location=no,status=no'
+        `width=${window.screen.availWidth},height=${window.screen.availHeight},menubar=no,toolbar=no,location=no,status=no`
       );
 
       if (previewWindow) {
         previewWindowRef.current = previewWindow;
-        setIsSeparatePreview(true);
+        setIsPreviewWindowOpen(true);
 
         // Check if window gets closed by user
         const checkWindowClosed = setInterval(() => {
           if (previewWindowRef.current?.closed) {
             clearInterval(checkWindowClosed);
-            setIsSeparatePreview(false);
+            setIsPreviewWindowOpen(false);
             previewWindowRef.current = null;
           }
         }, 1000);
@@ -1059,30 +1056,57 @@ export default function Editor() {
     }
   };
 
-  // Clean up preview window on unmount
+  const handleOpenDeckPreview = () => {
+    if (deckPreviewWindowRef.current && !deckPreviewWindowRef.current.closed) {
+      deckPreviewWindowRef.current.focus();
+      return;
+    }
+    deckPreviewWindowRef.current = window.open(
+      '/preview-deck',
+      'presentation-deck-preview',
+      `width=${window.screen.availWidth},height=${window.screen.availHeight},menubar=no,toolbar=no,location=no,status=no`
+    );
+  };
+
+  // Clean up preview windows on unmount
   useEffect(() => {
     return () => {
       if (previewWindowRef.current && !previewWindowRef.current.closed) {
         previewWindowRef.current.close();
       }
+      if (deckPreviewWindowRef.current && !deckPreviewWindowRef.current.closed) {
+        deckPreviewWindowRef.current.close();
+      }
     };
+  }, []);
+
+  // Follow slide navigation done in preview windows (storage events
+  // only fire in other windows, so this never loops back on our own writes)
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === STORAGE_CURRENT_SLIDE_KEY && e.newValue !== null) {
+        const slideNum = parseInt(e.newValue, 10);
+        if (!isNaN(slideNum)) {
+          setCurrentSlide(slideNum);
+        }
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
   // Close menus when clicking outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      if (showTableMenu && !target.closest('.table-menu-container')) {
-        setShowTableMenu(false);
-      }
-      if (showFormatMenu && !target.closest('.format-menu-container')) {
-        setShowFormatMenu(false);
+      if (openMenu && !target.closest('.toolbar-menu')) {
+        setOpenMenu(null);
       }
     };
 
     document.addEventListener('click', handleClickOutside);
     return () => document.removeEventListener('click', handleClickOutside);
-  }, [showTableMenu, showFormatMenu]);
+  }, [openMenu]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -1120,41 +1144,6 @@ export default function Editor() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isPresentationMode, slides.length, handleStartPresentation, showGoToDialog]);
 
-  // Handle resizing of editor/preview split
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!isResizing) return;
-
-      const container = document.querySelector('.split-container') as HTMLElement;
-      if (!container) return;
-
-      const containerRect = container.getBoundingClientRect();
-      const newWidth = ((e.clientX - containerRect.left) / containerRect.width) * 100;
-
-      // Constrain between 20% and 80%
-      const constrainedWidth = Math.min(Math.max(newWidth, 20), 80);
-      setEditorWidth(constrainedWidth);
-    };
-
-    const handleMouseUp = () => {
-      setIsResizing(false);
-    };
-
-    if (isResizing) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
-      document.body.style.cursor = 'col-resize';
-      document.body.style.userSelect = 'none';
-    }
-
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-      document.body.style.cursor = '';
-      document.body.style.userSelect = '';
-    };
-  }, [isResizing]);
-
   // Show presentation mode if active
   if (isPresentationMode) {
     return (
@@ -1171,6 +1160,20 @@ export default function Editor() {
     );
   }
 
+  const menuItemClass =
+    'w-full text-left px-4 py-2 hover:bg-gray-700 text-sm text-white transition-colors';
+
+  const renderMenuButton = (id: string, label: string) => (
+    <button
+      onClick={() => setOpenMenu(openMenu === id ? null : id)}
+      className={`px-3 py-1 rounded text-sm transition-colors ${
+        openMenu === id ? 'bg-gray-600' : 'hover:bg-gray-700'
+      }`}
+    >
+      {label}
+    </button>
+  );
+
   return (
     <div className="flex h-screen w-full bg-gray-100">
       {/* Slide Navigator */}
@@ -1182,281 +1185,437 @@ export default function Editor() {
         onToggleCollapse={() => setIsNavigatorCollapsed(!isNavigatorCollapsed)}
       />
 
-      {/* Split Container for Editor and Preview */}
-      <div className="flex flex-1 split-container">
-        {/* Editor Panel */}
-        <div
-          className="flex flex-col"
-          style={{
-            width: isSeparatePreview ? '100%' : `${editorWidth}%`,
-          }}
-        >
-        <div className="bg-gray-800 text-white px-6 py-3 flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <h2 className="text-lg font-semibold">Markdown Editor</h2>
-            <button
-              onClick={handleToggleSeparatePreview}
-              className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-                isSeparatePreview
-                  ? 'bg-orange-600 hover:bg-orange-500'
-                  : 'bg-indigo-600 hover:bg-indigo-500'
-              }`}
-              title={isSeparatePreview ? 'Vorschau in Editor anzeigen' : 'Vorschau in separatem Fenster öffnen'}
-            >
-              {isSeparatePreview ? '🖥️ Split View' : '🪟 Separates Fenster'}
-            </button>
-            <button
-              onClick={() => setShowNotes(!showNotes)}
-              className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-                showNotes
-                  ? 'bg-green-600 hover:bg-green-500'
-                  : 'bg-gray-600 hover:bg-gray-500'
-              }`}
-              title={showNotes ? 'Notizen ausblenden' : 'Notizen einblenden'}
-            >
-              📝 {showNotes ? 'Notizen' : 'Notizen'}
-            </button>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-gray-400">
-              {slides.length} Slide{slides.length !== 1 ? 's' : ''}
-            </span>
-            <div className="flex gap-2">
-              <div className="relative format-menu-container">
-                <button
-                  onClick={() => setShowFormatMenu(!showFormatMenu)}
-                  className="px-3 py-1 bg-indigo-700 rounded hover:bg-indigo-600 text-sm transition-colors"
-                  title="Formatierungsoptionen"
+      {/* Editor Column */}
+      <div className="flex flex-col flex-1 min-w-0">
+        {/* Global Toolbar */}
+        <div className="bg-gray-800 text-white px-4 py-2 flex items-center gap-1 flex-wrap">
+          {/* Datei */}
+          <div className="relative toolbar-menu">
+            {renderMenuButton('datei', 'Datei')}
+            {openMenu === 'datei' && (
+              <div className="absolute top-full left-0 mt-1 bg-gray-800 border border-gray-600 rounded shadow-lg z-50 min-w-[280px]">
+                <label
+                  htmlFor="markdown-import"
+                  onClick={() => setOpenMenu(null)}
+                  className={`${menuItemClass} block cursor-pointer`}
+                  title="Markdown-Datei importieren"
                 >
-                  ✨ Format
-                </button>
-                {showFormatMenu && (
-                  <div className="absolute top-full left-0 mt-1 bg-gray-800 border border-gray-600 rounded shadow-lg z-10 min-w-[280px]">
-                    <div className="p-3 border-b border-gray-600">
-                      <div className="text-xs text-gray-400 mb-2">Text formatieren</div>
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={handleWrapBoldColored}
-                          className="px-3 py-1 rounded hover:opacity-80 text-sm font-bold transition-colors text-white"
-                          style={{ backgroundColor: selectedTextColor }}
-                          title="Markierten Text fett und farbig formatieren"
-                        >
-                          🎨 Bold
-                        </button>
-                        <select
-                          value={selectedTextColor}
-                          onChange={(e) => setSelectedTextColor(e.target.value)}
-                          className="bg-gray-600 text-white px-2 py-1 rounded text-xs border border-gray-500 focus:outline-none focus:border-gray-400"
-                          title="Textfarbe auswählen"
-                        >
-                          {grassColors.map((item) => (
-                            <option key={item.color} value={item.color}>
-                              {item.name}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-                    <div className="p-3 border-b border-gray-600">
-                      <div className="text-xs text-gray-400 mb-2">Spalten einfügen</div>
-                      <div className="flex items-center gap-2">
-                        <select
-                          value={columnCount}
-                          onChange={(e) => setColumnCount(Number(e.target.value))}
-                          className="bg-gray-600 text-white px-2 py-1 rounded text-xs border border-gray-500 focus:outline-none focus:border-gray-400"
-                          title="Anzahl der Spalten"
-                        >
-                          <option value="2">2 Spalten</option>
-                          <option value="3">3 Spalten</option>
-                          <option value="4">4 Spalten</option>
-                          <option value="5">5 Spalten</option>
-                        </select>
-                        <button
-                          onClick={handleInsertColumns}
-                          className="px-3 py-1 bg-indigo-600 rounded hover:bg-indigo-500 text-sm text-white transition-colors"
-                        >
-                          📑 Einfügen
-                        </button>
-                      </div>
-                    </div>
-                    <div className="p-3">
-                      <div className="text-xs text-gray-400 mb-2">Hilfe & Dokumentation</div>
-                      <div className="flex flex-col gap-2">
-                        <a
-                          href="/benutzerhandbuch.html"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="block px-3 py-2 bg-blue-600 rounded hover:bg-blue-500 text-sm text-white text-center transition-colors"
-                          title="Benutzerhandbuch öffnen"
-                        >
-                          📖 Benutzerhandbuch
-                        </a>
-                        <a
-                          href="/mermaid-hilfe.html"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="block px-3 py-2 bg-teal-600 rounded hover:bg-teal-500 text-sm text-white text-center transition-colors"
-                          title="Mermaid Diagramm Dokumentation öffnen"
-                        >
-                          📊 Mermaid Hilfe
-                        </a>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-              <div className="relative table-menu-container">
+                  📂 Markdown importieren…
+                </label>
                 <button
-                  onClick={() => setShowTableMenu(!showTableMenu)}
-                  className="px-3 py-1 bg-purple-700 rounded hover:bg-purple-600 text-sm transition-colors"
-                  title="Tabelle einfügen"
-                >
-                  📊 Tabelle
-                </button>
-                {showTableMenu && (
-                  <div className="absolute top-full left-0 mt-1 bg-gray-800 border border-gray-600 rounded shadow-lg z-10 min-w-[200px]">
-                    <button
-                      onClick={() => handleInsertTable(true)}
-                      className="w-full text-left px-4 py-2 hover:bg-gray-700 text-sm text-white transition-colors"
-                    >
-                      Standard mit Kopfzeile
-                    </button>
-                    <button
-                      onClick={() => handleInsertTable(false)}
-                      className="w-full text-left px-4 py-2 hover:bg-gray-700 text-sm text-white transition-colors border-t border-gray-600"
-                    >
-                      Standard ohne Kopfzeile
-                    </button>
-                    <button
-                      onClick={handleInsertNumberedTable}
-                      className="w-full text-left px-4 py-2 hover:bg-gray-700 text-sm text-white transition-colors border-t border-gray-600"
-                    >
-                      🔢 Nummerierte Tabelle
-                    </button>
-                    <button
-                      onClick={handleInsertBigNumberedTable}
-                      className="w-full text-left px-4 py-2 hover:bg-gray-700 text-sm text-white transition-colors border-t border-gray-600"
-                    >
-                      🔢 Große nummerierte Tabelle
-                    </button>
-                  </div>
-                )}
-              </div>
-              <button
-                onClick={() => setShowImageLibrary(true)}
-                className="px-3 py-1 bg-blue-700 rounded hover:bg-blue-600 text-sm transition-colors"
-                title="Bild-Bibliothek öffnen"
-              >
-                🖼️ Bilder
-              </button>
-              <button
-                onClick={() => setShowTemplateLibrary(true)}
-                className="px-3 py-1 bg-emerald-700 rounded hover:bg-emerald-600 text-sm transition-colors"
-                title="HTML-Templates verwalten"
-              >
-                📋 Templates
-              </button>
-              <button
-                onClick={() => setShowCustomCSSEditor(true)}
-                className="px-3 py-1 bg-pink-700 rounded hover:bg-pink-600 text-sm transition-colors"
-                title="CSS-Templates bearbeiten"
-              >
-                🎨 Styles
-              </button>
-              <button
-                onClick={() =>
-                  handleLoadStaticTemplate(
-                    'update-ai-deck.md',
-                    'Update AI (Gesamtdeck)'
-                  )
-                }
-                className="px-3 py-1 bg-emerald-700 rounded hover:bg-emerald-600 text-sm transition-colors"
-                title="Update AI @ msg life — Gesamtpräsentation, 4 Kapitel (Topic 4 fertig, 1–3 in Arbeit)"
-              >
-                🗂️ Update AI
-              </button>
-              <button
-                onClick={() =>
-                  handleLoadStaticTemplate(
-                    'policy-admin-contracts.md',
-                    'PAS Vertragsstrukturen'
-                  )
-                }
-                className="px-3 py-1 bg-emerald-700 rounded hover:bg-emerald-600 text-sm transition-colors"
-                title="PAS-Vertragsstruktur-Diagramme laden (aus policy-admin generiert)"
-              >
-                📐 PAS-Demo
-              </button>
-              <button
-                onClick={() =>
-                  handleLoadStaticTemplate(
-                    'gamma-lab-vorgehen.md',
-                    'gamma-lab Vorgehen'
-                  )
-                }
-                className="px-3 py-1 bg-emerald-700 rounded hover:bg-emerald-600 text-sm transition-colors"
-                title="gamma-lab Vorgehen & Architektur (aus docs/zielbild.md generiert)"
-              >
-                𝛄-lab Vorgehen
-              </button>
-              <label
-                htmlFor="markdown-import"
-                className="px-3 py-1 bg-gray-700 rounded hover:bg-gray-600 text-sm cursor-pointer transition-colors"
-                title="Markdown-Datei importieren"
-              >
-                📂 Import
-              </label>
-              <input
-                id="markdown-import"
-                type="file"
-                accept=".md,.markdown"
-                onChange={handleImportMarkdown}
-                className="hidden"
-              />
-              <div className="relative group">
-                <button
-                  onClick={handleExportMarkdown}
-                  className="px-3 py-1 bg-gray-700 rounded hover:bg-gray-600 text-sm transition-colors"
+                  onClick={() => {
+                    setOpenMenu(null);
+                    handleExportMarkdown();
+                  }}
+                  className={`${menuItemClass} border-t border-gray-600`}
                   title="Markdown-Datei exportieren"
                 >
-                  💾 Export
+                  💾 Markdown exportieren
                 </button>
-                <div className="absolute hidden group-hover:block top-full right-0 mt-1 bg-gray-800 border border-gray-600 rounded shadow-lg z-50 w-[280px] p-3">
+                <button
+                  onClick={() => {
+                    setOpenMenu(null);
+                    handleExportPDF();
+                  }}
+                  disabled={slides.length === 0 || isExporting}
+                  className={`${menuItemClass} border-t border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed`}
+                  title="Als PDF exportieren"
+                >
+                  📄 PDF exportieren
+                </button>
+                <div className="p-3 border-t border-gray-600">
                   <div className="text-xs text-gray-400 mb-2">Export-Einstellungen</div>
-                  <div className="flex flex-col gap-2">
-                    <div>
-                      <label className="text-xs text-gray-300 block mb-1">Dateiname:</label>
-                      <input
-                        type="text"
-                        value={exportFilename}
-                        onChange={(e) => setExportFilename(e.target.value)}
-                        className="w-full bg-gray-700 text-white px-2 py-1 rounded text-sm border border-gray-600 focus:outline-none focus:border-gray-400"
-                        placeholder="presentation.md"
-                      />
+                  <label className="text-xs text-gray-300 block mb-1">Dateiname:</label>
+                  <input
+                    type="text"
+                    value={exportFilename}
+                    onChange={(e) => setExportFilename(e.target.value)}
+                    className="w-full bg-gray-700 text-white px-2 py-1 rounded text-sm border border-gray-600 focus:outline-none focus:border-gray-400"
+                    placeholder="presentation.md"
+                  />
+                  {hasFileSystemAPI ? (
+                    <div className="flex items-center justify-between pt-2">
+                      <span className="text-xs text-gray-400">
+                        {exportFileHandle ? `💾 ${exportFileHandle.name}` : '💾 Noch kein Speicherort'}
+                      </span>
+                      <button
+                        onClick={handleChangeExportLocation}
+                        className="px-2 py-1 bg-indigo-600 rounded hover:bg-indigo-500 text-xs transition-colors"
+                      >
+                        Speicherort wählen
+                      </button>
                     </div>
-                    {hasFileSystemAPI ? (
-                      <div className="flex items-center justify-between pt-1 border-t border-gray-700">
-                        <span className="text-xs text-gray-400">
-                          {exportFileHandle ? `💾 ${exportFileHandle.name}` : '💾 Noch kein Speicherort'}
-                        </span>
-                        <button
-                          onClick={handleChangeExportLocation}
-                          className="px-2 py-1 bg-indigo-600 rounded hover:bg-indigo-500 text-xs transition-colors"
-                        >
-                          Speicherort wählen
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="text-xs text-gray-500 pt-1 border-t border-gray-700">
-                        ℹ️ Ihr Browser unterstützt keine Dateiauswahl. Datei wird heruntergeladen.
-                      </div>
-                    )}
+                  ) : (
+                    <div className="text-xs text-gray-500 pt-2">
+                      ℹ️ Ihr Browser unterstützt keine Dateiauswahl. Datei wird heruntergeladen.
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Einfügen */}
+          <div className="relative toolbar-menu">
+            {renderMenuButton('einfuegen', 'Einfügen')}
+            {openMenu === 'einfuegen' && (
+              <div className="absolute top-full left-0 mt-1 bg-gray-800 border border-gray-600 rounded shadow-lg z-50 min-w-[260px]">
+                <button onClick={() => handleInsertTable(true)} className={menuItemClass}>
+                  Tabelle mit Kopfzeile
+                </button>
+                <button
+                  onClick={() => handleInsertTable(false)}
+                  className={`${menuItemClass} border-t border-gray-600`}
+                >
+                  Tabelle ohne Kopfzeile
+                </button>
+                <button
+                  onClick={handleInsertNumberedTable}
+                  className={`${menuItemClass} border-t border-gray-600`}
+                >
+                  🔢 Nummerierte Tabelle
+                </button>
+                <button
+                  onClick={handleInsertBigNumberedTable}
+                  className={`${menuItemClass} border-t border-gray-600`}
+                >
+                  🔢 Große nummerierte Tabelle
+                </button>
+                <button
+                  onClick={() => {
+                    setOpenMenu(null);
+                    setShowImageLibrary(true);
+                  }}
+                  className={`${menuItemClass} border-t border-gray-600`}
+                  title="Bild-Bibliothek öffnen"
+                >
+                  🖼️ Bild aus Bibliothek…
+                </button>
+                <button
+                  onClick={() => {
+                    setOpenMenu(null);
+                    setShowTemplateLibrary(true);
+                  }}
+                  className={`${menuItemClass} border-t border-gray-600`}
+                  title="HTML-Templates verwalten"
+                >
+                  📋 HTML-Template…
+                </button>
+                <div className="p-3 border-t border-gray-600">
+                  <div className="text-xs text-gray-400 mb-2">Spalten einfügen</div>
+                  <div className="flex items-center gap-2">
+                    <select
+                      value={columnCount}
+                      onChange={(e) => setColumnCount(Number(e.target.value))}
+                      className="bg-gray-600 text-white px-2 py-1 rounded text-xs border border-gray-500 focus:outline-none focus:border-gray-400"
+                      title="Anzahl der Spalten"
+                    >
+                      <option value="2">2 Spalten</option>
+                      <option value="3">3 Spalten</option>
+                      <option value="4">4 Spalten</option>
+                      <option value="5">5 Spalten</option>
+                    </select>
+                    <button
+                      onClick={handleInsertColumns}
+                      className="px-3 py-1 bg-indigo-600 rounded hover:bg-indigo-500 text-sm text-white transition-colors"
+                    >
+                      📑 Einfügen
+                    </button>
                   </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
+
+          {/* Format */}
+          <div className="relative toolbar-menu">
+            {renderMenuButton('format', 'Format')}
+            {openMenu === 'format' && (
+              <div className="absolute top-full left-0 mt-1 bg-gray-800 border border-gray-600 rounded shadow-lg z-50 min-w-[260px]">
+                <div className="p-3">
+                  <div className="text-xs text-gray-400 mb-2">Text formatieren</div>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={handleWrapBoldColored}
+                      className="px-3 py-1 rounded hover:opacity-80 text-sm font-bold transition-colors text-white"
+                      style={{ backgroundColor: selectedTextColor }}
+                      title="Markierten Text fett und farbig formatieren"
+                    >
+                      🎨 Bold
+                    </button>
+                    <select
+                      value={selectedTextColor}
+                      onChange={(e) => setSelectedTextColor(e.target.value)}
+                      className="bg-gray-600 text-white px-2 py-1 rounded text-xs border border-gray-500 focus:outline-none focus:border-gray-400"
+                      title="Textfarbe auswählen"
+                    >
+                      {grassColors.map((item) => (
+                        <option key={item.color} value={item.color}>
+                          {item.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    setOpenMenu(null);
+                    setShowCustomCSSEditor(true);
+                  }}
+                  className={`${menuItemClass} border-t border-gray-600`}
+                  title="CSS-Templates bearbeiten"
+                >
+                  🎨 Custom-CSS bearbeiten…
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Decks */}
+          <div className="relative toolbar-menu">
+            {renderMenuButton('decks', 'Decks')}
+            {openMenu === 'decks' && (
+              <div className="absolute top-full left-0 mt-1 bg-gray-800 border border-gray-600 rounded shadow-lg z-50 min-w-[280px]">
+                <button
+                  onClick={() => {
+                    setOpenMenu(null);
+                    handleLoadStaticTemplate('update-ai-deck.md', 'Update AI (Gesamtdeck)');
+                  }}
+                  className={menuItemClass}
+                  title="Update AI @ msg life — Gesamtpräsentation, 4 Kapitel (Topic 4 fertig, 1–3 in Arbeit)"
+                >
+                  🗂️ Update AI (Gesamtdeck)
+                </button>
+                <button
+                  onClick={() => {
+                    setOpenMenu(null);
+                    handleLoadStaticTemplate('policy-admin-contracts.md', 'PAS Vertragsstrukturen');
+                  }}
+                  className={`${menuItemClass} border-t border-gray-600`}
+                  title="PAS-Vertragsstruktur-Diagramme laden (aus policy-admin generiert)"
+                >
+                  📐 PAS-Demo
+                </button>
+                <button
+                  onClick={() => {
+                    setOpenMenu(null);
+                    handleLoadStaticTemplate('gamma-lab-vorgehen.md', 'gamma-lab Vorgehen');
+                  }}
+                  className={`${menuItemClass} border-t border-gray-600`}
+                  title="gamma-lab Vorgehen & Architektur (aus docs/zielbild.md generiert)"
+                >
+                  𝛄-lab Vorgehen
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Einstellungen */}
+          <div className="relative toolbar-menu">
+            {renderMenuButton('einstellungen', 'Einstellungen')}
+            {openMenu === 'einstellungen' && (
+              <div className="absolute top-full left-0 mt-1 bg-gray-800 border border-gray-600 rounded shadow-lg z-50 min-w-[320px] p-3 flex flex-col gap-3">
+                <div className="flex items-center justify-between gap-2">
+                  <label htmlFor="theme-select" className="text-sm font-medium">
+                    Theme:
+                  </label>
+                  <select
+                    id="theme-select"
+                    value={selectedTheme}
+                    onChange={(e) => setSelectedTheme(e.target.value)}
+                    className="bg-gray-600 text-white px-3 py-1 rounded border border-gray-500 focus:outline-none focus:border-gray-400 text-sm w-44"
+                  >
+                    {themes.map((theme) => (
+                      <option key={theme.id} value={theme.id}>
+                        {theme.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex items-center justify-between gap-2">
+                  <label htmlFor="author-input" className="text-sm font-medium">
+                    Autor:
+                  </label>
+                  <input
+                    id="author-input"
+                    type="text"
+                    value={author}
+                    onChange={(e) => setAuthor(e.target.value)}
+                    placeholder="Dein Name"
+                    className="bg-gray-600 text-white px-3 py-1 rounded border border-gray-500 focus:outline-none focus:border-gray-400 text-sm w-44"
+                  />
+                </div>
+                <div className="flex items-center justify-between gap-2">
+                  <label htmlFor="company-logo-select" className="text-sm font-medium">
+                    Firmenlogo:
+                  </label>
+                  <select
+                    id="company-logo-select"
+                    value={companyLogo}
+                    onChange={(e) => setCompanyLogo(e.target.value)}
+                    className="bg-gray-600 text-white px-3 py-1 rounded border border-gray-500 focus:outline-none focus:border-gray-400 text-sm w-44"
+                  >
+                    <option value="">Kein Logo</option>
+                    {uploadedImages.map((img) => (
+                      <option key={img.name} value={img.name}>
+                        {img.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex items-center justify-between gap-2">
+                  <label htmlFor="fontsize-select" className="text-sm font-medium">
+                    Schriftgröße:
+                  </label>
+                  <select
+                    id="fontsize-select"
+                    value={selectedFontSize}
+                    onChange={(e) => setSelectedFontSize(e.target.value)}
+                    className="bg-gray-600 text-white px-3 py-1 rounded border border-gray-500 focus:outline-none focus:border-gray-400 text-sm w-44"
+                  >
+                    {fontSizes.map((size) => (
+                      <option key={size.id} value={size.id}>
+                        {size.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="border-t border-gray-600 pt-3 flex flex-col gap-2">
+                  <label className="flex items-center gap-2 cursor-pointer text-sm">
+                    <input
+                      type="checkbox"
+                      checked={isBeamerMode}
+                      onChange={(e) => setIsBeamerMode(e.target.checked)}
+                      className="w-4 h-4 cursor-pointer"
+                    />
+                    <span className="font-medium">Beamer-Modus (16:9)</span>
+                  </label>
+                  {isBeamerMode && (
+                    <div className="flex items-center justify-between gap-2">
+                      <label htmlFor="resolution-select" className="text-sm font-medium">
+                        Auflösung:
+                      </label>
+                      <select
+                        id="resolution-select"
+                        value={beamerResolution}
+                        onChange={(e) => setBeamerResolution(e.target.value)}
+                        className="bg-gray-600 text-white px-3 py-1 rounded border border-gray-500 focus:outline-none focus:border-gray-400 text-sm w-44"
+                      >
+                        <option value="1920x1080">1920×1080 (Full HD)</option>
+                        <option value="1280x720">1280×720 (HD)</option>
+                        <option value="1024x768">1024×768 (XGA)</option>
+                      </select>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Hilfe */}
+          <div className="relative toolbar-menu">
+            {renderMenuButton('hilfe', 'Hilfe')}
+            {openMenu === 'hilfe' && (
+              <div className="absolute top-full left-0 mt-1 bg-gray-800 border border-gray-600 rounded shadow-lg z-50 min-w-[260px]">
+                <a
+                  href="/benutzerhandbuch.html"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => setOpenMenu(null)}
+                  className={`${menuItemClass} block`}
+                  title="Benutzerhandbuch öffnen"
+                >
+                  📖 Benutzerhandbuch
+                </a>
+                <a
+                  href="/mermaid-hilfe.html"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => setOpenMenu(null)}
+                  className={`${menuItemClass} block border-t border-gray-600`}
+                  title="Mermaid Diagramm Dokumentation öffnen"
+                >
+                  📊 Mermaid Hilfe
+                </a>
+                <div className="p-3 border-t border-gray-600 text-xs text-gray-400 flex flex-col gap-1">
+                  <span className="font-medium text-gray-300">Tastenkürzel</span>
+                  <span>F = Präsentieren</span>
+                  <span>⌘G = Gehe zu Folie</span>
+                  <span>← / → = Navigation (Vorschau)</span>
+                  <span>ESC = Präsentation beenden</span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <input
+            id="markdown-import"
+            type="file"
+            accept=".md,.markdown"
+            onChange={handleImportMarkdown}
+            className="hidden"
+          />
+
+          <div className="flex-1" />
+
+          {/* Status + primary actions, always visible */}
+          {exportProgress && (
+            <span className="text-xs text-blue-300 whitespace-nowrap">{exportProgress}</span>
+          )}
+          <span className="text-sm text-gray-400 whitespace-nowrap mr-1">
+            {slides.length} Folie{slides.length !== 1 ? 'n' : ''}
+          </span>
+          <button
+            onClick={() => setShowNotes(!showNotes)}
+            className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+              showNotes ? 'bg-green-700 hover:bg-green-600' : 'bg-gray-600 hover:bg-gray-500'
+            }`}
+            title={showNotes ? 'Notizen ausblenden' : 'Notizen einblenden'}
+          >
+            📝 Notizen
+          </button>
+          <button
+            onClick={handleExportPDF}
+            disabled={slides.length === 0 || isExporting}
+            className="px-3 py-1 bg-blue-600 rounded hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+            title="Als PDF exportieren"
+          >
+            {isExporting ? '⏳ Exportiere…' : '📄 PDF'}
+          </button>
+          <button
+            onClick={handleTogglePreviewWindow}
+            className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+              isPreviewWindowOpen
+                ? 'bg-orange-600 hover:bg-orange-500'
+                : 'bg-indigo-600 hover:bg-indigo-500'
+            }`}
+            title={
+              isPreviewWindowOpen
+                ? 'Vorschau-Fenster schließen'
+                : 'Aktuelle Folie in eigenem Fenster anzeigen (folgt dem Editor)'
+            }
+          >
+            {isPreviewWindowOpen ? '🪟 Vorschau schließen' : '🪟 Folien-Vorschau'}
+          </button>
+          <button
+            onClick={handleOpenDeckPreview}
+            disabled={slides.length === 0}
+            className="px-3 py-1 bg-purple-700 rounded hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+            title="Alle Folien scrollbar in eigenem Fenster anzeigen"
+          >
+            🎞️ Deck-Vorschau
+          </button>
+          <button
+            onClick={handleStartPresentation}
+            disabled={slides.length === 0}
+            className="px-3 py-1 bg-green-600 rounded hover:bg-green-500 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+            title="Präsentationsmodus starten (F)"
+          >
+            🎬 Präsentieren
+          </button>
         </div>
+
+        {/* Markdown Editor */}
         <textarea
           ref={textareaRef}
           value={markdown}
@@ -1465,14 +1624,37 @@ export default function Editor() {
           placeholder="Schreibe dein Markdown hier... Trenne Folien mit ---"
           spellCheck={false}
         />
+
         {/* Notes Editor */}
         {showNotes && (
-          <div className="border-t border-gray-700 bg-gray-850 flex flex-col" style={{ minHeight: '120px', maxHeight: '200px' }}>
-            <div className="bg-gray-700 text-white px-4 py-1 text-xs font-medium text-gray-300">
-              📝 Notizen (Folie {currentSlide + 1}/{slides.length})
+          <div
+            className="border-t border-gray-700 bg-gray-850 flex flex-col"
+            style={{ minHeight: '120px', maxHeight: '200px' }}
+          >
+            <div className="bg-gray-700 px-4 py-1 text-xs font-medium text-gray-300 flex items-center gap-2">
+              <span>
+                📝 Notizen (Folie {currentSlide + 1}/{slides.length})
+              </span>
               {slides[currentSlide]?.chapterTitle && (
-                <span className="ml-2 text-blue-400">• {slides[currentSlide].chapterTitle}</span>
+                <span className="text-blue-400">• {slides[currentSlide].chapterTitle}</span>
               )}
+              <span className="flex-1" />
+              <button
+                onClick={handlePrev}
+                disabled={currentSlide === 0}
+                className="px-2 py-0.5 bg-gray-600 rounded hover:bg-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Vorherige Folie"
+              >
+                ←
+              </button>
+              <button
+                onClick={handleNext}
+                disabled={currentSlide === slides.length - 1}
+                className="px-2 py-0.5 bg-gray-600 rounded hover:bg-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Nächste Folie"
+              >
+                →
+              </button>
             </div>
             <textarea
               value={notesValue}
@@ -1481,221 +1663,6 @@ export default function Editor() {
               placeholder="Notizen für diese Folie…"
               spellCheck={false}
             />
-          </div>
-        )}
-        </div>
-
-        {/* Resizer Divider */}
-        {!isSeparatePreview && (
-          <div
-            className="w-1 bg-gray-300 hover:bg-blue-500 cursor-col-resize transition-colors flex-shrink-0"
-            onMouseDown={() => setIsResizing(true)}
-            title="Ziehen zum Anpassen der Größe"
-          />
-        )}
-
-        {/* Preview Panel - only show when not in separate window mode */}
-        {!isSeparatePreview && (
-          <div
-            className="flex flex-col"
-            style={{
-              width: `${100 - editorWidth}%`,
-            }}
-          >
-        <div className="bg-gray-800 text-white px-6 py-3 flex justify-between items-center">
-          <h2 className="text-lg font-semibold">Vorschau</h2>
-          <div className="flex gap-2 items-center">
-            {exportProgress && (
-              <span className="text-xs text-blue-300 mr-2">{exportProgress}</span>
-            )}
-            <button
-              onClick={handleExportPDF}
-              disabled={slides.length === 0 || isExporting}
-              className="px-4 py-1 bg-blue-600 rounded hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
-              title="Als PDF exportieren"
-            >
-              {isExporting ? '⏳ Exportiere...' : '📄 PDF Export'}
-            </button>
-            <button
-              onClick={handleStartPresentation}
-              disabled={slides.length === 0}
-              className="px-4 py-1 bg-green-600 rounded hover:bg-green-500 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
-              title="Präsentationsmodus starten (F)"
-            >
-              🎬 Präsentieren
-            </button>
-            <button
-              onClick={handlePrev}
-              disabled={currentSlide === 0}
-              className="px-3 py-1 bg-gray-700 rounded hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-            >
-              ← Zurück
-            </button>
-            <button
-              onClick={handleNext}
-              disabled={currentSlide === slides.length - 1}
-              className="px-3 py-1 bg-gray-700 rounded hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-            >
-              Weiter →
-            </button>
-          </div>
-        </div>
-
-        {/* Theme and Font Size Controls */}
-        <div className="bg-gray-700 text-white px-6 py-2 flex gap-4 items-center justify-between text-sm border-b border-gray-600">
-          <div className="flex gap-4 items-center">
-            <div className="flex items-center gap-2">
-              <label htmlFor="theme-select" className="font-medium">
-                Theme:
-              </label>
-              <select
-                id="theme-select"
-                value={selectedTheme}
-                onChange={(e) => setSelectedTheme(e.target.value)}
-                className="bg-gray-600 text-white px-3 py-1 rounded border border-gray-500 focus:outline-none focus:border-gray-400"
-              >
-                {themes.map((theme) => (
-                  <option key={theme.id} value={theme.id}>
-                    {theme.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <label htmlFor="author-input" className="font-medium">
-                Autor:
-              </label>
-              <input
-                id="author-input"
-                type="text"
-                value={author}
-                onChange={(e) => setAuthor(e.target.value)}
-                placeholder="Dein Name"
-                className="bg-gray-600 text-white px-3 py-1 rounded border border-gray-500 focus:outline-none focus:border-gray-400 w-48"
-              />
-            </div>
-
-            <div className="flex items-center gap-2">
-              <label htmlFor="company-logo-select" className="font-medium">
-                Firmenlogo:
-              </label>
-              <select
-                id="company-logo-select"
-                value={companyLogo}
-                onChange={(e) => setCompanyLogo(e.target.value)}
-                className="bg-gray-600 text-white px-3 py-1 rounded border border-gray-500 focus:outline-none focus:border-gray-400"
-              >
-                <option value="">Kein Logo</option>
-                {uploadedImages.map((img) => (
-                  <option key={img.name} value={img.name}>
-                    {img.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <label htmlFor="fontsize-select" className="font-medium">
-                Schriftgröße:
-              </label>
-              <select
-                id="fontsize-select"
-                value={selectedFontSize}
-                onChange={(e) => setSelectedFontSize(e.target.value)}
-                className="bg-gray-600 text-white px-3 py-1 rounded border border-gray-500 focus:outline-none focus:border-gray-400"
-              >
-                {fontSizes.map((size) => (
-                  <option key={size.id} value={size.id}>
-                    {size.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="flex items-center gap-2 border-l border-gray-500 pl-4">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={isBeamerMode}
-                  onChange={(e) => setIsBeamerMode(e.target.checked)}
-                  className="w-4 h-4 cursor-pointer"
-                />
-                <span className="font-medium">Beamer-Modus (16:9)</span>
-              </label>
-            </div>
-
-            {isBeamerMode && (
-              <div className="flex items-center gap-2">
-                <label htmlFor="resolution-select" className="font-medium">
-                  Auflösung:
-                </label>
-                <select
-                  id="resolution-select"
-                  value={beamerResolution}
-                  onChange={(e) => setBeamerResolution(e.target.value)}
-                  className="bg-gray-600 text-white px-3 py-1 rounded border border-gray-500 focus:outline-none focus:border-gray-400"
-                >
-                  <option value="1920x1080">1920×1080 (Full HD)</option>
-                  <option value="1280x720">1280×720 (HD)</option>
-                  <option value="1024x768">1024×768 (XGA)</option>
-                </select>
-              </div>
-            )}
-          </div>
-
-          <div className="text-xs text-gray-300 flex items-center gap-2">
-            <span className="font-medium">Tastenkürzel:</span>
-            <span>F = Präsentieren</span>
-            <span>•</span>
-            <span>← / → = Navigation</span>
-            <span>•</span>
-            <span>ESC = Beenden</span>
-          </div>
-        </div>
-        <div className="flex-1 p-6 overflow-hidden">
-          {slides.length > 0 && slides[currentSlide] ? (
-            <div
-              className={`w-full h-full flex items-center justify-center ${
-                isBeamerMode ? 'bg-black' : ''
-              }`}
-            >
-              <div
-                className={`${
-                  isBeamerMode
-                    ? 'aspect-video w-full max-h-full'
-                    : 'w-full h-full'
-                }`}
-                style={
-                  isBeamerMode
-                    ? {
-                        maxWidth: '100%',
-                        maxHeight: '100%',
-                      }
-                    : undefined
-                }
-              >
-                <SlidePreview
-                  markdown={slides[currentSlide].content}
-                  slideNumber={currentSlide + 1}
-                  totalSlides={slides.length}
-                  themeId={selectedTheme}
-                  fontSizeId={selectedFontSize}
-                  uploadedImages={uploadedImages}
-                  author={author}
-                  backgroundImage={slides[currentSlide].backgroundImage}
-                  backgroundLogo={slides[currentSlide].backgroundLogo}
-                  productLogo={slides[currentSlide].productLogo}
-                  companyLogo={companyLogo}
-                />
-              </div>
-            </div>
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-white rounded-lg shadow-lg">
-              <p className="text-gray-400">Keine Folien vorhanden</p>
-            </div>
-          )}
-        </div>
           </div>
         )}
       </div>

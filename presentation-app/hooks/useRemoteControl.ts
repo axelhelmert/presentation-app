@@ -20,48 +20,65 @@ export function useRemoteControl({
     const host = typeof window !== 'undefined' ? window.location.host : 'localhost:3000';
     const socketUrl = `${protocol}//${host}`;
 
-    console.log('Presentation connecting to Socket.io server:', socketUrl);
+    let socket: Socket | null = null;
+    let cancelled = false;
 
-    // Initialize Socket.io connection with explicit URL and options
-    const socket = io(socketUrl, {
-      path: '/api/socket',
-      transports: ['polling', 'websocket'],
-      reconnection: true,
-      reconnectionDelay: 1000,
-      reconnectionAttempts: 10,
-    });
-
-    socketRef.current = socket;
-
-    socket.on('connect', () => {
-      console.log('Presentation socket connected, ID:', socket.id);
-      setIsConnected(true);
-      socket.emit('join-session', sessionId);
-    });
-
-    socket.on('connect_error', (error) => {
-      console.error('Presentation socket connection error:', error);
-      setIsConnected(false);
-    });
-
-    socket.on('disconnect', (reason) => {
-      console.log('Presentation socket disconnected, reason:', reason);
-      setIsConnected(false);
-    });
-
-    socket.on('remote-command', (data: RemoteCommandPayload) => {
-      console.log('Received remote command:', data);
-      if (data.sessionId === sessionId && onRemoteCommand) {
-        onRemoteCommand(data);
+    // The socket server is lazily initialized by the /api/socket route —
+    // connecting before that fetch completes loses the handshake race
+    // ("server error" connect_error on first use), so await it first.
+    const connect = async () => {
+      try {
+        await fetch('/api/socket');
+      } catch (error) {
+        console.error('Socket server initialization failed:', error);
       }
-    });
+      if (cancelled) return;
 
-    // Initialize the socket server
-    fetch('/api/socket').catch(console.error);
+      console.log('Presentation connecting to Socket.io server:', socketUrl);
+
+      socket = io(socketUrl, {
+        path: '/api/socket',
+        transports: ['polling', 'websocket'],
+        reconnection: true,
+        reconnectionDelay: 1000,
+        reconnectionAttempts: 10,
+      });
+
+      socketRef.current = socket;
+
+      socket.on('connect', () => {
+        console.log('Presentation socket connected, ID:', socket?.id);
+        setIsConnected(true);
+        socket?.emit('join-session', sessionId);
+      });
+
+      socket.on('connect_error', (error) => {
+        console.error('Presentation socket connection error:', error);
+        setIsConnected(false);
+      });
+
+      socket.on('disconnect', (reason) => {
+        console.log('Presentation socket disconnected, reason:', reason);
+        setIsConnected(false);
+      });
+
+      socket.on('remote-command', (data: RemoteCommandPayload) => {
+        console.log('Received remote command:', data);
+        if (data.sessionId === sessionId && onRemoteCommand) {
+          onRemoteCommand(data);
+        }
+      });
+    };
+
+    connect();
 
     return () => {
-      socket.emit('leave-session', sessionId);
-      socket.disconnect();
+      cancelled = true;
+      if (socket) {
+        socket.emit('leave-session', sessionId);
+        socket.disconnect();
+      }
+      socketRef.current = null;
     };
   }, [sessionId, onRemoteCommand]);
 

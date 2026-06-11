@@ -91,70 +91,75 @@ export default function RemoteControl({ params }: RemoteControlProps) {
     addDebugLog(`Connecting to: ${socketUrl}`);
     console.log('Connecting to Socket.io server:', socketUrl);
 
-    addDebugLog('Creating socket.io client...');
+    let newSocket: Socket | null = null;
+    let cancelled = false;
 
-    // Initialize Socket.io connection with explicit URL and options
-    let newSocket;
-    try {
-      newSocket = io(socketUrl, {
+    // The socket server is lazily initialized by the /api/socket route —
+    // connecting before that fetch completes loses the handshake race
+    // ("server error" connect_error on first use), so await it first.
+    const connect = async () => {
+      addDebugLog('Fetching /api/socket to initialize server...');
+      try {
+        await fetch('/api/socket');
+        addDebugLog('Server initialization fetch completed');
+      } catch (err: any) {
+        addDebugLog(`Fetch error: ${err.message}`);
+        console.error(err);
+      }
+      if (cancelled) return;
+
+      addDebugLog('Creating socket.io client...');
+      const socket = io(socketUrl, {
         path: '/api/socket',
         transports: ['polling', 'websocket'],
         reconnection: true,
         reconnectionDelay: 1000,
         reconnectionAttempts: 10,
       });
+      newSocket = socket;
       addDebugLog('Socket.io client created');
-    } catch (error) {
-      addDebugLog(`Error creating socket: ${error}`);
-      return;
-    }
 
-    newSocket.on('connect', () => {
-      addDebugLog(`Connected! Socket ID: ${newSocket.id}`);
-      console.log('Remote control connected, socket ID:', newSocket.id);
-      setIsConnected(true);
-      newSocket.emit('join-session', sessionId);
-    });
-
-    newSocket.on('connect_error', (error) => {
-      addDebugLog(`Connection error: ${error.message}`);
-      console.error('Socket connection error:', error);
-      setIsConnected(false);
-    });
-
-    newSocket.on('disconnect', (reason) => {
-      addDebugLog(`Disconnected: ${reason}`);
-      console.log('Remote control disconnected, reason:', reason);
-      setIsConnected(false);
-    });
-
-    newSocket.on('slide-update', (data: SlideUpdatePayload) => {
-      addDebugLog(`Slide update: ${data.slideIndex + 1}/${data.totalSlides}`);
-      console.log('Received slide update:', data);
-      if (data.sessionId === sessionId) {
-        setCurrentSlide(data.slideIndex);
-        setTotalSlides(data.totalSlides);
-      }
-    });
-
-    addDebugLog('Setting up event listeners...');
-    setSocket(newSocket);
-
-    // Initialize the socket server
-    addDebugLog('Fetching /api/socket to initialize server...');
-    fetch('/api/socket')
-      .then(() => {
-        addDebugLog('Server initialization fetch completed');
-      })
-      .catch((err) => {
-        addDebugLog(`Fetch error: ${err.message}`);
-        console.error(err);
+      socket.on('connect', () => {
+        addDebugLog(`Connected! Socket ID: ${socket.id}`);
+        console.log('Remote control connected, socket ID:', socket.id);
+        setIsConnected(true);
+        socket.emit('join-session', sessionId);
       });
+
+      socket.on('connect_error', (error) => {
+        addDebugLog(`Connection error: ${error.message}`);
+        console.error('Socket connection error:', error);
+        setIsConnected(false);
+      });
+
+      socket.on('disconnect', (reason) => {
+        addDebugLog(`Disconnected: ${reason}`);
+        console.log('Remote control disconnected, reason:', reason);
+        setIsConnected(false);
+      });
+
+      socket.on('slide-update', (data: SlideUpdatePayload) => {
+        addDebugLog(`Slide update: ${data.slideIndex + 1}/${data.totalSlides}`);
+        console.log('Received slide update:', data);
+        if (data.sessionId === sessionId) {
+          setCurrentSlide(data.slideIndex);
+          setTotalSlides(data.totalSlides);
+        }
+      });
+
+      addDebugLog('Setting up event listeners...');
+      setSocket(socket);
+    };
+
+    connect();
 
     return () => {
       addDebugLog('Cleaning up connection');
-      newSocket.emit('leave-session', sessionId);
-      newSocket.disconnect();
+      cancelled = true;
+      if (newSocket) {
+        newSocket.emit('leave-session', sessionId);
+        newSocket.disconnect();
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId]);
