@@ -54,9 +54,18 @@ export default function DeckPreview() {
     localStorage.setItem(STORAGE_CURRENT_SLIDE_KEY, index.toString());
     setClickedSlide(index);
     setTimeout(() => setClickedSlide((cur) => (cur === index ? null : cur)), 1500);
-    // Bring the editor window to the front (browsers may ignore this
-    // outside a user gesture, but we're inside a click handler here)
-    window.opener?.focus?.();
+    // Bring the editor window to the front. Plain opener.focus() is ignored
+    // by focus-stealing protection; re-targeting the named editor window via
+    // window.open inside a click handler is allowed. The empty URL reuses the
+    // existing window without navigating it. Only attempt this when the
+    // opener is alive and named — otherwise window.open would spawn a blank
+    // popup instead.
+    const opener: Window | null = window.opener;
+    if (opener && !opener.closed && opener.name) {
+      window.open('', opener.name)?.focus();
+    } else {
+      opener?.focus();
+    }
   };
 
   return (

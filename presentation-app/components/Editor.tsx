@@ -127,6 +127,7 @@ const STORAGE_COMPANY_LOGO_KEY = 'presentation-company-logo';
 const STORAGE_SHOW_NOTES_KEY = 'presentation-show-notes';
 const STORAGE_EXPORT_FILENAME_KEY = 'presentation-export-filename';
 const INDEXEDDB_EXPORT_FILE_KEY = 'export-file-handle';
+const EDITOR_WINDOW_NAME = 'presentation-editor';
 
 export default function Editor() {
   const [markdown, setMarkdown] = useState<string>('');
@@ -1067,6 +1068,13 @@ export default function Editor() {
       `width=${window.screen.availWidth},height=${window.screen.availHeight},menubar=no,toolbar=no,location=no,status=no`
     );
   };
+
+  // Stable window name so the deck preview can bring this window to the
+  // front (window.open('', name) from a click handler — plain
+  // opener.focus() is blocked by focus-stealing protection)
+  useEffect(() => {
+    window.name = EDITOR_WINDOW_NAME;
+  }, []);
 
   // Clean up preview windows on unmount
   useEffect(() => {
