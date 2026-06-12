@@ -24,6 +24,7 @@ export default function DeckPreview() {
   const [companyLogo, setCompanyLogo] = useState<string>('msg-logo.png');
   const [uploadedImages, setUploadedImages] = useState<StoredImage[]>([]);
   const [loadedAt, setLoadedAt] = useState<Date | null>(null);
+  const [clickedSlide, setClickedSlide] = useState<number | null>(null);
 
   const loadDeck = async () => {
     const savedMarkdown = localStorage.getItem(STORAGE_KEY) || '';
@@ -51,6 +52,11 @@ export default function DeckPreview() {
   const handleSlideClick = (index: number) => {
     localStorage.removeItem(STORAGE_CURRENT_SLIDE_KEY);
     localStorage.setItem(STORAGE_CURRENT_SLIDE_KEY, index.toString());
+    setClickedSlide(index);
+    setTimeout(() => setClickedSlide((cur) => (cur === index ? null : cur)), 1500);
+    // Bring the editor window to the front (browsers may ignore this
+    // outside a user gesture, but we're inside a click handler here)
+    window.opener?.focus?.();
   };
 
   return (
@@ -88,10 +94,18 @@ export default function DeckPreview() {
                     <span className="ml-2 text-blue-400">• {slide.chapterTitle}</span>
                   )}
                 </span>
-                <span className="text-gray-500">Klick = im Editor anwählen</span>
+                {clickedSlide === index ? (
+                  <span className="text-green-400 font-medium">✓ im Editor angewählt</span>
+                ) : (
+                  <span className="text-gray-500">Klick = im Editor anwählen</span>
+                )}
               </div>
               <div
-                className="aspect-video w-full cursor-pointer ring-1 ring-gray-700 hover:ring-2 hover:ring-indigo-400 rounded transition-shadow"
+                className={`aspect-video w-full cursor-pointer rounded transition-shadow ${
+                  clickedSlide === index
+                    ? 'ring-4 ring-green-400'
+                    : 'ring-1 ring-gray-700 hover:ring-2 hover:ring-indigo-400'
+                }`}
                 onClick={() => handleSlideClick(index)}
               >
                 <SlidePreview
