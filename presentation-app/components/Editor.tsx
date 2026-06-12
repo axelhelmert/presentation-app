@@ -1087,13 +1087,21 @@ export default function Editor() {
       if (e.key === STORAGE_CURRENT_SLIDE_KEY && e.newValue !== null) {
         const slideNum = parseInt(e.newValue, 10);
         if (!isNaN(slideNum)) {
-          setCurrentSlide(slideNum);
+          const info = slideInfos.find((s) => s.index === slideNum);
+          if (info && !info.isAgendaSlide) {
+            // Jump the textarea to the slide, same as a navigator click.
+            // The agenda slide is synthetic (no markdown source), so it
+            // only updates the selection state.
+            handleJumpToSlide(slideNum, info.position);
+          } else {
+            setCurrentSlide(slideNum);
+          }
         }
       }
     };
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
+  }, [slideInfos, handleJumpToSlide]);
 
   // Close menus when clicking outside
   useEffect(() => {

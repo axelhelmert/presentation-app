@@ -45,8 +45,11 @@ export default function DeckPreview() {
     loadDeck();
   }, []);
 
-  // Clicking a slide makes the editor (and the live preview window) jump there
+  // Clicking a slide makes the editor (and the live preview window) jump there.
+  // storage events only fire when the value actually changes — remove first so
+  // clicking the slide the editor is already on still triggers the jump.
   const handleSlideClick = (index: number) => {
+    localStorage.removeItem(STORAGE_CURRENT_SLIDE_KEY);
     localStorage.setItem(STORAGE_CURRENT_SLIDE_KEY, index.toString());
   };
 
