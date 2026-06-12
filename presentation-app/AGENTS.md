@@ -110,9 +110,41 @@ Die synthetische Agenda-Folie (von `parseSlides` eingefügt) hat
   inline-`!important` per JS auf Kindern ab Index 1 der `.content-scaler`.
   (Iteration: 0.42 → 0.63 → 0.95em.)
 
+# Fenster-Sync (Editor ↔ Vorschau-Fenster) — Stolperfallen
+
+Die Fenster synchronisieren sich über `localStorage` + `storage`-Events
+(Key `presentation-current-slide`). Drei Fallen, alle schon bezahlt:
+
+- **`storage`-Events feuern nur bei geändertem Wert.** Soll ein Klick
+  immer wirken (auch auf die bereits aktive Folie), vor dem `setItem`
+  ein `removeItem` — das Zwischen-Event mit `newValue === null` wird von
+  allen Listenern ignoriert (sie prüfen `e.newValue !== null`).
+- **`setCurrentSlide` allein ist kein „Sprung im Editor".** Es ändert nur
+  Navigator-Highlight und Notizen-Panel. Sichtbares Springen =
+  `handleJumpToSlide(index, position)` (Cursor + Scroll im Textarea);
+  Positionen kommen aus `extractSlideInfo` via `slideInfos`. Die
+  synthetische Agenda-Folie hat keine Markdown-Quelle (`position: 0`) —
+  für sie nur `setCurrentSlide`.
+- **Fenster-Fokus:** `window.opener.focus()` wird vom Focus-Stealing-
+  Schutz ignoriert. Funktionierender Weg: Editor setzt
+  `window.name = 'presentation-editor'`; das andere Fenster ruft im
+  Klick-Handler (User-Gesture!) `window.open('', opener.name)?.focus()`
+  auf — leere URL = Reuse ohne Navigation. Vorher prüfen, dass
+  `opener && !opener.closed && opener.name`, sonst öffnet das ein leeres
+  Popup.
+
+Verifizieren am besten per Playwright/Headless-Chrome mit **zwei Pages
+im selben Context** (gleiche Origin = geteiltes localStorage, Events
+feuern); das Vorschau-Fenster für den Fokus-Test echt per `window.open`
+aus der Editor-Page öffnen (`waitForEvent('popup')`), sonst ist
+`window.opener` null und der Fokus-Pfad bleibt ungetestet.
+
 ## Debug-Strategie wenn nichts greift
 
 Browser-Bundle-Cache schlägt regelmäßig zu — Hard-Reload (Cmd+Shift+R)
 nicht vergessen. Wenn Beweis nötig dass Code überhaupt läuft: `alert(...)`
 ist robuster als `console.log` (DevTools nicht immer offen). Nach
-Bestätigung sofort wieder entfernen.
+Bestätigung sofort wieder entfernen. Bei Hook-Änderungen (z. B. neue
+useEffect-Deps) kann Fast Refresh offene Fenster in einen kaputten
+Zustand versetzen („changed size between renders") — **beide** Fenster
+neu laden, bevor man dem Symptom hinterherjagt.
